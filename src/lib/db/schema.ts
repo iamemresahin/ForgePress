@@ -21,6 +21,24 @@ export const articleStatusEnum = pgEnum('article_status', [
   'rejected',
 ])
 export const jobStatusEnum = pgEnum('job_status', ['queued', 'running', 'completed', 'failed'])
+export const adminRoleEnum = pgEnum('admin_role', ['platform_admin', 'site_editor', 'reviewer'])
+
+export const adminUsers = pgTable(
+  'admin_users',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    email: varchar('email', { length: 255 }).notNull(),
+    passwordHash: text('password_hash').notNull(),
+    displayName: varchar('display_name', { length: 160 }).notNull(),
+    role: adminRoleEnum('role').notNull().default('site_editor'),
+    lastLoginAt: timestamp('last_login_at', { withTimezone: true }),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    emailIdx: uniqueIndex('admin_users_email_idx').on(table.email),
+  }),
+)
 
 export const sites = pgTable(
   'sites',
@@ -32,6 +50,14 @@ export const sites = pgTable(
     supportedLocales: jsonb('supported_locales').$type<string[]>().notNull().default(['en']),
     niche: varchar('niche', { length: 160 }),
     toneGuide: text('tone_guide'),
+    editorialGuidelines: text('editorial_guidelines'),
+    adsensePolicyNotes: text('adsense_policy_notes'),
+    prohibitedTopics: jsonb('prohibited_topics').$type<string[]>().notNull().default([]),
+    requiredSections: jsonb('required_sections').$type<string[]>().notNull().default([]),
+    reviewChecklist: jsonb('review_checklist').$type<string[]>().notNull().default([]),
+    createdByAdminId: uuid('created_by_admin_id').references(() => adminUsers.id, {
+      onDelete: 'set null',
+    }),
     status: siteStatusEnum('status').notNull().default('draft'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

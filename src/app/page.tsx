@@ -20,8 +20,8 @@ export default function HomePage() {
               deployment primitives.
             </p>
             <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-              <a className="button primary" href="/admin">
-                Open admin shell
+              <a className="button primary" href="/login">
+                Sign in to admin
               </a>
               <a className="button" href="/api/health">
                 Check system health

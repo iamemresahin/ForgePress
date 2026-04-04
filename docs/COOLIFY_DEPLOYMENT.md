@@ -17,8 +17,11 @@ Use the repository as a Dockerfile-based application in Coolify.
 - `DATABASE_URL=postgres://...`
 - `QUEUE_URL=redis://...`
 - `OPENAI_API_KEY=...`
+- `OPENAI_TEXT_MODEL=gpt-5.4-mini`
+- `OPENAI_MODERATION_MODEL=omni-moderation-latest`
 - `FORGEPRESS_ADMIN_EMAIL=...`
 - `FORGEPRESS_ADMIN_PASSWORD=...`
+- `FORGEPRESS_SESSION_SECRET=...`
 
 Optional:
 
@@ -29,8 +32,25 @@ Optional:
 
 - Exposed app port: `3000`
 - Health endpoint: `/api/health`
+- Readiness endpoint: `/api/ops/readiness`
 - Bootstrap contract endpoint: `/api/bootstrap`
 - Persistent media volume can be mounted later when the media pipeline is added
+
+## Recommended Coolify health check
+
+- path: `/api/ops/readiness`
+- expected status: `200`
+- use `/api/health` only for a lightweight liveness check
+
+## Runtime verification
+
+After deployment, verify:
+
+- `/api/health`
+- `/api/bootstrap`
+- `/api/ops/readiness`
+- `/login`
+- one published site route such as `/{siteSlug}/{articleSlug}`
 
 ## V1 deployment shape
 

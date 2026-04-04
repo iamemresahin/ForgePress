@@ -9,10 +9,14 @@ const envSchema = z.object({
     .default('postgres://postgres:postgres@127.0.0.1:5432/forgepress'),
   QUEUE_URL: z.string().min(1, 'QUEUE_URL is required').default('redis://127.0.0.1:6379'),
   OPENAI_API_KEY: z.string().optional(),
+  OPENAI_TEXT_MODEL: z.string().default('gpt-5.4-mini'),
+  OPENAI_IMAGE_MODEL: z.string().default('gpt-image-1-mini'),
+  OPENAI_MODERATION_MODEL: z.string().default('omni-moderation-latest'),
   CLOUDFLARE_API_TOKEN: z.string().optional(),
   CLOUDFLARE_ZONE_ID: z.string().optional(),
   FORGEPRESS_ADMIN_EMAIL: z.string().email().default('admin@example.com'),
   FORGEPRESS_ADMIN_PASSWORD: z.string().min(8).default('change-me'),
+  FORGEPRESS_SESSION_SECRET: z.string().min(32).optional(),
 })
 
 const parsed = envSchema.safeParse({
@@ -21,10 +25,14 @@ const parsed = envSchema.safeParse({
   DATABASE_URL: process.env.DATABASE_URL,
   QUEUE_URL: process.env.QUEUE_URL,
   OPENAI_API_KEY: process.env.OPENAI_API_KEY,
+  OPENAI_TEXT_MODEL: process.env.OPENAI_TEXT_MODEL,
+  OPENAI_IMAGE_MODEL: process.env.OPENAI_IMAGE_MODEL,
+  OPENAI_MODERATION_MODEL: process.env.OPENAI_MODERATION_MODEL,
   CLOUDFLARE_API_TOKEN: process.env.CLOUDFLARE_API_TOKEN,
   CLOUDFLARE_ZONE_ID: process.env.CLOUDFLARE_ZONE_ID,
   FORGEPRESS_ADMIN_EMAIL: process.env.FORGEPRESS_ADMIN_EMAIL,
   FORGEPRESS_ADMIN_PASSWORD: process.env.FORGEPRESS_ADMIN_PASSWORD,
+  FORGEPRESS_SESSION_SECRET: process.env.FORGEPRESS_SESSION_SECRET,
 })
 
 if (!parsed.success) {

@@ -15,6 +15,10 @@ const redis =
     enableReadyCheck: false,
   })
 
+redis.on('error', () => {
+  // Connection issues are surfaced by explicit queue checks and actions.
+})
+
 if (env.NODE_ENV !== 'production') {
   globalForQueue.forgepressRedis = redis
 }

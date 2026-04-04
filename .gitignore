@@ -15,7 +15,6 @@ dist-ssr
 .env
 .env.*
 !.env.example
-drizzle
 *.tsbuildinfo
 
 # Editor directories and files
