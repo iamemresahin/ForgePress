@@ -1,0 +1,118 @@
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+  varchar,
+} from 'drizzle-orm/pg-core'
+
+export const siteStatusEnum = pgEnum('site_status', ['draft', 'active', 'paused', 'archived'])
+export const sourceTypeEnum = pgEnum('source_type', ['rss', 'sitemap', 'manual_url', 'custom_feed'])
+export const articleStatusEnum = pgEnum('article_status', [
+  'draft',
+  'review',
+  'scheduled',
+  'published',
+  'rejected',
+])
+export const jobStatusEnum = pgEnum('job_status', ['queued', 'running', 'completed', 'failed'])
+
+export const sites = pgTable(
+  'sites',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    slug: varchar('slug', { length: 120 }).notNull(),
+    name: varchar('name', { length: 160 }).notNull(),
+    defaultLocale: varchar('default_locale', { length: 16 }).notNull().default('en'),
+    supportedLocales: jsonb('supported_locales').$type<string[]>().notNull().default(['en']),
+    niche: varchar('niche', { length: 160 }),
+    toneGuide: text('tone_guide'),
+    status: siteStatusEnum('status').notNull().default('draft'),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    slugIdx: uniqueIndex('sites_slug_idx').on(table.slug),
+  }),
+)
+
+export const siteDomains = pgTable(
+  'site_domains',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    siteId: uuid('site_id')
+      .references(() => sites.id, { onDelete: 'cascade' })
+      .notNull(),
+    hostname: varchar('hostname', { length: 255 }).notNull(),
+    isPrimary: boolean('is_primary').notNull().default(false),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    hostnameIdx: uniqueIndex('site_domains_hostname_idx').on(table.hostname),
+  }),
+)
+
+export const sources = pgTable('sources', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  siteId: uuid('site_id')
+    .references(() => sites.id, { onDelete: 'cascade' })
+    .notNull(),
+  label: varchar('label', { length: 160 }).notNull(),
+  type: sourceTypeEnum('type').notNull(),
+  url: text('url').notNull(),
+  locale: varchar('locale', { length: 16 }).notNull(),
+  isActive: boolean('is_active').notNull().default(true),
+  pollMinutes: integer('poll_minutes').notNull().default(60),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const articles = pgTable('articles', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  siteId: uuid('site_id')
+    .references(() => sites.id, { onDelete: 'cascade' })
+    .notNull(),
+  sourceId: uuid('source_id').references(() => sources.id, { onDelete: 'set null' }),
+  canonicalTopic: varchar('canonical_topic', { length: 255 }).notNull(),
+  sourceUrl: text('source_url'),
+  status: articleStatusEnum('status').notNull().default('draft'),
+  riskFlags: jsonb('risk_flags').$type<string[]>().notNull().default([]),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+})
+
+export const articleLocalizations = pgTable('article_localizations', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  articleId: uuid('article_id')
+    .references(() => articles.id, { onDelete: 'cascade' })
+    .notNull(),
+  locale: varchar('locale', { length: 16 }).notNull(),
+  title: varchar('title', { length: 255 }).notNull(),
+  slug: varchar('slug', { length: 255 }).notNull(),
+  excerpt: text('excerpt'),
+  body: text('body').notNull(),
+  seoTitle: varchar('seo_title', { length: 255 }),
+  seoDescription: text('seo_description'),
+  imageUrl: text('image_url'),
+  schemaJson: jsonb('schema_json').$type<Record<string, unknown> | null>().default(null),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
+export const jobs = pgTable('jobs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  siteId: uuid('site_id').references(() => sites.id, { onDelete: 'cascade' }),
+  kind: varchar('kind', { length: 80 }).notNull(),
+  status: jobStatusEnum('status').notNull().default('queued'),
+  payload: jsonb('payload').$type<Record<string, unknown>>().notNull().default({}),
+  errorMessage: text('error_message'),
+  attempts: integer('attempts').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  startedAt: timestamp('started_at', { withTimezone: true }),
+  finishedAt: timestamp('finished_at', { withTimezone: true }),
+})
