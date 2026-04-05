@@ -21,7 +21,7 @@ type PublicArticlePageProps = {
   nextArticle?: PublicArticleSummary | null
   relatedArticles?: PublicArticleSummary[]
   currentReader?: { id: string; email: string; displayName: string; siteId: string } | null
-  comments?: Array<{ id: string; displayName: string; body: string; createdAtLabel: string }>
+  comments?: Array<{ id: string; memberId: string; displayName: string; body: string; createdAtLabel: string }>
 }
 
 function splitBody(body: string) {

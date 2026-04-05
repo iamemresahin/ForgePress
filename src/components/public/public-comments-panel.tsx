@@ -1,9 +1,9 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { LogOut } from 'lucide-react'
 
-import { signOutPublicReaderAction, submitCommentAction } from '@/app/comments/actions'
+import { deleteOwnCommentAction, signOutPublicReaderAction, submitCommentAction, updateOwnCommentAction } from '@/app/comments/actions'
 import { usePublicColorMode } from '@/components/public/public-color-mode'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,98 @@ import { Textarea } from '@/components/ui/textarea'
 
 type ExistingComment = {
   id: string
+  memberId: string
   displayName: string
   body: string
   createdAtLabel: string
+}
+
+function CommentItem({
+  comment,
+  currentReaderId,
+  siteId,
+  redirectPath,
+  locale,
+  mode,
+}: {
+  comment: ExistingComment
+  currentReaderId?: string
+  siteId: string
+  redirectPath: string
+  locale: string
+  mode: 'light' | 'dark'
+}) {
+  const tr = locale.toLowerCase().startsWith('tr')
+  const isOwner = Boolean(currentReaderId && currentReaderId === comment.memberId)
+  const [isEditing, setIsEditing] = useState(false)
+  const [draftBody, setDraftBody] = useState(comment.body)
+  const [updateState, updateAction, updating] = useActionState(updateOwnCommentAction, undefined)
+  const [deleteState, deleteAction, deleting] = useActionState(deleteOwnCommentAction, undefined)
+
+  return (
+    <article className={mode === 'light' ? 'rounded-[24px] border border-slate-200 bg-white p-5' : 'rounded-[24px] border border-white/10 bg-white/[0.03] p-5'}>
+      <div className="flex items-center justify-between gap-3">
+        <strong className={mode === 'light' ? 'text-slate-950' : 'text-white'}>{comment.displayName}</strong>
+        <span className={mode === 'light' ? 'text-xs uppercase tracking-[0.18em] text-slate-400' : 'text-xs uppercase tracking-[0.18em] text-white/42'}>{comment.createdAtLabel}</span>
+      </div>
+
+      {isEditing ? (
+        <form action={updateAction} className="mt-3 space-y-3">
+          <input type="hidden" name="commentId" value={comment.id} />
+          <input type="hidden" name="siteId" value={siteId} />
+          <input type="hidden" name="redirectPath" value={redirectPath} />
+          <Textarea
+            name="body"
+            rows={4}
+            value={draftBody}
+            onChange={(event) => setDraftBody(event.target.value)}
+            className="border-white/10 bg-white text-slate-950 placeholder:text-slate-400"
+          />
+          {updateState?.error ? <p className="text-sm text-rose-300">{updateState.error}</p> : null}
+          {updateState?.success ? <p className="text-sm text-emerald-300">{updateState.success}</p> : null}
+          <div className="flex flex-wrap gap-2">
+            <Button type="submit" className={mode === 'light' ? 'rounded-full bg-slate-950 text-white hover:bg-slate-800' : 'rounded-full'} disabled={updating}>
+              {updating ? (tr ? 'Kaydediliyor...' : 'Saving...') : tr ? 'Kaydet' : 'Save'}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => {
+                setIsEditing(false)
+                setDraftBody(comment.body)
+              }}
+            >
+              {tr ? 'Vazgeç' : 'Cancel'}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <p className={mode === 'light' ? 'mt-3 text-sm leading-7 text-slate-700' : 'mt-3 text-sm leading-7 text-white/72'}>{comment.body}</p>
+      )}
+
+      {isOwner ? (
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          {!isEditing ? (
+            <Button type="button" variant="outline" className="rounded-full" onClick={() => setIsEditing(true)}>
+              {tr ? 'Düzenle' : 'Edit'}
+            </Button>
+          ) : null}
+          <form action={deleteAction}>
+            <input type="hidden" name="commentId" value={comment.id} />
+            <input type="hidden" name="siteId" value={siteId} />
+            <input type="hidden" name="redirectPath" value={redirectPath} />
+            <Button type="submit" variant="outline" className="rounded-full border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700" disabled={deleting}>
+              {deleting ? (tr ? 'Siliniyor...' : 'Deleting...') : tr ? 'Sil' : 'Delete'}
+            </Button>
+          </form>
+        </div>
+      ) : null}
+
+      {deleteState?.error ? <p className="mt-3 text-sm text-rose-300">{deleteState.error}</p> : null}
+      {deleteState?.success ? <p className="mt-3 text-sm text-emerald-300">{deleteState.success}</p> : null}
+    </article>
+  )
 }
 
 export function PublicCommentsPanel({
@@ -140,13 +229,15 @@ export function PublicCommentsPanel({
           </p>
         ) : (
           comments.map((comment) => (
-            <article key={comment.id} className={mode === 'light' ? 'rounded-[24px] border border-slate-200 bg-white p-5' : 'rounded-[24px] border border-white/10 bg-white/[0.03] p-5'}>
-              <div className="flex items-center justify-between gap-3">
-                <strong className={mode === 'light' ? 'text-slate-950' : 'text-white'}>{comment.displayName}</strong>
-                <span className={mode === 'light' ? 'text-xs uppercase tracking-[0.18em] text-slate-400' : 'text-xs uppercase tracking-[0.18em] text-white/42'}>{comment.createdAtLabel}</span>
-              </div>
-              <p className={mode === 'light' ? 'mt-3 text-sm leading-7 text-slate-700' : 'mt-3 text-sm leading-7 text-white/72'}>{comment.body}</p>
-            </article>
+            <CommentItem
+              key={comment.id}
+              comment={comment}
+              currentReaderId={currentReader?.id}
+              siteId={siteId}
+              redirectPath={redirectPath}
+              locale={locale}
+              mode={mode}
+            />
           ))
         )}
       </div>

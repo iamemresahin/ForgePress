@@ -462,6 +462,7 @@ export async function getCommentsForArticle(articleId: string, locale: string) {
     .select({
       id: articleComments.id,
       body: articleComments.body,
+      memberId: articleComments.memberId,
       createdAt: articleComments.createdAt,
       displayName: siteMembers.displayName,
     })
