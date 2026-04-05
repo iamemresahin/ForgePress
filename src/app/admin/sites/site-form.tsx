@@ -348,6 +348,11 @@ export function SiteForm({
                   ? 'Her site kendi markasıyla giriş yapmalı. Google client id değerini site bazlı girerek yayınları birbirinden ayırın.'
                   : 'Each site should sign readers in under its own brand. Set a site-specific Google client id to isolate publications.'}
               </p>
+              <p className="text-xs leading-6 text-slate-500">
+                {tr
+                  ? 'Birbiriyle alakasız yayınlarda aynı Google OAuth uygulamasını paylaşmayın. Her site için ayrı auth marka adı ve ayrı Google client id kullanın.'
+                  : 'Do not share the same Google OAuth app across unrelated publications. Use a separate auth brand and Google client id for each site.'}
+              </p>
             </div>
 
             <div className="form-grid">

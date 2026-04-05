@@ -18,6 +18,11 @@ type SiteMemberRecord = typeof siteMembers.$inferSelect
 export type AdminSession = Pick<AdminRecord, 'id' | 'email' | 'displayName' | 'role'>
 export type PublicReaderSession = Pick<SiteMemberRecord, 'id' | 'email' | 'displayName' | 'siteId'>
 
+export function getPublicReaderSessionCookieName(siteId: string) {
+  const normalizedSiteKey = siteId.replace(/[^a-zA-Z0-9]/g, '').slice(0, 16).toLowerCase()
+  return normalizedSiteKey ? `${READER_SESSION_COOKIE}_${normalizedSiteKey}` : READER_SESSION_COOKIE
+}
+
 function getSessionSecret() {
   if (env.FORGEPRESS_SESSION_SECRET) {
     return env.FORGEPRESS_SESSION_SECRET
@@ -249,15 +254,15 @@ export async function authenticateSiteMember(siteId: string, email: string, pass
 export async function createPublicReaderSession(reader: PublicReaderSession) {
   const cookieStore = await cookies()
   cookieStore.set(
-    READER_SESSION_COOKIE,
+    getPublicReaderSessionCookieName(reader.siteId),
     createPublicReaderSessionCookieValue(reader),
     getPublicReaderSessionCookieOptions(),
   )
 }
 
-export async function clearPublicReaderSession() {
+export async function clearPublicReaderSession(siteId: string) {
   const cookieStore = await cookies()
-  cookieStore.delete(READER_SESSION_COOKIE)
+  cookieStore.delete(getPublicReaderSessionCookieName(siteId))
 }
 
 export async function findOrCreateGoogleSiteMember(siteId: string, email: string, displayName: string) {
@@ -281,7 +286,9 @@ export async function findOrCreateGoogleSiteMember(siteId: string, email: string
 
 export async function getPublicReaderSession(siteId: string) {
   const cookieStore = await cookies()
-  const rawCookie = cookieStore.get(READER_SESSION_COOKIE)?.value
+  const rawCookie =
+    cookieStore.get(getPublicReaderSessionCookieName(siteId))?.value ??
+    cookieStore.get(READER_SESSION_COOKIE)?.value
   const parsed = await parseReaderSessionCookie(rawCookie)
 
   if (!parsed || parsed.siteId !== siteId) return null

@@ -3,6 +3,7 @@ import { eq } from 'drizzle-orm'
 
 import {
   createPublicReaderSessionCookieValue,
+  getPublicReaderSessionCookieName,
   findOrCreateGoogleSiteMember,
   getPublicReaderSessionCookieOptions,
 } from '@/lib/auth'
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
     })
 
     response.cookies.set(
-      'forgepress_reader_session',
+      getPublicReaderSessionCookieName(member.siteId),
       createPublicReaderSessionCookieValue({
         id: member.id,
         email: member.email,
