@@ -1,7 +1,13 @@
 import Link from 'next/link'
 import { ArrowRight, ChevronRight, Search } from 'lucide-react'
 
-import { buildDerivedTopics, deriveTopicForArticle, type PublicArticleSummary } from '@/lib/public-site'
+import {
+  buildDerivedTopics,
+  deriveTopicForArticle,
+  estimateReadTimeMinutes,
+  formatFreshnessLabel,
+  type PublicArticleSummary,
+} from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 
 type PublicSiteHomeProps = {
@@ -76,16 +82,25 @@ function EditorialMeta({
   article,
   locale,
   muted,
+  siteNiche,
+  topicLabelOverrides,
 }: {
   article: PublicArticleSummary
   locale: string
   muted: string
+  siteNiche?: string | null
+  topicLabelOverrides?: Record<string, string>
 }) {
+  const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)
+  const freshness = formatFreshnessLabel(article.publishedAt)
+  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium uppercase tracking-[0.24em]">
-      <span style={{ color: '#fb923c' }}>{article.locale}</span>
+      <span style={{ color: '#fb923c' }}>{topic.label}</span>
       <span style={{ color: muted }}>{formatPublishedDate(article.publishedAt, locale) ?? 'Live'}</span>
-      <span style={{ color: muted }}>ForgePress</span>
+      <span style={{ color: muted }}>{readTime} min read</span>
+      <span style={{ color: muted }}>{freshness}</span>
     </div>
   )
 }
@@ -155,10 +170,13 @@ function KantanLikeHome({
                       accent={theme.tokens.heroGlow}
                     />
                     <div className="space-y-3">
-                      <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
-                      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
-                        {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
-                      </p>
+                      <EditorialMeta
+                        article={article}
+                        locale={site.defaultLocale}
+                        muted={theme.tokens.muted}
+                        siteNiche={site.niche}
+                        topicLabelOverrides={site.topicLabelOverrides}
+                      />
                       <h2 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
                         {article.title}
                       </h2>
@@ -182,10 +200,13 @@ function KantanLikeHome({
                   accent={theme.tokens.heroGlow}
                 />
                 <div className="space-y-4">
-                  <EditorialMeta article={featuredArticle} locale={site.defaultLocale} muted={theme.tokens.muted} />
-                  <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
-                    {deriveTopicForArticle(featuredArticle, site.niche, site.topicLabelOverrides).label}
-                  </p>
+                  <EditorialMeta
+                    article={featuredArticle}
+                    locale={site.defaultLocale}
+                    muted={theme.tokens.muted}
+                    siteNiche={site.niche}
+                    topicLabelOverrides={site.topicLabelOverrides}
+                  />
                   <h1 className="max-w-4xl text-[clamp(2.1rem,4.7vw,4.8rem)] font-semibold leading-[0.95] tracking-tight text-white transition group-hover:text-white/88">
                     {featuredArticle.title}
                   </h1>
@@ -220,34 +241,42 @@ function KantanLikeHome({
 
           <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
             <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-2">
-            {(feedArticles.length > 0 ? feedArticles : articles.slice(0, 6)).map((article) => (
-              <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
-                <article className="grid gap-4">
-                  <ArticleImage
-                    imageUrl={article.imageUrl}
-                    title={article.title}
-                    heightClassName="h-56"
-                    accent={theme.tokens.heroGlow}
-                  />
-                  <div className="space-y-3">
-                    <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
-                    <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
-                      {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
-                    </p>
-                    <h3 className="text-[1.42rem] font-semibold leading-[1.08] text-white transition group-hover:text-white/88">
-                      {article.title}
-                    </h3>
-                    <p className="text-sm leading-6" style={{ color: theme.tokens.muted }}>
-                      {article.excerpt ?? 'Open the story to read the full article and source context.'}
-                    </p>
-                    <span className="inline-flex items-center gap-2 text-sm font-medium text-white">
-                      Continue Reading
-                      <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
-                    </span>
-                  </div>
-                </article>
-              </Link>
-            ))}
+              {(feedArticles.length > 0 ? feedArticles : articles.slice(0, 6)).map((article) => (
+                <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
+                  <article className="grid gap-4">
+                    <ArticleImage
+                      imageUrl={article.imageUrl}
+                      title={article.title}
+                      heightClassName="h-56"
+                      accent={theme.tokens.heroGlow}
+                    />
+                    <div className="space-y-3">
+                      <EditorialMeta
+                        article={article}
+                        locale={site.defaultLocale}
+                        muted={theme.tokens.muted}
+                        siteNiche={site.niche}
+                        topicLabelOverrides={site.topicLabelOverrides}
+                      />
+                      <h3 className="text-[1.42rem] font-semibold leading-[1.08] text-white transition group-hover:text-white/88">
+                        {article.title}
+                      </h3>
+                      <p className="text-sm leading-6" style={{ color: theme.tokens.muted }}>
+                        {article.excerpt ?? 'Open the story to read the full article and source context.'}
+                      </p>
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="inline-flex items-center gap-2 text-sm font-medium text-white">
+                          Continue Reading
+                          <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
+                        </span>
+                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/58">
+                          Source-ready
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+                </Link>
+              ))}
             </div>
 
             <aside className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5">
@@ -269,7 +298,7 @@ function KantanLikeHome({
                       {article.title}
                     </h4>
                     <p className="mt-2 text-sm leading-6 text-white/58">
-                      {formatPublishedDate(article.publishedAt, site.defaultLocale) ?? 'Live'}
+                      {formatPublishedDate(article.publishedAt, site.defaultLocale) ?? 'Live'} · {estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)} min read
                     </p>
                   </Link>
                 ))}
@@ -301,7 +330,13 @@ function KantanLikeHome({
                       accent={theme.tokens.heroGlow}
                     />
                     <div className="space-y-3">
-                      <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                      <EditorialMeta
+                        article={article}
+                        locale={site.defaultLocale}
+                        muted={theme.tokens.muted}
+                        siteNiche={site.niche}
+                        topicLabelOverrides={site.topicLabelOverrides}
+                      />
                       <h3 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
                         {article.title}
                       </h3>

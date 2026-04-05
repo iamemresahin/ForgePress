@@ -1,7 +1,12 @@
 import Link from 'next/link'
 import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarClock } from 'lucide-react'
 
-import { type PublicArticleDetail, type PublicArticleSummary } from '@/lib/public-site'
+import {
+  estimateReadTimeMinutes,
+  formatFreshnessLabel,
+  type PublicArticleDetail,
+  type PublicArticleSummary,
+} from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 
 type PublicArticlePageProps = {
@@ -95,6 +100,8 @@ function KantanLikeArticle({
   nextArticle,
 }: PublicArticlePageProps) {
   const publishedLabel = formatPublishedDate(article.publishedAt, article.locale)
+  const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''} ${article.body}`)
+  const freshness = formatFreshnessLabel(article.publishedAt)
   const homeHref = useHostRouting ? '/' : `/${article.siteSlug}`
   const nextHref = nextArticle
     ? useHostRouting
@@ -126,6 +133,8 @@ function KantanLikeArticle({
               <CalendarClock className="size-3.5" />
               {publishedLabel}
             </span>
+            <span className="text-white/40">{readTime} min read</span>
+            <span className="text-white/40">{freshness}</span>
             <span className="text-white/40">AI-assisted</span>
           </div>
 
@@ -180,6 +189,8 @@ function KantanLikeArticle({
                 <p>Site: {article.siteName}</p>
                 <p>Locale: {article.locale}</p>
                 <p>Published: {publishedLabel}</p>
+                <p>Read time: {readTime} min</p>
+                <p>Freshness: {freshness}</p>
               </div>
             </div>
 

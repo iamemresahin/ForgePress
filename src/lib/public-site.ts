@@ -88,6 +88,29 @@ export async function getPublishedArticlesForSite(siteId: string) {
   return publishedArticles.filter((article) => article.publishedAt)
 }
 
+export function estimateReadTimeMinutes(text: string) {
+  const words = text.trim().split(/\s+/).filter(Boolean).length
+  return Math.max(1, Math.ceil(words / 180))
+}
+
+export function formatFreshnessLabel(date: Date | null) {
+  if (!date) return 'Fresh'
+
+  const diffMs = Date.now() - date.getTime()
+  const diffHours = Math.max(1, Math.round(diffMs / (1000 * 60 * 60)))
+
+  if (diffHours < 24) {
+    return `${diffHours}h ago`
+  }
+
+  const diffDays = Math.max(1, Math.round(diffHours / 24))
+  if (diffDays < 7) {
+    return `${diffDays}d ago`
+  }
+
+  return 'Archive'
+}
+
 export type PublicArticleSummary = Awaited<ReturnType<typeof getPublishedArticlesForSite>>[number]
 
 export type DerivedTopic = {
