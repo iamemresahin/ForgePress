@@ -33,6 +33,7 @@ export default async function AdminJobsPage() {
       status: jobs.status,
       attempts: jobs.attempts,
       errorMessage: jobs.errorMessage,
+      payload: jobs.payload,
       createdAt: jobs.createdAt,
       siteName: sites.name,
     })
@@ -143,6 +144,14 @@ export default async function AdminJobsPage() {
                       <strong className="mt-0 text-xl">{job.id.slice(0, 8)}</strong>
                       <p className="muted">{tr ? 'Deneme' : 'Attempts'}: {job.attempts}</p>
                     </div>
+                    {typeof job.payload?.workerNote === 'string' ? (
+                      <p className="text-sm leading-6 text-slate-600">{String(job.payload.workerNote)}</p>
+                    ) : null}
+                    {typeof job.payload?.createdArticles === 'number' || typeof job.payload?.skippedArticles === 'number' ? (
+                      <p className="text-sm leading-6 text-slate-600">
+                        {tr ? 'Üretilen' : 'Created'}: {Number(job.payload?.createdArticles ?? 0)} · {tr ? 'Atlanan' : 'Skipped'}: {Number(job.payload?.skippedArticles ?? 0)}
+                      </p>
+                    ) : null}
                     {job.errorMessage ? <p className="form-error">{job.errorMessage}</p> : null}
                   </article>
                 ))}
