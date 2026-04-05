@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -8,7 +8,12 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { InterfaceLocale } from '@/lib/interface-locale'
-import { ARTICLE_LAYOUT_OPTIONS, HOMEPAGE_LAYOUT_OPTIONS, THEME_PRESETS } from '@/lib/site-theme'
+import {
+  ARTICLE_LAYOUT_OPTIONS,
+  HOMEPAGE_LAYOUT_OPTIONS,
+  THEME_PRESETS,
+  resolveThemePreview,
+} from '@/lib/site-theme'
 
 type SiteFormValues = {
   name: string
@@ -47,6 +52,23 @@ export function SiteForm({
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
   const tr = locale === 'tr'
+  const [themePreset, setThemePreset] = useState<SiteFormValues['themePreset']>(initialValues.themePreset)
+  const [homepageLayout, setHomepageLayout] = useState<SiteFormValues['homepageLayout']>(initialValues.homepageLayout)
+  const [articleLayout, setArticleLayout] = useState<SiteFormValues['articleLayout']>(initialValues.articleLayout)
+  const [themePrimary, setThemePrimary] = useState(initialValues.themePrimary)
+  const [themeAccent, setThemeAccent] = useState(initialValues.themeAccent)
+  const [themeBackground, setThemeBackground] = useState(initialValues.themeBackground)
+
+  const themePreview = resolveThemePreview({
+    themePreset,
+    homepageLayout,
+    articleLayout,
+    themePrimary,
+    themeAccent,
+    themeBackground,
+  })
+
+  const selectedPreset = THEME_PRESETS[themePreset]
 
   return (
     <Card>
@@ -209,7 +231,12 @@ export function SiteForm({
 
             <div className="field">
               <Label htmlFor="themePreset">{tr ? 'Tema preset’i' : 'Theme preset'}</Label>
-              <select id="themePreset" name="themePreset" defaultValue={initialValues.themePreset}>
+              <select
+                id="themePreset"
+                name="themePreset"
+                value={themePreset}
+                onChange={(event) => setThemePreset(event.target.value as SiteFormValues['themePreset'])}
+              >
                 {Object.values(THEME_PRESETS).map((preset) => (
                   <option key={preset.key} value={preset.key}>
                     {tr ? preset.label.tr : preset.label.en}
@@ -218,15 +245,20 @@ export function SiteForm({
               </select>
               <p className="text-xs text-slate-500">
                 {tr
-                  ? (THEME_PRESETS[initialValues.themePreset]?.description.tr ?? '')
-                  : (THEME_PRESETS[initialValues.themePreset]?.description.en ?? '')}
+                  ? selectedPreset?.description.tr ?? ''
+                  : selectedPreset?.description.en ?? ''}
               </p>
             </div>
 
             <div className="form-grid">
               <div className="field">
                 <Label htmlFor="homepageLayout">{tr ? 'Anasayfa düzeni' : 'Homepage layout'}</Label>
-                <select id="homepageLayout" name="homepageLayout" defaultValue={initialValues.homepageLayout}>
+                <select
+                  id="homepageLayout"
+                  name="homepageLayout"
+                  value={homepageLayout}
+                  onChange={(event) => setHomepageLayout(event.target.value as SiteFormValues['homepageLayout'])}
+                >
                   {HOMEPAGE_LAYOUT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {tr ? option.label.tr : option.label.en}
@@ -236,7 +268,12 @@ export function SiteForm({
               </div>
               <div className="field">
                 <Label htmlFor="articleLayout">{tr ? 'Makale düzeni' : 'Article layout'}</Label>
-                <select id="articleLayout" name="articleLayout" defaultValue={initialValues.articleLayout}>
+                <select
+                  id="articleLayout"
+                  name="articleLayout"
+                  value={articleLayout}
+                  onChange={(event) => setArticleLayout(event.target.value as SiteFormValues['articleLayout'])}
+                >
                   {ARTICLE_LAYOUT_OPTIONS.map((option) => (
                     <option key={option.value} value={option.value}>
                       {tr ? option.label.tr : option.label.en}
@@ -249,11 +286,23 @@ export function SiteForm({
             <div className="form-grid">
               <div className="field">
                 <Label htmlFor="themePrimary">{tr ? 'Ana renk' : 'Primary color'}</Label>
-                <Input id="themePrimary" name="themePrimary" type="color" defaultValue={initialValues.themePrimary} />
+                <Input
+                  id="themePrimary"
+                  name="themePrimary"
+                  type="color"
+                  value={themePrimary}
+                  onChange={(event) => setThemePrimary(event.target.value)}
+                />
               </div>
               <div className="field">
                 <Label htmlFor="themeAccent">{tr ? 'Vurgu rengi' : 'Accent color'}</Label>
-                <Input id="themeAccent" name="themeAccent" type="color" defaultValue={initialValues.themeAccent} />
+                <Input
+                  id="themeAccent"
+                  name="themeAccent"
+                  type="color"
+                  value={themeAccent}
+                  onChange={(event) => setThemeAccent(event.target.value)}
+                />
               </div>
             </div>
 
@@ -263,8 +312,117 @@ export function SiteForm({
                 id="themeBackground"
                 name="themeBackground"
                 type="color"
-                defaultValue={initialValues.themeBackground}
+                value={themeBackground}
+                onChange={(event) => setThemeBackground(event.target.value)}
               />
+            </div>
+
+            <div className="rounded-[24px] border border-sky-200/70 bg-white/90 p-5">
+              <div className="mb-4 flex items-center justify-between gap-3">
+                <div>
+                  <p className="eyebrow">{tr ? 'Canlı önizleme' : 'Live preview'}</p>
+                  <p className="text-sm text-slate-600">
+                    {tr
+                      ? 'Tema seçiminin public yüzeyde nasıl hissedileceğini burada hızlıca görün.'
+                      : 'Quickly preview how this theme choice will feel on the public surface.'}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="size-4 rounded-full border border-white/70 shadow-sm" style={{ backgroundColor: themePreview.tokens.primary }} />
+                  <span className="size-4 rounded-full border border-white/70 shadow-sm" style={{ backgroundColor: themePreview.tokens.accent }} />
+                  <span className="size-4 rounded-full border border-slate-200 shadow-sm" style={{ backgroundColor: themePreview.tokens.background }} />
+                </div>
+              </div>
+
+              <div
+                className="overflow-hidden rounded-[28px] border p-4 md:p-5"
+                style={{
+                  background: `linear-gradient(180deg, ${themePreview.tokens.backgroundSoft}, ${themePreview.tokens.background})`,
+                  borderColor: themePreview.tokens.border,
+                }}
+              >
+                <div
+                  className="rounded-[24px] border p-5"
+                  style={{
+                    background: `radial-gradient(circle at top left, ${themePreview.tokens.heroGlow}, transparent 32%), ${themePreview.tokens.panel}`,
+                    borderColor: themePreview.tokens.border,
+                    color: themePreview.tokens.foreground,
+                  }}
+                >
+                  <div className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.24em]">
+                    <span
+                      className="rounded-full border px-3 py-1"
+                      style={{
+                        borderColor: themePreview.tokens.border,
+                        background: themePreview.tokens.panelStrong,
+                      }}
+                    >
+                      {homepageLayout === 'digest' ? (tr ? 'Bülten' : 'Digest') : (tr ? 'Spot ışığı' : 'Spotlight')}
+                    </span>
+                    <span style={{ color: themePreview.tokens.muted }}>
+                      {articleLayout === 'feature' ? (tr ? 'Öne çıkan makale' : 'Feature article') : (tr ? 'Editoryal akış' : 'Editorial flow')}
+                    </span>
+                  </div>
+
+                  <div className={homepageLayout === 'digest' ? 'grid gap-4 lg:grid-cols-[0.95fr_1.05fr]' : 'grid gap-4 lg:grid-cols-[1.1fr_0.9fr]'}>
+                    <div className="space-y-3">
+                      <h3 className="text-3xl font-semibold leading-tight">{initialValues.name || (tr ? 'Site adı' : 'Site name')}</h3>
+                      <p className="text-sm leading-6" style={{ color: themePreview.tokens.muted }}>
+                        {initialValues.niche || (tr ? 'Tema, tipografi ve kart ritmi önizlemesi burada görünür.' : 'Theme, typography, and card rhythm preview appears here.')}
+                      </p>
+                      <div className="flex items-center gap-3">
+                        <span
+                          className="inline-flex min-h-10 items-center rounded-full px-4 text-sm font-semibold"
+                          style={{
+                            backgroundColor: themePreview.tokens.primary,
+                            color: themePreview.tokens.buttonForeground,
+                          }}
+                        >
+                          {tr ? 'Öne çıkan içerik' : 'Featured story'}
+                        </span>
+                        <span className="text-sm" style={{ color: themePreview.tokens.muted }}>
+                          {tr ? 'Tema vurgusu' : 'Theme accent'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div
+                      className="rounded-[20px] border p-4"
+                      style={{
+                        background: themePreview.tokens.panelStrong,
+                        borderColor: themePreview.tokens.border,
+                      }}
+                    >
+                      <div className="mb-3 flex items-center gap-2 text-xs font-medium">
+                        <span
+                          className="rounded-full border px-3 py-1"
+                          style={{
+                            borderColor: themePreview.tokens.border,
+                            backgroundColor: themePreview.tokens.panel,
+                          }}
+                        >
+                          {tr ? 'Kart görünümü' : 'Card preview'}
+                        </span>
+                      </div>
+                      <h4 className="text-lg font-semibold">
+                        {articleLayout === 'feature'
+                          ? tr
+                            ? 'Geniş hero makale tonu'
+                            : 'Wide hero article tone'
+                          : tr
+                            ? 'Dengeli editoryal makale tonu'
+                            : 'Balanced editorial article tone'}
+                      </h4>
+                      <p className="mt-2 text-sm leading-6" style={{ color: themePreview.tokens.muted }}>
+                        {tr
+                          ? 'Bu önizleme public homepage ve article yüzeylerinin renk ailesini ve kontrast hissini simgeler.'
+                          : 'This preview approximates the color family and contrast feel of the public homepage and article surfaces.'}
+                      </p>
+                      <div className="mt-4 h-2 rounded-full" style={{ background: `linear-gradient(90deg, ${themePreview.tokens.primary}, ${themePreview.tokens.accent})` }} />
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 

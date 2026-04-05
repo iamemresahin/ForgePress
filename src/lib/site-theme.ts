@@ -179,10 +179,10 @@ export function getThemePreset(preset?: string | null) {
   return THEME_PRESETS[key] ?? THEME_PRESETS.forge_blue
 }
 
-export function resolveSiteTheme(site: ThemeRecord) {
+function buildTheme(site: ThemeRecord) {
   const preset = getThemePreset(site.themePreset)
 
-  const theme = {
+  return {
     preset: preset.key,
     homepageLayout: (site.homepageLayout ?? 'spotlight') as HomepageLayoutKey,
     articleLayout: (site.articleLayout ?? 'editorial') as ArticleLayoutKey,
@@ -193,6 +193,10 @@ export function resolveSiteTheme(site: ThemeRecord) {
       background: isHexColor(site.themeBackground) ? site.themeBackground! : preset.tokens.background,
     },
   }
+}
+
+export function resolveSiteTheme(site: ThemeRecord) {
+  const theme = buildTheme(site)
 
   return {
     ...theme,
@@ -213,3 +217,7 @@ export function resolveSiteTheme(site: ThemeRecord) {
 }
 
 export type ResolvedSiteTheme = ReturnType<typeof resolveSiteTheme>
+
+export function resolveThemePreview(site: ThemeRecord) {
+  return buildTheme(site)
+}

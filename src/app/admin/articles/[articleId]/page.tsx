@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
-import { Globe2, PencilLine, Rocket } from 'lucide-react'
+import { Globe2, PencilLine, Rocket, Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -12,7 +12,7 @@ import { articleLocalizations, articles, sites } from '@/lib/db/schema'
 import { translateArticleStatus } from '@/lib/interface-locale'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
-import { publishArticleAction, updateArticleAction } from '../actions'
+import { deleteArticleAction, publishArticleAction, updateArticleAction } from '../actions'
 import { EditArticleForm } from './edit-form'
 
 export default async function EditArticlePage({
@@ -92,9 +92,9 @@ export default async function EditArticlePage({
               {tr ? 'Makale listesine dön' : 'Back to article list'}
             </Link>
           </Button>
-          <form action={publishArticleAction.bind(null, article.id)}>
-            <Button className="rounded-xl">
-              <Rocket className="size-4" />
+        <form action={publishArticleAction.bind(null, article.id)}>
+          <Button className="rounded-xl">
+            <Rocket className="size-4" />
               {article.status === 'published'
                 ? tr
                   ? 'Yayını yenile'
@@ -102,6 +102,12 @@ export default async function EditArticlePage({
                 : tr
                   ? 'Makaleyi yayınla'
                   : 'Publish article'}
+            </Button>
+          </form>
+          <form action={deleteArticleAction.bind(null, article.id)}>
+            <Button variant="outline" className="rounded-xl text-red-600 hover:text-red-700">
+              <Trash2 className="size-4" />
+              {tr ? 'Taslağı sil' : 'Delete article'}
             </Button>
           </form>
         </CardContent>

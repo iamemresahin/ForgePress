@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 
@@ -219,4 +220,14 @@ export async function publishArticleAction(articleId: string) {
   revalidatePath(`/admin/articles/${articleId}`)
   revalidatePath(`/${published.siteSlug}`)
   revalidatePath(`/${published.siteSlug}/${published.slug}`)
+}
+
+export async function deleteArticleAction(articleId: string) {
+  await requireAdminSession()
+
+  await db.delete(articles).where(eq(articles.id, articleId))
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/articles')
+  redirect('/admin/articles')
 }
