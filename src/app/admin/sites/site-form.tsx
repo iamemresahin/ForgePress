@@ -22,6 +22,8 @@ type SiteFormValues = {
   prohibitedTopics: string
   requiredSections: string
   reviewChecklist: string
+  primaryHostname: string
+  additionalHostnames: string
   themePreset: 'forge_blue' | 'editorial_glow' | 'news_sand' | 'midnight_signal'
   homepageLayout: 'spotlight' | 'digest'
   articleLayout: 'editorial' | 'feature'
@@ -89,6 +91,29 @@ export function SiteForm({
           <div className="field">
             <Label htmlFor="niche">{tr ? 'Niş alan' : 'Niche'}</Label>
             <Input id="niche" name="niche" type="text" defaultValue={initialValues.niche} />
+          </div>
+
+          <div className="form-grid">
+            <div className="field">
+              <Label htmlFor="primaryHostname">{tr ? 'Birincil domain' : 'Primary domain'}</Label>
+              <Input
+                id="primaryHostname"
+                name="primaryHostname"
+                type="text"
+                defaultValue={initialValues.primaryHostname}
+                placeholder={tr ? 'ornek.com' : 'example.com'}
+              />
+            </div>
+            <div className="field">
+              <Label htmlFor="additionalHostnames">{tr ? 'Ek domainler' : 'Additional domains'}</Label>
+              <Input
+                id="additionalHostnames"
+                name="additionalHostnames"
+                type="text"
+                defaultValue={initialValues.additionalHostnames}
+                placeholder={tr ? 'www.ornek.com, blog.ornek.com' : 'www.example.com, blog.example.com'}
+              />
+            </div>
           </div>
 
           <div className="field">

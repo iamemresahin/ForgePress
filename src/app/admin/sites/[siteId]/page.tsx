@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { eq } from 'drizzle-orm'
+import { asc, eq } from 'drizzle-orm'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { sites } from '@/lib/db/schema'
+import { siteDomains, sites } from '@/lib/db/schema'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 import { getThemePreset } from '@/lib/site-theme'
 
@@ -24,10 +24,21 @@ export default async function EditSitePage({
   const { siteId } = await params
 
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId)).limit(1)
+  const domains = await db
+    .select()
+    .from(siteDomains)
+    .where(eq(siteDomains.siteId, siteId))
+    .orderBy(asc(siteDomains.createdAt))
 
   if (!site) {
     notFound()
   }
+
+  const primaryDomain = domains.find((domain) => domain.isPrimary)?.hostname ?? domains[0]?.hostname ?? ''
+  const additionalDomains = domains
+    .filter((domain) => domain.hostname !== primaryDomain)
+    .map((domain) => domain.hostname)
+    .join(', ')
 
   return (
     <section className="space-y-6">
@@ -69,6 +80,8 @@ export default async function EditSitePage({
           prohibitedTopics: site.prohibitedTopics.join(', '),
           requiredSections: site.requiredSections.join(', '),
           reviewChecklist: site.reviewChecklist.join(', '),
+          primaryHostname: primaryDomain,
+          additionalHostnames: additionalDomains,
           themePreset: site.themePreset,
           homepageLayout: site.homepageLayout,
           articleLayout: site.articleLayout,

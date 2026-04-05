@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { desc } from 'drizzle-orm'
+import { and, desc, eq } from 'drizzle-orm'
 import { Globe2, Languages, PenTool, Sparkles } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
-import { sites } from '@/lib/db/schema'
+import { siteDomains, sites } from '@/lib/db/schema'
 import { translateRole } from '@/lib/interface-locale'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 import { getThemePreset } from '@/lib/site-theme'
@@ -19,7 +19,21 @@ export default async function AdminSitesPage() {
   const session = await requireAdminSession()
   const locale = await getInterfaceLocale()
   const tr = locale === 'tr'
-  const siteRows = await db.select().from(sites).orderBy(desc(sites.createdAt))
+  const siteRows = await db
+    .select({
+      id: sites.id,
+      name: sites.name,
+      slug: sites.slug,
+      defaultLocale: sites.defaultLocale,
+      supportedLocales: sites.supportedLocales,
+      niche: sites.niche,
+      status: sites.status,
+      themePreset: sites.themePreset,
+      primaryDomain: siteDomains.hostname,
+    })
+    .from(sites)
+    .leftJoin(siteDomains, and(eq(siteDomains.siteId, sites.id), eq(siteDomains.isPrimary, true)))
+    .orderBy(desc(sites.createdAt))
 
   return (
     <section className="space-y-6">
@@ -89,6 +103,8 @@ export default async function AdminSitesPage() {
             reviewChecklist: tr
               ? 'kaynak atfını doğrula, başlık doğruluğunu onayla, AdSense uyumlu sayfa kalitesini kontrol et'
               : 'verify source attribution, confirm headline accuracy, confirm AdSense-safe page quality',
+            primaryHostname: '',
+            additionalHostnames: '',
             themePreset: 'forge_blue',
             homepageLayout: 'spotlight',
             articleLayout: 'editorial',
@@ -142,6 +158,7 @@ export default async function AdminSitesPage() {
                     <div className="space-y-1">
                       <strong className="mt-0 text-xl">{site.name}</strong>
                       <p className="muted">/{site.slug}</p>
+                      {site.primaryDomain ? <p className="text-sm text-slate-500">{site.primaryDomain}</p> : null}
                     </div>
                     {site.niche ? <p className="text-sm leading-6 text-foreground/85">{site.niche}</p> : null}
                     <Button asChild variant="outline" className="rounded-xl">
