@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarClock } from 'lucide-react'
 
 import {
+  buildEditorialImageDataUri,
   estimateReadTimeMinutes,
   formatFreshnessLabel,
   type PublicArticleDetail,
@@ -149,7 +150,12 @@ function KantanLikeArticle({
           ) : null}
         </section>
 
-        <EditorialImage imageUrl={article.imageUrl} title={article.title} accent={theme.tokens.heroGlow} />
+        <EditorialImage
+          imageUrl={article.imageUrl ?? buildEditorialImageDataUri(article)}
+          title={article.title}
+          accent={theme.tokens.heroGlow}
+        />
+
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4">
@@ -203,6 +209,11 @@ function KantanLikeArticle({
                         href={relatedHref}
                         className="group rounded-[24px] border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20"
                       >
+                        <img
+                          src={relatedArticle.imageUrl ?? buildEditorialImageDataUri(relatedArticle)}
+                          alt={relatedArticle.title}
+                          className="mb-4 h-32 w-full rounded-[18px] object-cover"
+                        />
                         <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
                           {formatFreshnessLabel(relatedArticle.publishedAt)}
                         </p>

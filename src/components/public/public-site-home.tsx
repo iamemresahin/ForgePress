@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowRight, ChevronRight, Search } from 'lucide-react'
 
 import {
+  buildEditorialImageDataUri,
   buildDerivedTopics,
   deriveTopicForArticle,
   estimateReadTimeMinutes,
@@ -106,6 +107,14 @@ function EditorialMeta({
   )
 }
 
+function resolveArticleVisual(
+  article: PublicArticleSummary,
+  siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
+) {
+  return article.imageUrl ?? buildEditorialImageDataUri(article, siteNiche, topicLabelOverrides)
+}
+
 function KantanLikeHome({
   site,
   theme,
@@ -166,7 +175,7 @@ function KantanLikeHome({
                 <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
                   <article className="grid gap-4 border-b border-white/10 pb-5">
                     <ArticleImage
-                      imageUrl={article.imageUrl}
+                      imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
                       title={article.title}
                       heightClassName="h-48"
                       accent={theme.tokens.heroGlow}
@@ -196,7 +205,7 @@ function KantanLikeHome({
             <Link href={getArticleHref(site.slug, featuredArticle.slug, useHostRouting ?? false)} className="group">
               <article className="grid gap-5">
                 <ArticleImage
-                  imageUrl={featuredArticle.imageUrl}
+                  imageUrl={resolveArticleVisual(featuredArticle, site.niche, site.topicLabelOverrides)}
                   title={featuredArticle.title}
                   heightClassName="h-[320px] md:h-[420px] xl:h-[520px]"
                   accent={theme.tokens.heroGlow}
@@ -247,7 +256,7 @@ function KantanLikeHome({
                 <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
                   <article className="grid gap-4">
                     <ArticleImage
-                      imageUrl={article.imageUrl}
+                      imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
                       title={article.title}
                       heightClassName="h-56"
                       accent={theme.tokens.heroGlow}
@@ -361,7 +370,7 @@ function KantanLikeHome({
                 <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
                   <article className="grid gap-4">
                     <ArticleImage
-                      imageUrl={article.imageUrl}
+                      imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
                       title={article.title}
                       heightClassName="h-56"
                       accent={theme.tokens.heroGlow}

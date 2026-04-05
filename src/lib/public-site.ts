@@ -147,6 +147,91 @@ export function deriveTopicForArticle(
   return { slug: 'latest', label: topicLabelOverrides?.latest ?? 'Latest' }
 }
 
+function hashString(input: string) {
+  let hash = 0
+
+  for (let index = 0; index < input.length; index += 1) {
+    hash = (hash << 5) - hash + input.charCodeAt(index)
+    hash |= 0
+  }
+
+  return Math.abs(hash)
+}
+
+function escapeSvgText(text: string) {
+  return text
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+const EDITORIAL_PALETTES = [
+  { start: '#1d4ed8', end: '#0f172a', glow: '#38bdf8' },
+  { start: '#0f766e', end: '#111827', glow: '#2dd4bf' },
+  { start: '#7c3aed', end: '#111827', glow: '#a78bfa' },
+  { start: '#ea580c', end: '#111827', glow: '#fb923c' },
+  { start: '#be123c', end: '#111827', glow: '#fb7185' },
+]
+
+export function buildEditorialImageDataUri(
+  article: Pick<PublicArticleSummary, 'title' | 'excerpt'>,
+  siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
+) {
+  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+  const hash = hashString(`${article.title}-${topic.slug}`)
+  const palette = EDITORIAL_PALETTES[hash % EDITORIAL_PALETTES.length]
+  const angle = hash % 360
+  const accentX = 18 + (hash % 48)
+  const accentY = 20 + (hash % 30)
+  const headline = escapeSvgText(article.title)
+  const kicker = escapeSvgText(topic.label.toUpperCase())
+  const strap = escapeSvgText((article.excerpt ?? siteNiche ?? 'Signal Editorial').slice(0, 120))
+
+  const svg = `
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="${headline}">
+      <defs>
+        <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="${palette.start}" />
+          <stop offset="100%" stop-color="${palette.end}" />
+        </linearGradient>
+        <radialGradient id="glow" cx="${accentX}%" cy="${accentY}%" r="48%">
+          <stop offset="0%" stop-color="${palette.glow}" stop-opacity="0.72" />
+          <stop offset="100%" stop-color="${palette.glow}" stop-opacity="0" />
+        </radialGradient>
+      </defs>
+      <rect width="1200" height="760" fill="url(#bg)" />
+      <rect width="1200" height="760" fill="url(#glow)" />
+      <g opacity="0.18" transform="rotate(${angle} 600 380)">
+        <rect x="810" y="-120" width="220" height="1040" rx="110" fill="#ffffff" />
+        <rect x="930" y="-160" width="120" height="1080" rx="60" fill="#ffffff" />
+      </g>
+      <g opacity="0.14">
+        <circle cx="170" cy="126" r="72" fill="#ffffff" />
+        <circle cx="228" cy="182" r="14" fill="#ffffff" />
+      </g>
+      <text x="72" y="108" fill="rgba(255,255,255,0.72)" font-size="24" font-family="Arial, Helvetica, sans-serif" letter-spacing="7">${kicker}</text>
+      <foreignObject x="72" y="156" width="760" height="360">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;height:100%;align-items:flex-start;">
+          <div style="font-family:Arial, Helvetica, sans-serif;font-size:72px;line-height:1.02;font-weight:700;color:white;max-width:760px;">
+            ${headline}
+          </div>
+        </div>
+      </foreignObject>
+      <foreignObject x="72" y="560" width="640" height="120">
+        <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Arial, Helvetica, sans-serif;font-size:28px;line-height:1.35;color:rgba(255,255,255,0.74);max-width:640px;">
+          ${strap}
+        </div>
+      </foreignObject>
+      <text x="74" y="716" fill="rgba(255,255,255,0.58)" font-size="22" font-family="Arial, Helvetica, sans-serif" letter-spacing="4">SIGNAL EDITORIAL</text>
+    </svg>
+  `.trim()
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
+}
+
 export function buildDerivedTopics(
   articles: PublicArticleSummary[],
   siteNiche?: string | null,
