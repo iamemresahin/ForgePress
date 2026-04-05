@@ -82,6 +82,27 @@ export function PublicSiteHeader({
           <span>{siteName}</span>
         </Link>
 
+        <div className="flex items-center gap-2 lg:hidden">
+          <button type="button" onClick={toggleMode} className={ghostButtonClassName}>
+            {mode === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
+          </button>
+          <PublicReaderAuthDialog
+            siteId={siteId}
+            siteName={siteName}
+            redirectPath={redirectPath}
+            locale={locale}
+            currentReader={currentReader}
+            authBrandName={authBrandName}
+            googleClientId={googleClientId}
+            triggerLabel={signInLabel}
+            triggerClassName={
+              mode === 'light'
+                ? 'inline-flex items-center rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800'
+                : 'inline-flex items-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/92'
+            }
+          />
+        </div>
+
         <div className="hidden items-center gap-2 lg:flex">
           {navItems.map((item, index) => {
             const Icon = item.icon ? iconMap[item.icon] : null
