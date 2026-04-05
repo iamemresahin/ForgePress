@@ -104,7 +104,7 @@ function EditorialFeatureCard({
     <Link href={href} className="group">
       <article
         className={`relative overflow-hidden rounded-[28px] border border-white/12 bg-[#080809] ${
-          size === 'large' ? 'min-h-[440px] md:min-h-[610px]' : 'min-h-[300px] md:min-h-[320px]'
+          size === 'large' ? 'min-h-[470px] md:min-h-[660px]' : 'min-h-[220px] md:min-h-[250px]'
         }`}
       >
         <img
@@ -123,7 +123,7 @@ function EditorialFeatureCard({
         />
         <div
           className={`absolute inset-x-0 bottom-0 z-10 flex flex-col ${
-            size === 'large' ? 'gap-4 p-7 md:p-8' : 'gap-2.5 p-5 md:p-6'
+            size === 'large' ? 'gap-4 p-7 md:p-8' : 'gap-2 p-4 md:p-5'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -135,7 +135,7 @@ function EditorialFeatureCard({
             className={`max-w-5xl font-semibold tracking-tight text-white ${
               size === 'large'
                 ? 'text-[clamp(1.95rem,3.5vw,3.35rem)] leading-[1.04]'
-                : 'max-w-[24rem] text-[clamp(1.15rem,1.55vw,1.85rem)] leading-[1.16]'
+                : 'max-w-[18rem] text-[clamp(1rem,1.15vw,1.45rem)] leading-[1.12]'
             }`}
           >
             {article.title}
@@ -149,7 +149,7 @@ function EditorialFeatureCard({
               {article.excerpt}
             </p>
           ) : null}
-          <p className={size === 'large' ? 'text-sm text-white/58' : 'text-[0.82rem] text-white/52'}>{publishedLabel}</p>
+          <p className={size === 'large' ? 'text-sm text-white/58' : 'text-[0.76rem] text-white/50'}>{publishedLabel}</p>
         </div>
       </article>
     </Link>
@@ -356,17 +356,7 @@ function KantanLikeHome({
         ) : (
           <>
             {heroArticle ? (
-              <section id="featured" className="grid gap-5 xl:grid-cols-[minmax(0,1.72fr)_0.92fr]">
-                <EditorialFeatureCard
-                  href={getArticleHref(site.slug, heroArticle.slug, useHostRouting ?? false)}
-                  article={heroArticle}
-                  locale={site.defaultLocale}
-                  siteNiche={site.niche}
-                  topicLabelOverrides={site.topicLabelOverrides}
-                  accent={theme.tokens.heroGlow}
-                  size="large"
-                />
-
+              <section id="featured" className="grid gap-5 xl:grid-cols-[0.68fr_minmax(0,2.02fr)]">
                 <div className="grid gap-5">
                   {heroRailArticles.map((article) => (
                     <EditorialFeatureCard
@@ -380,6 +370,16 @@ function KantanLikeHome({
                     />
                   ))}
                 </div>
+
+                <EditorialFeatureCard
+                  href={getArticleHref(site.slug, heroArticle.slug, useHostRouting ?? false)}
+                  article={heroArticle}
+                  locale={site.defaultLocale}
+                  siteNiche={site.niche}
+                  topicLabelOverrides={site.topicLabelOverrides}
+                  accent={theme.tokens.heroGlow}
+                  size="large"
+                />
               </section>
             ) : null}
 
