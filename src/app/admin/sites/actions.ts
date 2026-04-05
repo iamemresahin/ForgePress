@@ -180,6 +180,8 @@ export async function createSiteAction(_: { error?: string } | undefined, formDa
 
   revalidatePath('/admin')
   revalidatePath('/admin/sites')
+  revalidatePath('/')
+  revalidatePath(`/${parsed.data.slug}`)
 
   return { error: undefined }
 }
@@ -283,6 +285,10 @@ export async function updateSiteAction(
   revalidatePath('/admin')
   revalidatePath('/admin/sites')
   revalidatePath(`/admin/sites/${siteId}`)
+  revalidatePath('/')
+  revalidatePath(`/${parsed.data.slug}`)
+  revalidatePath(`/topics`)
+  revalidatePath(`/${parsed.data.slug}/topics`)
 
   return { error: undefined }
 }

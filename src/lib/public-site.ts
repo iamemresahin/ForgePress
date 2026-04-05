@@ -165,12 +165,12 @@ export type DerivedTopic = {
 }
 
 const TOPIC_RULES: Array<{ slug: string; label: { tr: string; en: string }; pattern: RegExp }> = [
-  { slug: 'ai', label: { tr: 'Yapay Zeka', en: 'AI' }, pattern: /\b(ai|agent|agents|gpt|llm|model|models|prompt|prompts)\b/i },
-  { slug: 'tools', label: { tr: 'Araçlar', en: 'Tools' }, pattern: /\b(tool|tools|stack|stacks|workflow|workflows|automation|automations)\b/i },
   { slug: 'startups', label: { tr: 'Girişimler', en: 'Startups' }, pattern: /\b(startup|startups|founder|founders|funding|launch|launched)\b/i },
+  { slug: 'tools', label: { tr: 'Araçlar', en: 'Tools' }, pattern: /\b(tool|tools|stack|stacks|workflow|workflows|automation|automations)\b/i },
   { slug: 'development', label: { tr: 'Geliştirme', en: 'Development' }, pattern: /\b(dev|developer|developers|build|builder|builders|code|coding|software)\b/i },
   { slug: 'design', label: { tr: 'Tasarım', en: 'Design' }, pattern: /\b(design|designer|designers|ui|ux|brand|branding)\b/i },
   { slug: 'technology', label: { tr: 'Teknoloji', en: 'Technology' }, pattern: /\b(tech|technology|platform|platforms|product|products)\b/i },
+  { slug: 'ai', label: { tr: 'Yapay Zeka', en: 'AI' }, pattern: /\b(ai|agent|agents|gpt|llm|model|models|prompt|prompts)\b/i },
 ]
 
 export function deriveTopicForArticle(
