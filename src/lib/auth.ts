@@ -170,6 +170,20 @@ function serializeReaderSession(reader: PublicReaderSession) {
   return `${payload}.${signature}`
 }
 
+export function createPublicReaderSessionCookieValue(reader: PublicReaderSession) {
+  return serializeReaderSession(reader)
+}
+
+export function getPublicReaderSessionCookieOptions() {
+  return {
+    httpOnly: true as const,
+    sameSite: 'lax' as const,
+    secure: env.NODE_ENV === 'production',
+    path: '/',
+    expires: new Date(Date.now() + SESSION_TTL_MS),
+  }
+}
+
 async function parseReaderSessionCookie(rawValue?: string) {
   if (!rawValue) return null
 
@@ -234,18 +248,35 @@ export async function authenticateSiteMember(siteId: string, email: string, pass
 
 export async function createPublicReaderSession(reader: PublicReaderSession) {
   const cookieStore = await cookies()
-  cookieStore.set(READER_SESSION_COOKIE, serializeReaderSession(reader), {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: env.NODE_ENV === 'production',
-    path: '/',
-    expires: new Date(Date.now() + SESSION_TTL_MS),
-  })
+  cookieStore.set(
+    READER_SESSION_COOKIE,
+    createPublicReaderSessionCookieValue(reader),
+    getPublicReaderSessionCookieOptions(),
+  )
 }
 
 export async function clearPublicReaderSession() {
   const cookieStore = await cookies()
   cookieStore.delete(READER_SESSION_COOKIE)
+}
+
+export async function findOrCreateGoogleSiteMember(siteId: string, email: string, displayName: string) {
+  const existingMember = await findSiteMemberByEmail(siteId, email)
+  if (existingMember) {
+    return existingMember
+  }
+
+  const [member] = await db
+    .insert(siteMembers)
+    .values({
+      siteId,
+      email: email.trim().toLowerCase(),
+      displayName: displayName.trim() || email.trim().split('@')[0] || 'Reader',
+      passwordHash: hashPassword(randomBytes(24).toString('hex')),
+    })
+    .returning()
+
+  return member
 }
 
 export async function getPublicReaderSession(siteId: string) {

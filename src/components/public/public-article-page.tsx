@@ -10,8 +10,8 @@ import {
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
-import { CommentLoginGate } from '@/components/public/comment-login-gate'
 import { PublicCommentsPanel } from '@/components/public/public-comments-panel'
+import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
@@ -114,7 +114,7 @@ function KantanLikeArticle({
   const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''} ${article.body}`)
   const freshness = formatFreshnessLabel(article.publishedAt)
   const homeHref = useHostRouting ? '/' : `/${article.siteSlug}`
-  const loginHref = `/login?next=${encodeURIComponent(useHostRouting ? `/${article.slug}#comments` : `/${article.siteSlug}/${article.slug}#comments`)}`
+  const redirectPath = useHostRouting ? `/${article.slug}` : `/${article.siteSlug}/${article.slug}`
   const nextHref = nextArticle
     ? useHostRouting
       ? `/${nextArticle.slug}`
@@ -133,13 +133,14 @@ function KantanLikeArticle({
               {copy.backHome}
             </Link>
           </div>
-          <CommentLoginGate
-            title={`${article.siteName} ${copy.comments}`}
-            description={copy.commentsLocked}
-            body={copy.commentsLocked}
-            buttonLabel={copy.signIn}
-            loginHref={loginHref}
-            loginLabel={copy.continueToLogin}
+          <PublicReaderAuthDialog
+            siteId={article.siteId}
+            siteName={article.siteName}
+            redirectPath={redirectPath}
+            locale={article.locale}
+            currentReader={currentReader}
+            triggerLabel={copy.signIn}
+            triggerClassName="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70 transition hover:border-white/20 hover:text-white"
           />
         </div>
       </header>
@@ -252,7 +253,7 @@ function KantanLikeArticle({
               siteId={article.siteId}
               siteName={article.siteName}
               articleId={article.id}
-              redirectPath={useHostRouting ? `/${article.slug}` : `/${article.siteSlug}/${article.slug}`}
+              redirectPath={redirectPath}
               locale={article.locale}
               currentReader={currentReader}
               comments={comments}

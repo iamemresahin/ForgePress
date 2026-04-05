@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 
 import { BrandMark } from '@/components/brand-mark'
 import { PublicSiteHome } from '@/components/public/public-site-home'
+import { getPublicReaderSession } from '@/lib/auth'
 import { findSiteByHostname, getPublishedArticlesForSite } from '@/lib/public-site'
 import { isPlatformHost, normalizeHostname } from '@/lib/site-domain'
 import { resolveSiteTheme } from '@/lib/site-theme'
@@ -51,7 +52,8 @@ export default async function HomePage() {
     if (site) {
       const theme = resolveSiteTheme(site)
       const articles = await getPublishedArticlesForSite(site.id)
-      return <PublicSiteHome site={site} theme={theme} articles={articles} useHostRouting />
+      const currentReader = await getPublicReaderSession(site.id)
+      return <PublicSiteHome site={site} theme={theme} articles={articles} useHostRouting currentReader={currentReader} />
     }
   }
 

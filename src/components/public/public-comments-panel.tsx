@@ -2,13 +2,9 @@
 
 import { useActionState } from 'react'
 
-import {
-  publicReaderSignInAction,
-  publicReaderSignUpAction,
-  submitCommentAction,
-} from '@/app/comments/actions'
+import { submitCommentAction } from '@/app/comments/actions'
+import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
 type ExistingComment = {
@@ -36,8 +32,6 @@ export function PublicCommentsPanel({
   comments: ExistingComment[]
 }) {
   const tr = locale.toLowerCase().startsWith('tr')
-  const [signInState, signInAction, signingIn] = useActionState(publicReaderSignInAction, undefined)
-  const [signUpState, signUpAction, signingUp] = useActionState(publicReaderSignUpAction, undefined)
   const [commentState, commentAction, posting] = useActionState(submitCommentAction, undefined)
 
   return (
@@ -80,60 +74,22 @@ export function PublicCommentsPanel({
           </form>
         </div>
       ) : (
-        <div className="mt-5 grid gap-5 lg:grid-cols-2">
-          <form action={signInAction} className="space-y-4 rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
-            <input type="hidden" name="siteId" value={siteId} />
-            <input type="hidden" name="siteName" value={siteName} />
-            <input type="hidden" name="redirectPath" value={redirectPath} />
-            <h3 className="text-lg font-semibold text-white">{tr ? 'Giriş yap' : 'Sign in'}</h3>
-            <Input
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              className="border-white/10 bg-white text-slate-950 placeholder:text-slate-400"
+        <div className="mt-5 rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
+          <p className="max-w-2xl text-sm leading-7 text-white/64">
+            {tr
+              ? 'Yorum bırakmak için bu yayın markası altında popup ile giriş yap veya Google hesabınla devam et.'
+              : 'Sign in under this publication with a popup, or continue with your Google account before posting a comment.'}
+          </p>
+          <div className="mt-5">
+            <PublicReaderAuthDialog
+              siteId={siteId}
+              siteName={siteName}
+              redirectPath={redirectPath}
+              locale={locale}
+              triggerLabel={tr ? 'Yorum yapmak için giriş yap' : 'Sign in to comment'}
+              triggerClassName="inline-flex items-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/92"
             />
-            <Input
-              name="password"
-              type="password"
-              placeholder={tr ? 'Şifren' : 'Your password'}
-              className="border-white/10 bg-white text-slate-950 placeholder:text-slate-400"
-            />
-            {signInState?.error ? <p className="text-sm text-rose-300">{signInState.error}</p> : null}
-            {signInState?.success ? <p className="text-sm text-emerald-300">{signInState.success}</p> : null}
-            <Button type="submit" className="rounded-full" disabled={signingIn}>
-              {signingIn ? (tr ? 'Giriş yapılıyor...' : 'Signing in...') : tr ? 'Siteye giriş yap' : 'Sign in to this site'}
-            </Button>
-          </form>
-
-          <form action={signUpAction} className="space-y-4 rounded-[24px] border border-white/10 bg-white/[0.03] p-5">
-            <input type="hidden" name="siteId" value={siteId} />
-            <input type="hidden" name="siteName" value={siteName} />
-            <input type="hidden" name="redirectPath" value={redirectPath} />
-            <h3 className="text-lg font-semibold text-white">{tr ? 'Hesap oluştur' : 'Create account'}</h3>
-            <Input
-              name="displayName"
-              type="text"
-              placeholder={tr ? 'Görünen adın' : 'Display name'}
-              className="border-white/10 bg-white text-slate-950 placeholder:text-slate-400"
-            />
-            <Input
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              className="border-white/10 bg-white text-slate-950 placeholder:text-slate-400"
-            />
-            <Input
-              name="password"
-              type="password"
-              placeholder={tr ? 'Bir şifre oluştur' : 'Create a password'}
-              className="border-white/10 bg-white text-slate-950 placeholder:text-slate-400"
-            />
-            {signUpState?.error ? <p className="text-sm text-rose-300">{signUpState.error}</p> : null}
-            {signUpState?.success ? <p className="text-sm text-emerald-300">{signUpState.success}</p> : null}
-            <Button type="submit" className="rounded-full" disabled={signingUp}>
-              {signingUp ? (tr ? 'Hesap açılıyor...' : 'Creating account...') : tr ? 'Okuyucu hesabı aç' : 'Create reader account'}
-            </Button>
-          </form>
+          </div>
         </div>
       )}
 

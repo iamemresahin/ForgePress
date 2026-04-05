@@ -128,6 +128,7 @@ export default async function PublicSitePage({
 
   const theme = resolveSiteTheme(site)
   const articles = await getPublishedArticlesForSite(site.id)
+  const currentReader = await getPublicReaderSession(site.id)
 
-  return <PublicSiteHome site={site} theme={theme} articles={articles} />
+  return <PublicSiteHome site={site} theme={theme} articles={articles} currentReader={currentReader} />
 }

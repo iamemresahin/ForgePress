@@ -33,6 +33,7 @@ type PublicSiteHomeProps = {
   articles: PublicArticleSummary[]
   useHostRouting?: boolean
   activeTopicSlug?: string | null
+  currentReader?: { id: string; email: string; displayName: string } | null
 }
 
 function formatPublishedDate(date: Date | null, locale: string) {
@@ -350,6 +351,7 @@ function KantanLikeHome({
   articles,
   useHostRouting,
   activeTopicSlug,
+  currentReader,
 }: PublicSiteHomeProps) {
   const copy = getPublicCopy(site.defaultLocale)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides, site.defaultLocale)
@@ -377,13 +379,16 @@ function KantanLikeHome({
     <main className="min-h-screen bg-black text-white" style={theme.style}>
       <PublicSiteHeader
         homeHref={homeHref}
+        siteId={site.id}
         siteName={site.name}
+        locale={site.defaultLocale}
+        redirectPath={activeTopicSlug ? getTopicHref(site.slug, activeTopicSlug, useHostRouting ?? false) : homeHref}
         navItems={resolvedNavItems}
         extraItems={extraItems}
         flowModeLabel={copy.flowMode}
         signInLabel={copy.signIn}
         otherCategoriesLabel={copy.otherCategories}
-        signInHref="/login"
+        currentReader={currentReader}
       />
 
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">

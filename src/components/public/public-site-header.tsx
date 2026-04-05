@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { CarFront, Eye, FlaskConical, Gamepad2, Monitor, Plus, Search, Zap } from 'lucide-react'
 
+import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,16 +36,22 @@ export function PublicSiteHeader({
   flowModeLabel,
   signInLabel,
   otherCategoriesLabel,
-  signInHref,
+  siteId,
+  locale,
+  redirectPath,
+  currentReader,
 }: {
   homeHref: string
+  siteId: string
   siteName: string
+  locale: string
+  redirectPath: string
   navItems: NavItem[]
   extraItems: NavItem[]
   flowModeLabel: string
   signInLabel: string
   otherCategoriesLabel: string
-  signInHref: string
+  currentReader?: { id: string; displayName: string; email: string } | null
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 backdrop-blur-xl">
@@ -124,12 +131,15 @@ export function PublicSiteHeader({
             <Zap className="size-4" />
             {flowModeLabel}
           </button>
-          <Link
-            href={signInHref}
-            className="inline-flex items-center rounded-full bg-white px-5 py-3 text-[0.95rem] font-semibold text-black transition hover:bg-white/92"
-          >
-            {signInLabel}
-          </Link>
+          <PublicReaderAuthDialog
+            siteId={siteId}
+            siteName={siteName}
+            redirectPath={redirectPath}
+            locale={locale}
+            currentReader={currentReader}
+            triggerLabel={signInLabel}
+            triggerClassName="inline-flex items-center rounded-full bg-white px-5 py-3 text-[0.95rem] font-semibold text-black transition hover:bg-white/92"
+          />
         </div>
       </div>
     </header>

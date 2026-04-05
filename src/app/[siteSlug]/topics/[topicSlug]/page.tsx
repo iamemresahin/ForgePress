@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { PublicSiteHome } from '@/components/public/public-site-home'
+import { getPublicReaderSession } from '@/lib/auth'
 import {
   buildDerivedTopics,
   getDerivedTopicBySlug,
@@ -55,7 +56,15 @@ export default async function SiteTopicPage({
     notFound()
   }
 
+  const currentReader = await getPublicReaderSession(site.id)
+
   return (
-    <PublicSiteHome site={site} theme={resolveSiteTheme(site)} articles={articles} activeTopicSlug={topic.slug} />
+    <PublicSiteHome
+      site={site}
+      theme={resolveSiteTheme(site)}
+      articles={articles}
+      activeTopicSlug={topic.slug}
+      currentReader={currentReader}
+    />
   )
 }

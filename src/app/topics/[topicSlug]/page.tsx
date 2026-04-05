@@ -3,6 +3,7 @@ import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 
 import { PublicSiteHome } from '@/components/public/public-site-home'
+import { getPublicReaderSession } from '@/lib/auth'
 import {
   buildDerivedTopics,
   findSiteByHostname,
@@ -66,7 +67,16 @@ export default async function HostTopicPage({
     notFound()
   }
 
+  const currentReader = await getPublicReaderSession(site.id)
+
   return (
-    <PublicSiteHome site={site} theme={resolveSiteTheme(site)} articles={articles} useHostRouting activeTopicSlug={topic.slug} />
+    <PublicSiteHome
+      site={site}
+      theme={resolveSiteTheme(site)}
+      articles={articles}
+      useHostRouting
+      activeTopicSlug={topic.slug}
+      currentReader={currentReader}
+    />
   )
 }
