@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { ArrowRight, ChevronRight, Search } from 'lucide-react'
 
-import { type PublicArticleSummary } from '@/lib/public-site'
+import { buildDerivedTopics, deriveTopicForArticle, type PublicArticleSummary } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 
 type PublicSiteHomeProps = {
@@ -94,13 +94,14 @@ function KantanLikeHome({
   const featuredArticle = articles[0]
   const railArticles = articles.slice(1, 3)
   const feedArticles = articles.slice(3)
+  const topics = buildDerivedTopics(articles, site.niche).slice(0, 4)
   const navItems = [
-    'Featured',
-    'All',
-    'Technology',
-    'AI',
-    'Tools',
-    'Startups',
+    { href: '#featured', label: 'Featured' },
+    { href: '#latest', label: 'All' },
+    ...topics.map((topic) => ({
+      href: `#topic-${topic.slug}`,
+      label: topic.label,
+    })),
   ]
 
   return (
@@ -112,14 +113,15 @@ function KantanLikeHome({
           </Link>
           <div className="hidden items-center gap-2 lg:flex">
             {navItems.map((item, index) => (
-              <span
-                key={item}
+              <a
+                key={item.label}
+                href={item.href}
                 className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
                   index === 0 ? 'border-white/20 text-white' : 'border-white/10 text-white/65'
                 }`}
               >
-                {item}
-              </span>
+                {item.label}
+              </a>
             ))}
           </div>
           <div className="flex items-center gap-2">
@@ -135,7 +137,7 @@ function KantanLikeHome({
 
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
         {featuredArticle ? (
-          <section className="grid gap-5 xl:grid-cols-[0.42fr_minmax(0,1fr)]">
+          <section id="featured" className="grid gap-5 xl:grid-cols-[0.42fr_minmax(0,1fr)]">
             <div className="grid gap-5">
               {railArticles.map((article) => (
                 <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
@@ -148,6 +150,9 @@ function KantanLikeHome({
                     />
                     <div className="space-y-3">
                       <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                      <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
+                        {deriveTopicForArticle(article, site.niche).label}
+                      </p>
                       <h2 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
                         {article.title}
                       </h2>
@@ -172,6 +177,9 @@ function KantanLikeHome({
                 />
                 <div className="space-y-4">
                   <EditorialMeta article={featuredArticle} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                  <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
+                    {deriveTopicForArticle(featuredArticle, site.niche).label}
+                  </p>
                   <h1 className="max-w-4xl text-[clamp(2.1rem,4.7vw,4.8rem)] font-semibold leading-[0.95] tracking-tight text-white transition group-hover:text-white/88">
                     {featuredArticle.title}
                   </h1>
@@ -195,7 +203,7 @@ function KantanLikeHome({
           </section>
         )}
 
-        <section className="space-y-5">
+        <section id="latest" className="space-y-5">
           <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">Latest Stories</p>
@@ -216,6 +224,9 @@ function KantanLikeHome({
                   />
                   <div className="space-y-3">
                     <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                    <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
+                      {deriveTopicForArticle(article, site.niche).label}
+                    </p>
                     <h3 className="text-[1.42rem] font-semibold leading-[1.08] text-white transition group-hover:text-white/88">
                       {article.title}
                     </h3>
@@ -232,6 +243,44 @@ function KantanLikeHome({
             ))}
           </div>
         </section>
+
+        {topics.map((topic) => (
+          <section key={topic.slug} id={`topic-${topic.slug}`} className="space-y-5">
+            <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">Topic</p>
+                <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">{topic.label}</h2>
+              </div>
+              <span className="hidden text-sm text-white/50 md:inline-flex">
+                {topic.articles.length} stor{topic.articles.length === 1 ? 'y' : 'ies'}
+              </span>
+            </div>
+
+            <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+              {topic.articles.slice(0, 3).map((article) => (
+                <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
+                  <article className="grid gap-4">
+                    <ArticleImage
+                      imageUrl={article.imageUrl}
+                      title={article.title}
+                      heightClassName="h-56"
+                      accent={theme.tokens.heroGlow}
+                    />
+                    <div className="space-y-3">
+                      <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                      <h3 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
+                        {article.title}
+                      </h3>
+                      <p className="text-sm leading-6" style={{ color: theme.tokens.muted }}>
+                        {article.excerpt ?? 'Open the story to read the full article and source context.'}
+                      </p>
+                    </div>
+                  </article>
+                </Link>
+              ))}
+            </div>
+          </section>
+        ))}
       </div>
     </main>
   )
