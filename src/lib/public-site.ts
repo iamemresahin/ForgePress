@@ -180,7 +180,7 @@ export function deriveTopicForArticle(
   locale = 'en',
 ) {
   const tr = isTurkishLocale(locale)
-  const haystack = `${article.title} ${article.excerpt ?? ''} ${siteNiche ?? ''}`.trim()
+  const haystack = `${article.title} ${article.excerpt ?? ''}`.trim()
 
   for (const topic of TOPIC_RULES) {
     if (topic.pattern.test(haystack)) {
