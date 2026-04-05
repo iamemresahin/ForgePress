@@ -104,7 +104,7 @@ function EditorialFeatureCard({
     <Link href={href} className="group">
       <article
         className={`relative overflow-hidden rounded-[28px] border border-white/12 bg-[#080809] ${
-          size === 'large' ? 'min-h-[470px] md:min-h-[660px]' : 'min-h-[220px] md:min-h-[250px]'
+          size === 'large' ? 'min-h-[500px] md:min-h-[700px]' : 'min-h-[205px] md:min-h-[228px]'
         }`}
       >
         <img
@@ -123,7 +123,7 @@ function EditorialFeatureCard({
         />
         <div
           className={`absolute inset-x-0 bottom-0 z-10 flex flex-col ${
-            size === 'large' ? 'gap-4 p-7 md:p-8' : 'gap-2 p-4 md:p-5'
+            size === 'large' ? 'gap-4 p-7 md:p-8' : 'gap-1.5 p-4 md:p-4.5'
           }`}
         >
           <div className="flex items-center gap-3">
@@ -134,8 +134,8 @@ function EditorialFeatureCard({
           <h2
             className={`max-w-5xl font-semibold tracking-tight text-white ${
               size === 'large'
-                ? 'text-[clamp(1.95rem,3.5vw,3.35rem)] leading-[1.04]'
-                : 'max-w-[18rem] text-[clamp(1rem,1.15vw,1.45rem)] leading-[1.12]'
+                ? 'max-w-[44rem] text-[clamp(2.15rem,3.9vw,3.75rem)] leading-[1.02]'
+                : 'line-clamp-3 max-w-[15rem] text-[clamp(0.92rem,1vw,1.28rem)] leading-[1.08]'
             }`}
           >
             {article.title}
@@ -149,7 +149,7 @@ function EditorialFeatureCard({
               {article.excerpt}
             </p>
           ) : null}
-          <p className={size === 'large' ? 'text-sm text-white/58' : 'text-[0.76rem] text-white/50'}>{publishedLabel}</p>
+          <p className={size === 'large' ? 'text-sm text-white/58' : 'text-[0.72rem] text-white/46'}>{publishedLabel}</p>
         </div>
       </article>
     </Link>
@@ -196,11 +196,11 @@ function EditorialStoryCard({
 }) {
   return (
     <Link href={getArticleHref(site.slug, article.slug, useHostRouting)} className="group">
-      <article className="flex h-full flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#121214] transition duration-300 hover:-translate-y-0.5 hover:border-white/16">
+      <article className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#121214] transition duration-300 hover:-translate-y-0.5 hover:border-white/16">
         <ArticleImage
           imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
           title={article.title}
-          heightClassName="h-[250px] md:h-[270px]"
+          heightClassName="h-[236px] md:h-[252px]"
           accent={theme.tokens.heroGlow}
         />
         <div className="flex flex-1 flex-col justify-between gap-5 px-6 py-6">
@@ -212,10 +212,10 @@ function EditorialStoryCard({
             topicLabelOverrides={site.topicLabelOverrides}
           />
           <div className="space-y-4">
-            <h3 className="line-clamp-3 text-[clamp(1.55rem,1.7vw,2.05rem)] font-semibold leading-[1.08] tracking-tight text-white transition group-hover:text-white/90">
+            <h3 className="line-clamp-3 min-h-[6.8rem] text-[clamp(1.48rem,1.58vw,1.9rem)] font-semibold leading-[1.08] tracking-tight text-white transition group-hover:text-white/90">
               {article.title}
             </h3>
-            <p className="line-clamp-4 text-[0.98rem] leading-8" style={{ color: theme.tokens.muted }}>
+            <p className="line-clamp-4 min-h-[8rem] text-[0.96rem] leading-8" style={{ color: theme.tokens.muted }}>
               {article.excerpt ?? 'Open the story to read the full article and source context.'}
             </p>
           </div>
@@ -356,7 +356,7 @@ function KantanLikeHome({
         ) : (
           <>
             {heroArticle ? (
-              <section id="featured" className="grid gap-5 xl:grid-cols-[0.68fr_minmax(0,2.02fr)]">
+              <section id="featured" className="grid gap-5 xl:grid-cols-[0.58fr_minmax(0,2.18fr)]">
                 <div className="grid gap-5">
                   {heroRailArticles.map((article) => (
                     <EditorialFeatureCard
