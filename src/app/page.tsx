@@ -1,6 +1,60 @@
-import { BrandMark } from '@/components/brand-mark'
+import { headers } from 'next/headers'
+import type { Metadata } from 'next'
 
-export default function HomePage() {
+import { BrandMark } from '@/components/brand-mark'
+import { PublicSiteHome } from '@/components/public/public-site-home'
+import { findSiteByHostname, getPublishedArticlesForSite } from '@/lib/public-site'
+import { isPlatformHost, normalizeHostname } from '@/lib/site-domain'
+import { resolveSiteTheme } from '@/lib/site-theme'
+
+export async function generateMetadata(): Promise<Metadata> {
+  const headerStore = await headers()
+  const hostname = normalizeHostname(headerStore.get('host') ?? '')
+
+  if (hostname && !isPlatformHost(hostname)) {
+    const site = await findSiteByHostname(hostname)
+
+    if (site) {
+      const canonical = `https://${hostname}`
+
+      return {
+        title: site.name,
+        description: site.niche ?? `${site.name} publishing surface`,
+        alternates: {
+          canonical,
+        },
+        openGraph: {
+          title: site.name,
+          description: site.niche ?? `${site.name} publishing surface`,
+          url: canonical,
+          siteName: site.name,
+          type: 'website',
+        },
+      }
+    }
+  }
+
+  return {
+    title: 'ForgePress',
+    description:
+      'ForgePress is an AI-assisted content platform for running multi-site publishing operations from one control panel.',
+  }
+}
+
+export default async function HomePage() {
+  const headerStore = await headers()
+  const hostname = normalizeHostname(headerStore.get('host') ?? '')
+
+  if (hostname && !isPlatformHost(hostname)) {
+    const site = await findSiteByHostname(hostname)
+
+    if (site) {
+      const theme = resolveSiteTheme(site)
+      const articles = await getPublishedArticlesForSite(site.id)
+      return <PublicSiteHome site={site} theme={theme} articles={articles} useHostRouting />
+    }
+  }
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black px-6 py-16">
       <div className="absolute inset-0 z-0">

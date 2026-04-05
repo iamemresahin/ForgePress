@@ -211,3 +211,5 @@ export function resolveSiteTheme(site: ThemeRecord) {
     } as CSSProperties,
   }
 }
+
+export type ResolvedSiteTheme = ReturnType<typeof resolveSiteTheme>
