@@ -71,6 +71,8 @@ export const sites = pgTable(
     featuredNavLabel: varchar('featured_nav_label', { length: 120 }),
     allNavLabel: varchar('all_nav_label', { length: 120 }),
     navTopicSlugs: jsonb('nav_topic_slugs').$type<string[]>().notNull().default([]),
+    authBrandName: varchar('auth_brand_name', { length: 160 }),
+    googleClientId: text('google_client_id'),
     themePrimary: varchar('theme_primary', { length: 16 }),
     themeAccent: varchar('theme_accent', { length: 16 }),
     themeBackground: varchar('theme_background', { length: 16 }),

@@ -86,6 +86,8 @@ export default async function EditSitePage({
           featuredNavLabel: site.featuredNavLabel ?? '',
           allNavLabel: site.allNavLabel ?? '',
           navTopicSlugs: (site.navTopicSlugs ?? []).join(', '),
+          authBrandName: site.authBrandName ?? '',
+          googleClientId: site.googleClientId ?? '',
           primaryHostname: primaryDomain,
           additionalHostnames: additionalDomains,
           themePreset: site.themePreset,

@@ -27,6 +27,8 @@ type PublicSiteHomeProps = {
     featuredNavLabel?: string | null
     allNavLabel?: string | null
     navTopicSlugs?: string[]
+    authBrandName?: string | null
+    googleClientId?: string | null
     homepageLayout: 'spotlight' | 'digest'
   }
   theme: ResolvedSiteTheme
@@ -389,6 +391,8 @@ function KantanLikeHome({
         signInLabel={copy.signIn}
         otherCategoriesLabel={copy.otherCategories}
         currentReader={currentReader}
+        authBrandName={site.authBrandName}
+        googleClientId={site.googleClientId}
       />
 
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">

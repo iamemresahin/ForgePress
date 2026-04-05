@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
+import { eq } from 'drizzle-orm'
 
 import {
   createPublicReaderSessionCookieValue,
   findOrCreateGoogleSiteMember,
   getPublicReaderSessionCookieOptions,
 } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { sites } from '@/lib/db/schema'
 import { env } from '@/lib/env'
 
 type GoogleTokenInfo = {
@@ -16,12 +19,6 @@ type GoogleTokenInfo = {
 }
 
 export async function POST(request: Request) {
-  if (!env.GOOGLE_CLIENT_ID && !env.NEXT_PUBLIC_GOOGLE_CLIENT_ID) {
-    return NextResponse.json({ error: 'Google sign-in is not configured yet.' }, { status: 503 })
-  }
-
-  const expectedAudience = env.GOOGLE_CLIENT_ID ?? env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
-
   try {
     const body = await request.json()
     const credential = String(body.credential ?? '').trim()
@@ -30,6 +27,21 @@ export async function POST(request: Request) {
 
     if (!credential || !siteId || !siteName) {
       return NextResponse.json({ error: 'Missing Google credential or site context.' }, { status: 400 })
+    }
+
+    const [site] = await db
+      .select({
+        googleClientId: sites.googleClientId,
+      })
+      .from(sites)
+      .where(eq(sites.id, siteId))
+      .limit(1)
+
+    const expectedAudience =
+      site?.googleClientId?.trim() || env.GOOGLE_CLIENT_ID || env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+
+    if (!expectedAudience) {
+      return NextResponse.json({ error: 'Google sign-in is not configured for this site yet.' }, { status: 503 })
     }
 
     const tokenInfoResponse = await fetch(

@@ -107,6 +107,8 @@ export default async function AdminSitesPage() {
             featuredNavLabel: '',
             allNavLabel: '',
             navTopicSlugs: '',
+            authBrandName: '',
+            googleClientId: '',
             primaryHostname: '',
             additionalHostnames: '',
             themePreset: 'forge_blue',

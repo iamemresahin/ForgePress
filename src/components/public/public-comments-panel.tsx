@@ -21,6 +21,8 @@ export function PublicCommentsPanel({
   redirectPath,
   locale,
   currentReader,
+  authBrandName,
+  googleClientId,
   comments,
 }: {
   siteId: string
@@ -29,6 +31,8 @@ export function PublicCommentsPanel({
   redirectPath: string
   locale: string
   currentReader: { id: string; displayName: string; email: string } | null
+  authBrandName?: string | null
+  googleClientId?: string | null
   comments: ExistingComment[]
 }) {
   const tr = locale.toLowerCase().startsWith('tr')
@@ -86,6 +90,8 @@ export function PublicCommentsPanel({
               siteName={siteName}
               redirectPath={redirectPath}
               locale={locale}
+              authBrandName={authBrandName}
+              googleClientId={googleClientId}
               triggerLabel={tr ? 'Yorum yapmak için giriş yap' : 'Sign in to comment'}
               triggerClassName="inline-flex items-center rounded-full bg-white px-5 py-3 text-sm font-semibold text-black transition hover:bg-white/92"
             />

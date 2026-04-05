@@ -37,6 +37,8 @@ export function PublicReaderAuthDialog({
   triggerLabel,
   triggerClassName,
   currentReader,
+  authBrandName,
+  googleClientId,
 }: {
   siteId: string
   siteName: string
@@ -45,10 +47,13 @@ export function PublicReaderAuthDialog({
   triggerLabel: string
   triggerClassName?: string
   currentReader?: { id: string; displayName: string; email: string } | null
+  authBrandName?: string | null
+  googleClientId?: string | null
 }) {
   const tr = locale.toLowerCase().startsWith('tr')
   const router = useRouter()
-  const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
+  const resolvedAuthBrand = authBrandName?.trim() || `${siteName} Reader`
+  const resolvedGoogleClientId = googleClientId?.trim() || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
   const googleButtonRef = useRef<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
@@ -80,14 +85,14 @@ export function PublicReaderAuthDialog({
   }, [googleMessage?.success, router, signInState?.success, signUpState?.success])
 
   useEffect(() => {
-    if (!open || !googleReady || !googleClientId || !googleButtonRef.current || !window.google?.accounts?.id) {
+    if (!open || !googleReady || !resolvedGoogleClientId || !googleButtonRef.current || !window.google?.accounts?.id) {
       return
     }
 
     googleButtonRef.current.innerHTML = ''
 
     window.google.accounts.id.initialize({
-      client_id: googleClientId,
+      client_id: resolvedGoogleClientId,
       callback: async ({ credential }) => {
         if (!credential) {
           setGoogleMessage({
@@ -142,11 +147,11 @@ export function PublicReaderAuthDialog({
       width: 340,
       logo_alignment: 'left',
     })
-  }, [googleClientId, googleReady, open, redirectPath, siteId, siteName, tr])
+  }, [googleReady, open, redirectPath, resolvedGoogleClientId, siteId, siteName, tr])
 
   return (
     <>
-      {googleClientId ? (
+      {resolvedGoogleClientId ? (
         <Script
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
@@ -165,7 +170,7 @@ export function PublicReaderAuthDialog({
           >
             <div className="flex items-start justify-between border-b border-white/10 px-6 py-6 md:px-8">
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/40">{siteName}</p>
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/40">{resolvedAuthBrand}</p>
                 <DialogPrimitive.Title className="mt-2 text-[clamp(1.9rem,3vw,2.5rem)] font-semibold tracking-tight text-white">
                   {currentReader
                     ? currentReader.displayName
@@ -314,8 +319,8 @@ export function PublicReaderAuthDialog({
                       ) : (
                         <div className="rounded-[20px] border border-dashed border-white/10 px-4 py-4 text-sm text-white/54">
                           {tr
-                            ? 'Google girişi henüz yapılandırılmadı.'
-                            : 'Google sign-in is not configured yet.'}
+                            ? 'Bu site için Google girişi henüz yapılandırılmadı.'
+                            : 'Google sign-in is not configured for this site yet.'}
                         </div>
                       )}
                     </div>

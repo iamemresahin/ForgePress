@@ -139,6 +139,8 @@ function KantanLikeArticle({
             redirectPath={redirectPath}
             locale={article.locale}
             currentReader={currentReader}
+            authBrandName={article.authBrandName}
+            googleClientId={article.googleClientId}
             triggerLabel={copy.signIn}
             triggerClassName="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70 transition hover:border-white/20 hover:text-white"
           />
@@ -256,6 +258,8 @@ function KantanLikeArticle({
               redirectPath={redirectPath}
               locale={article.locale}
               currentReader={currentReader}
+              authBrandName={article.authBrandName}
+              googleClientId={article.googleClientId}
               comments={comments}
             />
           </div>

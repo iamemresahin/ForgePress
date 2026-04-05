@@ -31,6 +31,8 @@ type SiteFormValues = {
   featuredNavLabel: string
   allNavLabel: string
   navTopicSlugs: string
+  authBrandName: string
+  googleClientId: string
   primaryHostname: string
   additionalHostnames: string
   themePreset:
@@ -335,6 +337,40 @@ export function SiteForm({
                     : 'Comma-separated: ai, tools, startups, technology'
                 }
               />
+            </div>
+          </div>
+
+          <div className="space-y-4 rounded-[24px] border border-slate-200 bg-white p-5">
+            <div className="space-y-1">
+              <p className="eyebrow">{tr ? 'Okuyucu girişi' : 'Reader authentication'}</p>
+              <p className="text-sm text-slate-600">
+                {tr
+                  ? 'Her site kendi markasıyla giriş yapmalı. Google client id değerini site bazlı girerek yayınları birbirinden ayırın.'
+                  : 'Each site should sign readers in under its own brand. Set a site-specific Google client id to isolate publications.'}
+              </p>
+            </div>
+
+            <div className="form-grid">
+              <div className="field">
+                <Label htmlFor="authBrandName">{tr ? 'Auth marka adı' : 'Auth brand name'}</Label>
+                <Input
+                  id="authBrandName"
+                  name="authBrandName"
+                  type="text"
+                  defaultValue={initialValues.authBrandName}
+                  placeholder={tr ? 'Nocode Builds Reader' : 'Nocode Builds Reader'}
+                />
+              </div>
+              <div className="field">
+                <Label htmlFor="googleClientId">{tr ? 'Google client id' : 'Google client id'}</Label>
+                <Input
+                  id="googleClientId"
+                  name="googleClientId"
+                  type="text"
+                  defaultValue={initialValues.googleClientId}
+                  placeholder="1234567890-abcdef.apps.googleusercontent.com"
+                />
+              </div>
             </div>
           </div>
 

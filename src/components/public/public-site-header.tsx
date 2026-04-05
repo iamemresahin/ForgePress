@@ -40,6 +40,8 @@ export function PublicSiteHeader({
   locale,
   redirectPath,
   currentReader,
+  authBrandName,
+  googleClientId,
 }: {
   homeHref: string
   siteId: string
@@ -52,6 +54,8 @@ export function PublicSiteHeader({
   signInLabel: string
   otherCategoriesLabel: string
   currentReader?: { id: string; displayName: string; email: string } | null
+  authBrandName?: string | null
+  googleClientId?: string | null
 }) {
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 backdrop-blur-xl">
@@ -137,6 +141,8 @@ export function PublicSiteHeader({
             redirectPath={redirectPath}
             locale={locale}
             currentReader={currentReader}
+            authBrandName={authBrandName}
+            googleClientId={googleClientId}
             triggerLabel={signInLabel}
             triggerClassName="inline-flex items-center rounded-full bg-white px-5 py-3 text-[0.95rem] font-semibold text-black transition hover:bg-white/92"
           />
