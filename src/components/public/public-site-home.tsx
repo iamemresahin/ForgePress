@@ -80,6 +80,83 @@ function ArticleImage({
   )
 }
 
+function EditorialFeatureCard({
+  href,
+  article,
+  locale,
+  siteNiche,
+  topicLabelOverrides,
+  accent,
+  size = 'small',
+}: {
+  href: string
+  article: PublicArticleSummary
+  locale: string
+  siteNiche?: string | null
+  topicLabelOverrides?: Record<string, string>
+  accent: string
+  size?: 'small' | 'large'
+}) {
+  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+  const imageUrl = resolveArticleVisual(article, siteNiche, topicLabelOverrides)
+  const publishedLabel = formatPublishedDate(article.publishedAt, locale) ?? 'Live'
+
+  return (
+    <Link href={href} className="group">
+      <article
+        className={`relative overflow-hidden rounded-[28px] border border-white/12 bg-[#080809] ${
+          size === 'large' ? 'min-h-[460px] md:min-h-[620px]' : 'min-h-[310px]'
+        }`}
+      >
+        <img
+          src={imageUrl}
+          alt={article.title}
+          className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
+        />
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              size === 'large'
+                ? `linear-gradient(180deg, rgba(0,0,0,0.04) 0%, rgba(0,0,0,0.18) 34%, rgba(0,0,0,0.84) 100%), radial-gradient(circle at bottom left, ${accent}, transparent 34%)`
+                : `linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.4) 42%, rgba(0,0,0,0.9) 100%)`
+          }}
+        />
+        <div
+          className={`absolute inset-x-0 bottom-0 z-10 flex flex-col ${
+            size === 'large' ? 'gap-4 p-7 md:p-9' : 'gap-3 p-6'
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <span className="inline-flex rounded-[10px] bg-[#ff5a4f] px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-white">
+              {topic.label}
+            </span>
+          </div>
+          <h2
+            className={`max-w-5xl font-semibold tracking-tight text-white ${
+              size === 'large'
+                ? 'text-[clamp(2.2rem,4.4vw,4rem)] leading-[1.02]'
+                : 'text-[clamp(1.55rem,2.2vw,2.1rem)] leading-[1.12]'
+            }`}
+          >
+            {article.title}
+          </h2>
+          {article.excerpt ? (
+            <p
+              className={`max-w-4xl text-white/82 ${
+                size === 'large' ? 'text-[1.02rem] leading-8 md:text-[1.1rem]' : 'line-clamp-2 text-sm leading-6'
+              }`}
+            >
+              {article.excerpt}
+            </p>
+          ) : null}
+          <p className="text-sm text-white/58">{publishedLabel}</p>
+        </div>
+      </article>
+    </Link>
+  )
+}
+
 function EditorialMeta({
   article,
   locale,
@@ -169,67 +246,30 @@ function KantanLikeHome({
 
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
         {featuredArticle ? (
-          <section id="featured" className="grid gap-5 xl:grid-cols-[0.42fr_minmax(0,1fr)]">
+          <section id="featured" className="grid gap-5 xl:grid-cols-[0.36fr_minmax(0,1fr)]">
             <div className="grid gap-5">
               {railArticles.map((article) => (
-                <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
-                  <article className="grid gap-4 border-b border-white/10 pb-5">
-                    <ArticleImage
-                      imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
-                      title={article.title}
-                      heightClassName="h-48"
-                      accent={theme.tokens.heroGlow}
-                    />
-                    <div className="space-y-3">
-                      <EditorialMeta
-                        article={article}
-                        locale={site.defaultLocale}
-                        muted={theme.tokens.muted}
-                        siteNiche={site.niche}
-                        topicLabelOverrides={site.topicLabelOverrides}
-                      />
-                      <h2 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
-                        {article.title}
-                      </h2>
-                      {article.excerpt ? (
-                        <p className="line-clamp-3 text-sm leading-6" style={{ color: theme.tokens.muted }}>
-                          {article.excerpt}
-                        </p>
-                      ) : null}
-                    </div>
-                  </article>
-                </Link>
+                <EditorialFeatureCard
+                  key={article.id}
+                  href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
+                  article={article}
+                  locale={site.defaultLocale}
+                  siteNiche={site.niche}
+                  topicLabelOverrides={site.topicLabelOverrides}
+                  accent={theme.tokens.heroGlow}
+                />
               ))}
             </div>
 
-            <Link href={getArticleHref(site.slug, featuredArticle.slug, useHostRouting ?? false)} className="group">
-              <article className="grid gap-5">
-                <ArticleImage
-                  imageUrl={resolveArticleVisual(featuredArticle, site.niche, site.topicLabelOverrides)}
-                  title={featuredArticle.title}
-                  heightClassName="h-[320px] md:h-[420px] xl:h-[520px]"
-                  accent={theme.tokens.heroGlow}
-                />
-                <div className="space-y-4">
-                  <EditorialMeta
-                    article={featuredArticle}
-                    locale={site.defaultLocale}
-                    muted={theme.tokens.muted}
-                    siteNiche={site.niche}
-                    topicLabelOverrides={site.topicLabelOverrides}
-                  />
-                  <h1 className="max-w-4xl text-[clamp(2.1rem,4.7vw,4.8rem)] font-semibold leading-[0.95] tracking-tight text-white transition group-hover:text-white/88">
-                    {featuredArticle.title}
-                  </h1>
-                  <p className="max-w-3xl text-base leading-7 md:text-lg" style={{ color: theme.tokens.muted }}>
-                    {featuredArticle.excerpt ??
-                      site.toneGuide ??
-                      site.niche ??
-                      'A dense, image-led editorial surface for AI-assisted publishing operations.'}
-                  </p>
-                </div>
-              </article>
-            </Link>
+            <EditorialFeatureCard
+              href={getArticleHref(site.slug, featuredArticle.slug, useHostRouting ?? false)}
+              article={featuredArticle}
+              locale={site.defaultLocale}
+              siteNiche={site.niche}
+              topicLabelOverrides={site.topicLabelOverrides}
+              accent={theme.tokens.heroGlow}
+              size="large"
+            />
           </section>
         ) : (
           <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-8 md:p-10">
