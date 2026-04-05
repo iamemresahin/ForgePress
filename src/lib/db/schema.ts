@@ -161,3 +161,38 @@ export const jobs = pgTable('jobs', {
   startedAt: timestamp('started_at', { withTimezone: true }),
   finishedAt: timestamp('finished_at', { withTimezone: true }),
 })
+
+export const siteMembers = pgTable(
+  'site_members',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    siteId: uuid('site_id')
+      .references(() => sites.id, { onDelete: 'cascade' })
+      .notNull(),
+    email: varchar('email', { length: 255 }).notNull(),
+    passwordHash: text('password_hash').notNull(),
+    displayName: varchar('display_name', { length: 160 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    siteMemberUniqueEmailIdx: uniqueIndex('site_members_site_email_idx').on(table.siteId, table.email),
+  }),
+)
+
+export const articleComments = pgTable('article_comments', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  articleId: uuid('article_id')
+    .references(() => articles.id, { onDelete: 'cascade' })
+    .notNull(),
+  siteId: uuid('site_id')
+    .references(() => sites.id, { onDelete: 'cascade' })
+    .notNull(),
+  memberId: uuid('member_id')
+    .references(() => siteMembers.id, { onDelete: 'cascade' })
+    .notNull(),
+  body: text('body').notNull(),
+  isApproved: boolean('is_approved').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})

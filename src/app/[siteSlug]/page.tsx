@@ -4,9 +4,11 @@ import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { sites } from '@/lib/db/schema'
+import { getPublicReaderSession } from '@/lib/auth'
 import { PublicArticlePage } from '@/components/public/public-article-page'
 import { PublicSiteHome } from '@/components/public/public-site-home'
 import {
+  getCommentsForArticle,
   findSiteByHostname,
   getRelatedArticles,
   getNextPublishedArticleForSite,
@@ -95,6 +97,8 @@ export default async function PublicSitePage({
 
     const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
     const publishedArticles = await getPublishedArticlesForSite(site.id)
+    const currentReader = await getPublicReaderSession(site.id)
+    const comments = await getCommentsForArticle(article.id, article.locale)
     const relatedArticles = getRelatedArticles(
       article,
       publishedArticles,
@@ -110,6 +114,8 @@ export default async function PublicSitePage({
         useHostRouting
         nextArticle={nextArticle}
         relatedArticles={relatedArticles}
+        currentReader={currentReader}
+        comments={comments}
       />
     )
   }

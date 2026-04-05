@@ -17,6 +17,7 @@ type NavItem = {
   label: string
   icon?: 'monitor' | 'gamepad' | 'flask' | 'car'
   accentDot?: boolean
+  active?: boolean
 }
 
 const iconMap = {
@@ -62,7 +63,7 @@ export function PublicSiteHeader({
                 key={item.label}
                 href={item.href}
                 className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[0.92rem] font-medium transition ${
-                  index === 1
+                  item.active ?? index === 1
                     ? 'border-white/0 bg-white text-black'
                     : 'border-transparent text-white/72 hover:text-white'
                 }`}

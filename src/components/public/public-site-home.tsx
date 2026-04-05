@@ -32,6 +32,7 @@ type PublicSiteHomeProps = {
   theme: ResolvedSiteTheme
   articles: PublicArticleSummary[]
   useHostRouting?: boolean
+  activeTopicSlug?: string | null
 }
 
 function formatPublishedDate(date: Date | null, locale: string) {
@@ -348,23 +349,36 @@ function KantanLikeHome({
   theme,
   articles,
   useHostRouting,
+  activeTopicSlug,
 }: PublicSiteHomeProps) {
   const copy = getPublicCopy(site.defaultLocale)
-  const heroArticle = articles[0]
-  const heroRailArticles = articles.slice(1, 3)
-  const firstGridArticles = articles.slice(3, 9)
-  const spotlightArticles = articles.slice(9, 12)
-  const recurringChunks = chunkArticles(articles.slice(12), 6)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides, site.defaultLocale)
+  const filteredArticles = activeTopicSlug
+    ? articles.filter((article) => deriveTopicForArticle(article, site.niche, site.topicLabelOverrides, site.defaultLocale).slug === activeTopicSlug)
+    : articles
+  const heroArticle = filteredArticles[0]
+  const heroRailArticles = filteredArticles.slice(1, 3)
+  const firstGridArticles = filteredArticles.slice(3, 9)
+  const spotlightArticles = filteredArticles.slice(9, 12)
+  const recurringChunks = chunkArticles(filteredArticles.slice(12), 6)
   const { primaryItems: navItems, extraItems } = buildEditorialNavItems(site, topics, useHostRouting ?? false)
   const homeHref = useHostRouting ? '/' : `/${site.slug}`
+  const resolvedNavItems = navItems.map((item) => ({
+    ...item,
+    active:
+      item.href.endsWith('#latest')
+        ? !activeTopicSlug
+        : activeTopicSlug
+          ? item.href.endsWith(`/topics/${activeTopicSlug}`)
+          : item.href.endsWith('#featured') && !activeTopicSlug,
+  }))
 
   return (
     <main className="min-h-screen bg-black text-white" style={theme.style}>
       <PublicSiteHeader
         homeHref={homeHref}
         siteName={site.name}
-        navItems={navItems}
+        navItems={resolvedNavItems}
         extraItems={extraItems}
         flowModeLabel={copy.flowMode}
         signInLabel={copy.signIn}
@@ -373,12 +387,12 @@ function KantanLikeHome({
       />
 
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
-        {articles.length === 0 ? (
+        {filteredArticles.length === 0 ? (
           <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-8 md:p-10">
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-white/50">Live Surface</p>
+            <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-white/50">{copy.liveSurface}</p>
             <h1 className="text-[clamp(2.4rem,5vw,4.6rem)] font-semibold leading-[0.94] text-white">{site.name}</h1>
             <p className="mt-4 max-w-2xl text-base leading-7" style={{ color: theme.tokens.muted }}>
-              Publish the first story from the admin workspace and this editorial front page will populate automatically.
+              {copy.publishFirstStory}
             </p>
           </section>
         ) : (
@@ -427,7 +441,7 @@ function KantanLikeHome({
                   <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">{copy.latestStories}</p>
                   <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">{copy.latestStories}</h2>
                 </div>
-                <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} {copy.publishedStories}</span>
+                <span className="hidden text-sm text-white/50 md:inline-flex">{filteredArticles.length} {copy.publishedStories}</span>
               </div>
 
               <EditorialGridBlock

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
-import { PublicTopicPage } from '@/components/public/public-topic-page'
+import { PublicSiteHome } from '@/components/public/public-site-home'
 import {
   buildDerivedTopics,
   getDerivedTopicBySlug,
@@ -56,12 +56,6 @@ export default async function SiteTopicPage({
   }
 
   return (
-    <PublicTopicPage
-      site={site}
-      topic={topic}
-      allTopics={topics}
-      articles={topic.articles}
-      theme={resolveSiteTheme(site)}
-    />
+    <PublicSiteHome site={site} theme={resolveSiteTheme(site)} articles={articles} activeTopicSlug={topic.slug} />
   )
 }

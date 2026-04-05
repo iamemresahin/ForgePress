@@ -1,19 +1,22 @@
 import { randomBytes, scryptSync, timingSafeEqual, createHmac } from 'node:crypto'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
-import { eq } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
-import { adminUsers } from '@/lib/db/schema'
+import { adminUsers, siteMembers } from '@/lib/db/schema'
 import { env } from '@/lib/env'
 
 const SESSION_COOKIE = 'forgepress_session'
+const READER_SESSION_COOKIE = 'forgepress_reader_session'
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 7
 const DEV_SESSION_SECRET = 'forgepress-dev-session-secret-change-me-now'
 
 type AdminRecord = typeof adminUsers.$inferSelect
+type SiteMemberRecord = typeof siteMembers.$inferSelect
 
 export type AdminSession = Pick<AdminRecord, 'id' | 'email' | 'displayName' | 'role'>
+export type PublicReaderSession = Pick<SiteMemberRecord, 'id' | 'email' | 'displayName' | 'siteId'>
 
 function getSessionSecret() {
   if (env.FORGEPRESS_SESSION_SECRET) {
@@ -93,6 +96,22 @@ async function findAdminById(id: string) {
   return admin ?? null
 }
 
+async function findSiteMemberByEmail(siteId: string, email: string) {
+  const normalized = email.trim().toLowerCase()
+  const [member] = await db
+    .select()
+    .from(siteMembers)
+    .where(and(eq(siteMembers.siteId, siteId), eq(siteMembers.email, normalized)))
+    .limit(1)
+
+  return member ?? null
+}
+
+async function findSiteMemberById(id: string) {
+  const [member] = await db.select().from(siteMembers).where(eq(siteMembers.id, id)).limit(1)
+  return member ?? null
+}
+
 export async function ensureBootstrapAdmin() {
   const existingAdmin = await findAdminByEmail(env.FORGEPRESS_ADMIN_EMAIL)
   if (existingAdmin) return existingAdmin
@@ -142,6 +161,109 @@ export async function createAdminSession(admin: AdminSession) {
 export async function clearAdminSession() {
   const cookieStore = await cookies()
   cookieStore.delete(SESSION_COOKIE)
+}
+
+function serializeReaderSession(reader: PublicReaderSession) {
+  const expiresAt = Date.now() + SESSION_TTL_MS
+  const payload = `${reader.id}.${reader.siteId}.${expiresAt}`
+  const signature = signSessionPayload(payload)
+  return `${payload}.${signature}`
+}
+
+async function parseReaderSessionCookie(rawValue?: string) {
+  if (!rawValue) return null
+
+  const lastDotIndex = rawValue.lastIndexOf('.')
+  if (lastDotIndex === -1) return null
+
+  const payload = rawValue.slice(0, lastDotIndex)
+  const signature = rawValue.slice(lastDotIndex + 1)
+  const expectedSignature = signSessionPayload(payload)
+
+  const signatureBuffer = Buffer.from(signature)
+  const expectedBuffer = Buffer.from(expectedSignature)
+
+  if (
+    signatureBuffer.length !== expectedBuffer.length ||
+    !timingSafeEqual(signatureBuffer, expectedBuffer)
+  ) {
+    return null
+  }
+
+  const [memberId, siteId, expiresAt] = payload.split('.')
+
+  if (!memberId || !siteId || !expiresAt) return null
+  if (Date.now() > Number(expiresAt)) return null
+
+  return { memberId, siteId }
+}
+
+export async function registerSiteMember(siteId: string, displayName: string, email: string, password: string) {
+  const existingMember = await findSiteMemberByEmail(siteId, email)
+  if (existingMember) {
+    return null
+  }
+
+  const [member] = await db
+    .insert(siteMembers)
+    .values({
+      siteId,
+      displayName: displayName.trim(),
+      email: email.trim().toLowerCase(),
+      passwordHash: hashPassword(password),
+    })
+    .returning()
+
+  return member
+}
+
+export async function authenticateSiteMember(siteId: string, email: string, password: string) {
+  const member = await findSiteMemberByEmail(siteId, email)
+  if (!member) return null
+  if (!verifyPassword(password, member.passwordHash)) return null
+
+  await db
+    .update(siteMembers)
+    .set({
+      updatedAt: new Date(),
+    })
+    .where(eq(siteMembers.id, member.id))
+
+  return member
+}
+
+export async function createPublicReaderSession(reader: PublicReaderSession) {
+  const cookieStore = await cookies()
+  cookieStore.set(READER_SESSION_COOKIE, serializeReaderSession(reader), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: env.NODE_ENV === 'production',
+    path: '/',
+    expires: new Date(Date.now() + SESSION_TTL_MS),
+  })
+}
+
+export async function clearPublicReaderSession() {
+  const cookieStore = await cookies()
+  cookieStore.delete(READER_SESSION_COOKIE)
+}
+
+export async function getPublicReaderSession(siteId: string) {
+  const cookieStore = await cookies()
+  const rawCookie = cookieStore.get(READER_SESSION_COOKIE)?.value
+  const parsed = await parseReaderSessionCookie(rawCookie)
+
+  if (!parsed || parsed.siteId !== siteId) return null
+
+  const member = await findSiteMemberById(parsed.memberId)
+  if (!member || member.siteId !== siteId) return null
+
+  return {
+    id: member.id,
+    email: member.email,
+    displayName: member.displayName,
+    siteId: member.siteId,
+  } satisfies PublicReaderSession
 }
 
 export async function getAdminSession() {

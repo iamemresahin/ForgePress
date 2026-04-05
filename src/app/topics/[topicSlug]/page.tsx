@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import { notFound } from 'next/navigation'
 
-import { PublicTopicPage } from '@/components/public/public-topic-page'
+import { PublicSiteHome } from '@/components/public/public-site-home'
 import {
   buildDerivedTopics,
   findSiteByHostname,
@@ -67,13 +67,6 @@ export default async function HostTopicPage({
   }
 
   return (
-    <PublicTopicPage
-      site={site}
-      topic={topic}
-      allTopics={topics}
-      articles={topic.articles}
-      theme={resolveSiteTheme(site)}
-      useHostRouting
-    />
+    <PublicSiteHome site={site} theme={resolveSiteTheme(site)} articles={articles} useHostRouting activeTopicSlug={topic.slug} />
   )
 }

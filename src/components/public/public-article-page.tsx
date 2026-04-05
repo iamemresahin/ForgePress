@@ -11,6 +11,7 @@ import {
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 import { CommentLoginGate } from '@/components/public/comment-login-gate'
+import { PublicCommentsPanel } from '@/components/public/public-comments-panel'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
@@ -18,6 +19,8 @@ type PublicArticlePageProps = {
   useHostRouting?: boolean
   nextArticle?: PublicArticleSummary | null
   relatedArticles?: PublicArticleSummary[]
+  currentReader?: { id: string; email: string; displayName: string; siteId: string } | null
+  comments?: Array<{ id: string; displayName: string; body: string; createdAtLabel: string }>
 }
 
 function splitBody(body: string) {
@@ -103,6 +106,8 @@ function KantanLikeArticle({
   useHostRouting = false,
   nextArticle,
   relatedArticles = [],
+  currentReader = null,
+  comments = [],
 }: PublicArticlePageProps) {
   const copy = getPublicCopy(article.locale)
   const publishedLabel = formatPublishedDate(article.publishedAt, article.locale)
@@ -129,7 +134,7 @@ function KantanLikeArticle({
             </Link>
           </div>
           <CommentLoginGate
-            title={copy.signInToComment}
+            title={`${article.siteName} ${copy.comments}`}
             description={copy.commentsLocked}
             body={copy.commentsLocked}
             buttonLabel={copy.signIn}
@@ -243,23 +248,15 @@ function KantanLikeArticle({
               </section>
             ) : null}
 
-            <section id="comments" className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5 md:p-6">
-              <div className="border-b border-white/10 pb-4">
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.comments}</p>
-                <h2 className="mt-2 text-2xl font-semibold text-white">{copy.signInToComment}</h2>
-              </div>
-              <p className="mt-5 max-w-2xl text-sm leading-7 text-white/62">{copy.commentsLocked}</p>
-              <div className="mt-5">
-                <CommentLoginGate
-                  title={copy.signInToComment}
-                  description={copy.commentsLocked}
-                  body={copy.commentsLocked}
-                  buttonLabel={copy.signInToComment}
-                  loginHref={loginHref}
-                  loginLabel={copy.continueToLogin}
-                />
-              </div>
-            </section>
+            <PublicCommentsPanel
+              siteId={article.siteId}
+              siteName={article.siteName}
+              articleId={article.id}
+              redirectPath={useHostRouting ? `/${article.slug}` : `/${article.siteSlug}/${article.slug}`}
+              locale={article.locale}
+              currentReader={currentReader}
+              comments={comments}
+            />
           </div>
 
           <aside className="grid content-start gap-4">

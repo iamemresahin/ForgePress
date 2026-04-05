@@ -2,7 +2,9 @@ import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 
 import { PublicArticlePage as PublicArticleSurface } from '@/components/public/public-article-page'
+import { getPublicReaderSession } from '@/lib/auth'
 import {
+  getCommentsForArticle,
   getRelatedArticles,
   getNextPublishedArticleForSite,
   getPublicOriginForSite,
@@ -75,6 +77,8 @@ export default async function PublicArticleRoute({
 
   const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
   const publishedArticles = await getPublishedArticlesForSite(site.id)
+  const currentReader = await getPublicReaderSession(site.id)
+  const comments = await getCommentsForArticle(article.id, article.locale)
   const relatedArticles = getRelatedArticles(
     article,
     publishedArticles,
@@ -89,6 +93,8 @@ export default async function PublicArticleRoute({
       theme={resolveSiteTheme(article)}
       nextArticle={nextArticle}
       relatedArticles={relatedArticles}
+      currentReader={currentReader}
+      comments={comments}
     />
   )
 }

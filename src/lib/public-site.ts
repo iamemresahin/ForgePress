@@ -1,7 +1,7 @@
 import { and, asc, desc, eq, isNotNull } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
-import { articleLocalizations, articles, siteDomains, sites } from '@/lib/db/schema'
+import { articleComments, articleLocalizations, articles, siteDomains, siteMembers, sites } from '@/lib/db/schema'
 import { env } from '@/lib/env'
 import { isPlatformHost, normalizeHostname } from '@/lib/site-domain'
 
@@ -451,3 +451,34 @@ export function getRelatedArticles(
 export type PublicArticleDetail = NonNullable<
   Awaited<ReturnType<typeof getPublishedArticleBySiteAndSlug>>
 >
+
+export async function getCommentsForArticle(articleId: string, locale: string) {
+  const comments = await db
+    .select({
+      id: articleComments.id,
+      body: articleComments.body,
+      createdAt: articleComments.createdAt,
+      displayName: siteMembers.displayName,
+    })
+    .from(articleComments)
+    .innerJoin(siteMembers, eq(siteMembers.id, articleComments.memberId))
+    .where(and(eq(articleComments.articleId, articleId), eq(articleComments.isApproved, true)))
+    .orderBy(desc(articleComments.createdAt))
+
+  return comments.map((comment) => ({
+    ...comment,
+    createdAtLabel: formatCommentDate(comment.createdAt, locale),
+  }))
+}
+
+function formatCommentDate(date: Date, locale: string) {
+  try {
+    return date.toLocaleDateString(locale, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  } catch {
+    return date.toLocaleDateString('en-US')
+  }
+}
