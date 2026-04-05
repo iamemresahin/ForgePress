@@ -196,14 +196,14 @@ function EditorialStoryCard({
 }) {
   return (
     <Link href={getArticleHref(site.slug, article.slug, useHostRouting)} className="group">
-      <article className="overflow-hidden rounded-[28px] border border-white/10 bg-[#121214] transition duration-300 hover:-translate-y-0.5 hover:border-white/16">
+      <article className="flex h-full flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#121214] transition duration-300 hover:-translate-y-0.5 hover:border-white/16">
         <ArticleImage
           imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
           title={article.title}
-          heightClassName="h-[260px] md:h-[290px]"
+          heightClassName="h-[250px] md:h-[270px]"
           accent={theme.tokens.heroGlow}
         />
-        <div className="space-y-5 px-6 py-6">
+        <div className="flex flex-1 flex-col justify-between gap-5 px-6 py-6">
           <EditorialMeta
             article={article}
             locale={site.defaultLocale}
@@ -212,10 +212,10 @@ function EditorialStoryCard({
             topicLabelOverrides={site.topicLabelOverrides}
           />
           <div className="space-y-4">
-            <h3 className="text-[clamp(1.7rem,2vw,2.45rem)] font-semibold leading-[1.05] tracking-tight text-white transition group-hover:text-white/90">
+            <h3 className="line-clamp-3 text-[clamp(1.55rem,1.7vw,2.05rem)] font-semibold leading-[1.08] tracking-tight text-white transition group-hover:text-white/90">
               {article.title}
             </h3>
-            <p className="line-clamp-4 text-[1.02rem] leading-8" style={{ color: theme.tokens.muted }}>
+            <p className="line-clamp-4 text-[0.98rem] leading-8" style={{ color: theme.tokens.muted }}>
               {article.excerpt ?? 'Open the story to read the full article and source context.'}
             </p>
           </div>
@@ -279,15 +279,45 @@ function chunkArticles(articles: PublicArticleSummary[], size: number) {
   return chunks
 }
 
+function EditorialGridBlock({
+  articles,
+  site,
+  theme,
+  useHostRouting,
+}: {
+  articles: PublicArticleSummary[]
+  site: PublicSiteHomeProps['site']
+  theme: ResolvedSiteTheme
+  useHostRouting: boolean
+}) {
+  if (articles.length === 0) return null
+
+  return (
+    <section className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
+      {articles.map((article) => (
+        <EditorialStoryCard
+          key={article.id}
+          article={article}
+          site={site}
+          theme={theme}
+          useHostRouting={useHostRouting}
+        />
+      ))}
+    </section>
+  )
+}
+
 function KantanLikeHome({
   site,
   theme,
   articles,
   useHostRouting,
 }: PublicSiteHomeProps) {
-  const topGridArticles = articles.slice(0, 6)
-  const spotlightArticles = articles.slice(6, 9)
-  const recurringChunks = chunkArticles(articles.slice(9), 6)
+  const heroArticle = articles[0]
+  const heroRailArticles = articles.slice(1, 3)
+  const firstGridArticles = articles.slice(3, 9)
+  const spotlightArticles = articles.slice(9, 12)
+  const recurringChunks = chunkArticles(articles.slice(12), 6)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides).slice(0, 4)
   const navItems = buildEditorialNavItems(site, topics, useHostRouting ?? false)
 
@@ -325,6 +355,34 @@ function KantanLikeHome({
           </section>
         ) : (
           <>
+            {heroArticle ? (
+              <section id="featured" className="grid gap-5 xl:grid-cols-[minmax(0,1.72fr)_0.92fr]">
+                <EditorialFeatureCard
+                  href={getArticleHref(site.slug, heroArticle.slug, useHostRouting ?? false)}
+                  article={heroArticle}
+                  locale={site.defaultLocale}
+                  siteNiche={site.niche}
+                  topicLabelOverrides={site.topicLabelOverrides}
+                  accent={theme.tokens.heroGlow}
+                  size="large"
+                />
+
+                <div className="grid gap-5">
+                  {heroRailArticles.map((article) => (
+                    <EditorialFeatureCard
+                      key={article.id}
+                      href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
+                      article={article}
+                      locale={site.defaultLocale}
+                      siteNiche={site.niche}
+                      topicLabelOverrides={site.topicLabelOverrides}
+                      accent={theme.tokens.heroGlow}
+                    />
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
             <section id="latest" className="space-y-5">
               <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
                 <div>
@@ -334,21 +392,16 @@ function KantanLikeHome({
                 <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} published stories</span>
               </div>
 
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {topGridArticles.map((article) => (
-                  <EditorialStoryCard
-                    key={article.id}
-                    article={article}
-                    site={site}
-                    theme={theme}
-                    useHostRouting={useHostRouting ?? false}
-                  />
-                ))}
-              </div>
+              <EditorialGridBlock
+                articles={firstGridArticles}
+                site={site}
+                theme={theme}
+                useHostRouting={useHostRouting ?? false}
+              />
             </section>
 
             {spotlightArticles[0] ? (
-              <section id="featured" className="grid gap-5 xl:grid-cols-[minmax(0,1.75fr)_0.9fr]">
+              <section className="grid gap-5 xl:grid-cols-[minmax(0,1.72fr)_0.92fr]">
                 <EditorialFeatureCard
                   href={getArticleHref(site.slug, spotlightArticles[0].slug, useHostRouting ?? false)}
                   article={spotlightArticles[0]}
@@ -376,17 +429,13 @@ function KantanLikeHome({
             ) : null}
 
             {recurringChunks.map((chunk, index) => (
-              <section key={`grid-block-${index}`} className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {chunk.map((article) => (
-                  <EditorialStoryCard
-                    key={article.id}
-                    article={article}
-                    site={site}
-                    theme={theme}
-                    useHostRouting={useHostRouting ?? false}
-                  />
-                ))}
-              </section>
+              <EditorialGridBlock
+                key={`grid-block-${index}`}
+                articles={chunk}
+                site={site}
+                theme={theme}
+                useHostRouting={useHostRouting ?? false}
+              />
             ))}
           </>
         )}
