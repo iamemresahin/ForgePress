@@ -103,6 +103,7 @@ export default async function AdminSitesPage() {
             reviewChecklist: tr
               ? 'kaynak atfını doğrula, başlık doğruluğunu onayla, AdSense uyumlu sayfa kalitesini kontrol et'
               : 'verify source attribution, confirm headline accuracy, confirm AdSense-safe page quality',
+            topicLabelOverrides: '',
             primaryHostname: '',
             additionalHostnames: '',
             themePreset: 'forge_blue',

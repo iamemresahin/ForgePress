@@ -27,6 +27,7 @@ type SiteFormValues = {
   prohibitedTopics: string
   requiredSections: string
   reviewChecklist: string
+  topicLabelOverrides: string
   primaryHostname: string
   additionalHostnames: string
   themePreset:
@@ -266,6 +267,21 @@ export function SiteForm({
                 tr
                   ? 'Virgülle ayırın: kaynak atfını doğrula, kopya paragraf olmadığını kontrol et, başlık doğruluğunu onayla'
                   : 'Comma-separated: verify source attribution, confirm no copied paragraphs, confirm headline accuracy'
+              }
+            />
+          </div>
+
+          <div className="field">
+            <Label htmlFor="topicLabelOverrides">{tr ? 'Topic etiket override' : 'Topic label overrides'}</Label>
+            <Textarea
+              id="topicLabelOverrides"
+              name="topicLabelOverrides"
+              rows={3}
+              defaultValue={initialValues.topicLabelOverrides}
+              placeholder={
+                tr
+                  ? 'Virgülle ayırın: ai:Yapay Zeka, tools:Araçlar, startups:Girişimler'
+                  : 'Comma-separated: ai:Artificial Intelligence, tools:Tools, startups:Startups'
               }
             />
           </div>

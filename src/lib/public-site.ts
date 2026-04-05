@@ -50,6 +50,7 @@ export async function findSiteByHostname(hostname: string) {
         themePreset: sites.themePreset,
         homepageLayout: sites.homepageLayout,
         articleLayout: sites.articleLayout,
+        topicLabelOverrides: sites.topicLabelOverrides,
         themePrimary: sites.themePrimary,
         themeAccent: sites.themeAccent,
         themeBackground: sites.themeBackground,
@@ -107,26 +108,31 @@ const TOPIC_RULES: Array<{ slug: string; label: string; pattern: RegExp }> = [
 export function deriveTopicForArticle(
   article: Pick<PublicArticleSummary, 'title' | 'excerpt'>,
   siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
 ) {
   const haystack = `${article.title} ${article.excerpt ?? ''} ${siteNiche ?? ''}`.trim()
 
   for (const topic of TOPIC_RULES) {
     if (topic.pattern.test(haystack)) {
-      return { slug: topic.slug, label: topic.label }
+      return {
+        slug: topic.slug,
+        label: topicLabelOverrides?.[topic.slug] ?? topic.label,
+      }
     }
   }
 
-  return { slug: 'latest', label: 'Latest' }
+  return { slug: 'latest', label: topicLabelOverrides?.latest ?? 'Latest' }
 }
 
 export function buildDerivedTopics(
   articles: PublicArticleSummary[],
   siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
 ) {
   const groups = new Map<string, DerivedTopic>()
 
   for (const article of articles) {
-    const topic = deriveTopicForArticle(article, siteNiche)
+    const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
     const current = groups.get(topic.slug)
 
     if (current) {
@@ -150,8 +156,12 @@ export function getDerivedTopicBySlug(
   articles: PublicArticleSummary[],
   topicSlug: string,
   siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
 ) {
-  return buildDerivedTopics(articles, siteNiche).find((topic) => topic.slug === topicSlug) ?? null
+  return (
+    buildDerivedTopics(articles, siteNiche, topicLabelOverrides).find((topic) => topic.slug === topicSlug) ??
+    null
+  )
 }
 
 export async function getSiteBySlug(siteSlug: string) {
@@ -167,6 +177,7 @@ export async function getSiteBySlug(siteSlug: string) {
       themePreset: sites.themePreset,
       homepageLayout: sites.homepageLayout,
       articleLayout: sites.articleLayout,
+      topicLabelOverrides: sites.topicLabelOverrides,
       themePrimary: sites.themePrimary,
       themeAccent: sites.themeAccent,
       themeBackground: sites.themeBackground,
@@ -199,6 +210,7 @@ export async function getPublishedArticleBySiteAndSlug(siteId: string, articleSl
       themePreset: sites.themePreset,
       homepageLayout: sites.homepageLayout,
       articleLayout: sites.articleLayout,
+      topicLabelOverrides: sites.topicLabelOverrides,
       themePrimary: sites.themePrimary,
       themeAccent: sites.themeAccent,
       themeBackground: sites.themeBackground,

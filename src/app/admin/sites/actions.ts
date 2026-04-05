@@ -25,6 +25,7 @@ const createSiteSchema = z.object({
   prohibitedTopics: z.string().max(2000).optional(),
   requiredSections: z.string().max(2000).optional(),
   reviewChecklist: z.string().max(2000).optional(),
+  topicLabelOverrides: z.string().max(2000).optional(),
   primaryHostname: z.string().max(255).optional(),
   additionalHostnames: z.string().max(2000).optional(),
   themePreset: z.enum([
@@ -63,6 +64,25 @@ function parseList(rawValue?: string) {
   )
 }
 
+function parseTopicLabelOverrides(rawValue?: string) {
+  if (!rawValue) return {}
+
+  const entries = rawValue
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .map((item) => {
+      const [slug, ...labelParts] = item.split(':')
+      const normalizedSlug = slug?.trim().toLowerCase()
+      const label = labelParts.join(':').trim()
+      if (!normalizedSlug || !label) return null
+      return [normalizedSlug, label] as const
+    })
+    .filter((entry): entry is readonly [string, string] => Boolean(entry))
+
+  return Object.fromEntries(entries)
+}
+
 export async function createSiteAction(_: { error?: string } | undefined, formData: FormData) {
   const session = await requireAdminSession()
   requirePlatformAdminRole(session)
@@ -79,6 +99,7 @@ export async function createSiteAction(_: { error?: string } | undefined, formDa
     prohibitedTopics: formData.get('prohibitedTopics') || undefined,
     requiredSections: formData.get('requiredSections') || undefined,
     reviewChecklist: formData.get('reviewChecklist') || undefined,
+    topicLabelOverrides: formData.get('topicLabelOverrides') || undefined,
     primaryHostname: formData.get('primaryHostname') || undefined,
     additionalHostnames: formData.get('additionalHostnames') || undefined,
     themePreset: formData.get('themePreset'),
@@ -120,6 +141,7 @@ export async function createSiteAction(_: { error?: string } | undefined, formDa
           prohibitedTopics: parseList(parsed.data.prohibitedTopics),
           requiredSections: parseList(parsed.data.requiredSections),
           reviewChecklist: parseList(parsed.data.reviewChecklist),
+          topicLabelOverrides: parseTopicLabelOverrides(parsed.data.topicLabelOverrides),
           themePreset: parsed.data.themePreset,
           homepageLayout: parsed.data.homepageLayout,
           articleLayout: parsed.data.articleLayout,
@@ -173,6 +195,7 @@ export async function updateSiteAction(
     prohibitedTopics: formData.get('prohibitedTopics') || undefined,
     requiredSections: formData.get('requiredSections') || undefined,
     reviewChecklist: formData.get('reviewChecklist') || undefined,
+    topicLabelOverrides: formData.get('topicLabelOverrides') || undefined,
     primaryHostname: formData.get('primaryHostname') || undefined,
     additionalHostnames: formData.get('additionalHostnames') || undefined,
     themePreset: formData.get('themePreset'),
@@ -212,6 +235,7 @@ export async function updateSiteAction(
           prohibitedTopics: parseList(parsed.data.prohibitedTopics),
           requiredSections: parseList(parsed.data.requiredSections),
           reviewChecklist: parseList(parsed.data.reviewChecklist),
+          topicLabelOverrides: parseTopicLabelOverrides(parsed.data.topicLabelOverrides),
           themePreset: parsed.data.themePreset,
           homepageLayout: parsed.data.homepageLayout,
           articleLayout: parsed.data.articleLayout,

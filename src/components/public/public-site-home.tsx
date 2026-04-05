@@ -13,6 +13,7 @@ type PublicSiteHomeProps = {
     supportedLocales: string[]
     niche: string | null
     toneGuide: string | null
+    topicLabelOverrides?: Record<string, string>
     homepageLayout: 'spotlight' | 'digest'
   }
   theme: ResolvedSiteTheme
@@ -98,7 +99,8 @@ function KantanLikeHome({
   const featuredArticle = articles[0]
   const railArticles = articles.slice(1, 3)
   const feedArticles = articles.slice(3)
-  const topics = buildDerivedTopics(articles, site.niche).slice(0, 4)
+  const quickScanArticles = articles.slice(0, 5)
+  const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides).slice(0, 4)
   const navItems = [
     { href: useHostRouting ? '/' : `/${site.slug}`, label: 'Featured' },
     { href: useHostRouting ? '/' : `/${site.slug}`, label: 'All' },
@@ -155,7 +157,7 @@ function KantanLikeHome({
                     <div className="space-y-3">
                       <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
                       <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
-                        {deriveTopicForArticle(article, site.niche).label}
+                        {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
                       </p>
                       <h2 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
                         {article.title}
@@ -182,7 +184,7 @@ function KantanLikeHome({
                 <div className="space-y-4">
                   <EditorialMeta article={featuredArticle} locale={site.defaultLocale} muted={theme.tokens.muted} />
                   <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
-                    {deriveTopicForArticle(featuredArticle, site.niche).label}
+                    {deriveTopicForArticle(featuredArticle, site.niche, site.topicLabelOverrides).label}
                   </p>
                   <h1 className="max-w-4xl text-[clamp(2.1rem,4.7vw,4.8rem)] font-semibold leading-[0.95] tracking-tight text-white transition group-hover:text-white/88">
                     {featuredArticle.title}
@@ -216,7 +218,8 @@ function KantanLikeHome({
             <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} published stories</span>
           </div>
 
-          <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
+            <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-2">
             {(feedArticles.length > 0 ? feedArticles : articles.slice(0, 6)).map((article) => (
               <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
                 <article className="grid gap-4">
@@ -229,7 +232,7 @@ function KantanLikeHome({
                   <div className="space-y-3">
                     <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
                     <p className="text-[11px] font-medium uppercase tracking-[0.22em] text-white/38">
-                      {deriveTopicForArticle(article, site.niche).label}
+                      {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
                     </p>
                     <h3 className="text-[1.42rem] font-semibold leading-[1.08] text-white transition group-hover:text-white/88">
                       {article.title}
@@ -245,6 +248,33 @@ function KantanLikeHome({
                 </article>
               </Link>
             ))}
+            </div>
+
+            <aside className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5">
+              <div className="border-b border-white/10 pb-4">
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Quick Scan</p>
+                <h3 className="mt-2 text-2xl font-semibold text-white">Editor&apos;s Picks</h3>
+              </div>
+              <div className="mt-4 grid gap-4">
+                {quickScanArticles.map((article, index) => (
+                  <Link
+                    key={article.id}
+                    href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
+                    className="group border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+                  >
+                    <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
+                      {String(index + 1).padStart(2, '0')} · {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
+                    </p>
+                    <h4 className="mt-2 text-base font-semibold leading-6 text-white transition group-hover:text-white/88">
+                      {article.title}
+                    </h4>
+                    <p className="mt-2 text-sm leading-6 text-white/58">
+                      {formatPublishedDate(article.publishedAt, site.defaultLocale) ?? 'Live'}
+                    </p>
+                  </Link>
+                ))}
+              </div>
+            </aside>
           </div>
         </section>
 

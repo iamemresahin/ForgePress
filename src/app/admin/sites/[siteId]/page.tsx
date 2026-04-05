@@ -80,6 +80,9 @@ export default async function EditSitePage({
           prohibitedTopics: site.prohibitedTopics.join(', '),
           requiredSections: site.requiredSections.join(', '),
           reviewChecklist: site.reviewChecklist.join(', '),
+          topicLabelOverrides: Object.entries(site.topicLabelOverrides ?? {})
+            .map(([slug, label]) => `${slug}:${label}`)
+            .join(', '),
           primaryHostname: primaryDomain,
           additionalHostnames: additionalDomains,
           themePreset: site.themePreset,

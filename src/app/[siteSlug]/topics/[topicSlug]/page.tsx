@@ -21,7 +21,7 @@ export async function generateMetadata({
   if (!site) return {}
 
   const articles = await getPublishedArticlesForSite(site.id)
-  const topic = getDerivedTopicBySlug(articles, topicSlug, site.niche)
+  const topic = getDerivedTopicBySlug(articles, topicSlug, site.niche, site.topicLabelOverrides)
   if (!topic) return {}
 
   const origin = await getPublicOriginForSite({ id: site.id, slug: site.slug })
@@ -48,7 +48,7 @@ export default async function SiteTopicPage({
   }
 
   const articles = await getPublishedArticlesForSite(site.id)
-  const topics = buildDerivedTopics(articles, site.niche)
+  const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides)
   const topic = topics.find((item) => item.slug === topicSlug)
 
   if (!topic) {

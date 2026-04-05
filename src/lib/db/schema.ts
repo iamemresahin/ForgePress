@@ -67,6 +67,7 @@ export const sites = pgTable(
     themePreset: siteThemePresetEnum('theme_preset').notNull().default('forge_blue'),
     homepageLayout: siteHomepageLayoutEnum('homepage_layout').notNull().default('spotlight'),
     articleLayout: siteArticleLayoutEnum('article_layout').notNull().default('editorial'),
+    topicLabelOverrides: jsonb('topic_label_overrides').$type<Record<string, string>>().notNull().default({}),
     themePrimary: varchar('theme_primary', { length: 16 }),
     themeAccent: varchar('theme_accent', { length: 16 }),
     themeBackground: varchar('theme_background', { length: 16 }),

@@ -10,6 +10,7 @@ type PublicTopicPageProps = {
     slug: string
     defaultLocale: string
     niche: string | null
+    topicLabelOverrides?: Record<string, string>
   }
   topic: DerivedTopic
   allTopics: DerivedTopic[]
