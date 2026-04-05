@@ -69,6 +69,7 @@ export async function createArticleAction(_: { error?: string } | undefined, for
       canonicalTopic: article.canonicalTopic,
       sourceUrl: article.sourceUrl,
       status: article.status,
+      publishedAt: article.status === 'published' ? new Date() : null,
     })
     .returning()
 

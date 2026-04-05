@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from 'drizzle-orm'
+import { and, asc, desc, eq, isNotNull } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
 import { articleLocalizations, articles, siteDomains, sites } from '@/lib/db/schema'
@@ -138,10 +138,18 @@ export async function getPublishedArticleBySiteAndSlug(siteId: string, articleSl
     .from(articles)
     .innerJoin(articleLocalizations, eq(articleLocalizations.articleId, articles.id))
     .innerJoin(sites, eq(sites.id, articles.siteId))
-    .where(and(eq(articles.siteId, siteId), eq(articleLocalizations.slug, articleSlug)))
+    .where(
+      and(
+        eq(articles.siteId, siteId),
+        eq(articleLocalizations.slug, articleSlug),
+        eq(articles.status, 'published'),
+        isNotNull(articles.publishedAt),
+      ),
+    )
+    .orderBy(desc(articles.publishedAt))
     .limit(1)
 
-  if (!article || article.status !== 'published' || !article.publishedAt) {
+  if (!article) {
     return null
   }
 
