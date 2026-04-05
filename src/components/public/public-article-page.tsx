@@ -7,6 +7,7 @@ import { type ResolvedSiteTheme } from '@/lib/site-theme'
 type PublicArticlePageProps = {
   article: PublicArticleDetail
   theme: ResolvedSiteTheme
+  useHostRouting?: boolean
 }
 
 function splitBody(body: string) {
@@ -86,9 +87,9 @@ function EditorialImage({
   )
 }
 
-function KantanLikeArticle({ article, theme }: PublicArticlePageProps) {
+function KantanLikeArticle({ article, theme, useHostRouting = false }: PublicArticlePageProps) {
   const publishedLabel = formatPublishedDate(article.publishedAt, article.locale)
-  const homeHref = `/${article.siteSlug}`
+  const homeHref = useHostRouting ? '/' : `/${article.siteSlug}`
 
   return (
     <main className="min-h-screen bg-black text-white" style={theme.style}>

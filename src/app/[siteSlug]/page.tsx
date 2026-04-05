@@ -91,7 +91,7 @@ export default async function PublicSitePage({
       notFound()
     }
 
-    return <PublicArticlePage article={article} theme={resolveSiteTheme(article)} />
+    return <PublicArticlePage article={article} theme={resolveSiteTheme(article)} useHostRouting />
   }
 
   const [site] = await db.select().from(sites).where(eq(sites.slug, siteSlug)).limit(1)
