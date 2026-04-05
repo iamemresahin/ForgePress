@@ -205,8 +205,8 @@ export function PublicReaderAuthDialog({
                   className={cn('mt-3 max-w-2xl text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}
                 >
                   {tr
-                    ? 'Yorum yapmak ve tartışmaya katılmak için bu yayın markası altında yalnızca Google hesabınla giriş yap.'
-                    : 'Use only your Google account under this publication to comment and join the discussion.'}
+                    ? 'Google hesabınla devam et.'
+                    : 'Continue with your Google account.'}
                 </DialogPrimitive.Description>
               </div>
               <DialogPrimitive.Close
@@ -235,62 +235,43 @@ export function PublicReaderAuthDialog({
               <div className="px-6 py-6 md:px-8">
                 <div className={cn('rounded-[28px] border p-6 md:p-8', colorMode === 'light' ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/[0.03]')}>
                   <div className="text-center">
-                    <p className={cn('text-xs font-medium uppercase tracking-[0.24em]', colorMode === 'light' ? 'text-slate-400' : 'text-white/40')}>
-                      {tr ? 'Tek giriş yöntemi' : 'Only sign-in method'}
-                    </p>
-                    <h3 className={cn('mt-3 text-2xl font-semibold tracking-tight', colorMode === 'light' ? 'text-slate-950' : 'text-white')}>
+                    <h3 className={cn('text-2xl font-semibold tracking-tight', colorMode === 'light' ? 'text-slate-950' : 'text-white')}>
                       {tr ? 'Google ile giriş yap' : 'Sign in with Google'}
                     </h3>
                     <p className={cn('mt-3 text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
-                      {tr
-                        ? 'Bu yayında okuyucu erişimi yalnızca Google hesabı ile açılır.'
-                        : 'Reader access on this site is available only through Google.'}
+                      {tr ? 'Yorum yapmak için giriş yap.' : 'Sign in to comment.'}
                     </p>
                   </div>
 
-                  <div className={cn('mt-6 rounded-[24px] border p-5', colorMode === 'light' ? 'border-slate-200 bg-white' : 'border-white/10 bg-black/20')}>
-                    <p className={cn('text-xs font-medium uppercase tracking-[0.24em]', colorMode === 'light' ? 'text-slate-400' : 'text-white/40')}>
-                      Google
-                    </p>
-                    <h3 className={cn('mt-3 text-xl font-semibold', colorMode === 'light' ? 'text-slate-950' : 'text-white')}>
-                      {tr ? 'Yayın markası altında güvenli giriş' : 'Secure sign-in under the publication brand'}
-                    </h3>
-                    <p className={cn('mt-3 text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
-                      {tr
-                        ? 'Google butonu bu siteye ait istemciyle açılır. Okuyucu oturumu yalnızca bu yayın için geçerlidir.'
-                        : 'This Google button belongs to this site and keeps the reader session scoped here.'}
-                    </p>
-
-                    <div className="mt-5">
-                      {resolvedGoogleClientId ? (
-                        <div
-                          ref={(node) => {
-                            googleButtonRef.current = node
-                            setGoogleButtonElement(node)
-                          }}
-                          className="mx-auto min-h-[54px] max-w-[340px]"
-                        />
-                      ) : (
-                        <p className={cn('text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
-                          {tr
-                            ? 'Bu site için Google girişi henüz yapılandırılmadı.'
-                            : 'Google sign-in is not configured for this site yet.'}
-                        </p>
-                      )}
-                    </div>
-
-                    {googleMessage?.error ? (
-                      <p className={cn('mt-4 text-sm', colorMode === 'light' ? 'text-rose-500' : 'text-rose-300')}>{googleMessage.error}</p>
-                    ) : null}
-                    {googleMessage?.success ? (
-                      <p className={cn('mt-4 text-sm', colorMode === 'light' ? 'text-emerald-600' : 'text-emerald-300')}>{googleMessage.success}</p>
-                    ) : null}
-                    {googlePending ? (
-                      <p className={cn('mt-4 text-sm', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
-                        {tr ? 'Google oturumu açılıyor...' : 'Signing in with Google...'}
+                  <div className="mt-6">
+                    {resolvedGoogleClientId ? (
+                      <div
+                        ref={(node) => {
+                          googleButtonRef.current = node
+                          setGoogleButtonElement(node)
+                        }}
+                        className="mx-auto min-h-[54px] max-w-[340px]"
+                      />
+                    ) : (
+                      <p className={cn('text-center text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
+                        {tr
+                          ? 'Bu site için Google girişi henüz yapılandırılmadı.'
+                          : 'Google sign-in is not configured for this site yet.'}
                       </p>
-                    ) : null}
+                    )}
                   </div>
+
+                  {googleMessage?.error ? (
+                    <p className={cn('mt-4 text-center text-sm', colorMode === 'light' ? 'text-rose-500' : 'text-rose-300')}>{googleMessage.error}</p>
+                  ) : null}
+                  {googleMessage?.success ? (
+                    <p className={cn('mt-4 text-center text-sm', colorMode === 'light' ? 'text-emerald-600' : 'text-emerald-300')}>{googleMessage.success}</p>
+                  ) : null}
+                  {googlePending ? (
+                    <p className={cn('mt-4 text-center text-sm', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
+                      {tr ? 'Google oturumu açılıyor...' : 'Signing in with Google...'}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             )}
