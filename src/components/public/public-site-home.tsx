@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, ChevronRight } from 'lucide-react'
+import { ArrowRight, CarFront, ChevronRight, Eye, FlaskConical, Gamepad2, Monitor, Plus, Search, Zap } from 'lucide-react'
 
 import {
   buildEditorialImageDataUri,
@@ -10,6 +10,7 @@ import {
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
+import { PublicNewsAlert } from '@/components/public/public-news-alert'
 
 type PublicSiteHomeProps = {
   site: {
@@ -258,14 +259,15 @@ function buildEditorialNavItems(
   }
 
   const sectionTopics = orderedTopics.slice(0, 4)
+  const topicHrefBySlug = new Map(sectionTopics.map((topic) => [topic.slug, getTopicHref(site.slug, topic.slug, useHostRouting)]))
 
   return [
-    { href: useHostRouting ? '/#featured' : `/${site.slug}#featured`, label: 'Öne Çıkanlar' },
-    { href: useHostRouting ? '/#latest' : `/${site.slug}#latest`, label: 'Tümü' },
-    ...sectionTopics.map((topic) => ({
-      href: getTopicHref(site.slug, topic.slug, useHostRouting),
-      label: topic.label,
-    })),
+    { href: useHostRouting ? '/#featured' : `/${site.slug}#featured`, label: 'Öne Çıkanlar', icon: null, accentDot: true },
+    { href: useHostRouting ? '/#latest' : `/${site.slug}#latest`, label: 'Tümü', icon: null },
+    { href: topicHrefBySlug.get('technology') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Teknoloji', icon: Monitor },
+    { href: topicHrefBySlug.get('design') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Oyun', icon: Gamepad2 },
+    { href: topicHrefBySlug.get('ai') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Bilim', icon: FlaskConical },
+    { href: topicHrefBySlug.get('tools') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Otomobil', icon: CarFront },
   ]
 }
 
@@ -324,27 +326,54 @@ function KantanLikeHome({
   return (
     <main className="min-h-screen bg-black text-white" style={theme.style}>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-4 px-4 py-4 md:px-6">
-          <Link href={useHostRouting ? '/' : `/${site.slug}`} className="text-[1.75rem] font-semibold tracking-tight text-white">
-            {site.name}
+        <div className="mx-auto flex w-full max-w-[1480px] items-center justify-between gap-6 px-4 py-4 md:px-6">
+          <Link href={useHostRouting ? '/' : `/${site.slug}`} className="flex items-center gap-3 text-[1.75rem] font-semibold tracking-tight text-white">
+            <span className="h-12 w-3 rounded-full bg-white/95" />
+            <span>{site.name}</span>
           </Link>
-          <div className="hidden items-center gap-2 lg:flex">
+          <div className="hidden items-center gap-2 xl:flex">
             {navItems.map((item, index) => (
               <Link
                 key={item.label}
                 href={item.href}
-                className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
-                  index === 0 ? 'border-white/20 text-white' : 'border-white/10 text-white/65'
+                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[0.92rem] font-medium transition ${
+                  index === 1
+                    ? 'border-white/0 bg-white text-black'
+                    : 'border-transparent text-white/72 hover:text-white'
                 }`}
               >
+                {item.accentDot ? <span className="size-2 rounded-full bg-[#ff5a4f]" /> : null}
+                {item.icon ? <item.icon className="size-4" /> : null}
                 {item.label}
               </Link>
             ))}
           </div>
+
+          <div className="hidden items-center gap-3 xl:flex">
+            <button className="inline-flex size-12 items-center justify-center rounded-full border border-white/10 text-white/72 transition hover:border-white/20 hover:text-white">
+              <Plus className="size-5" />
+            </button>
+            <button className="inline-flex size-12 items-center justify-center rounded-full border border-white/10 text-white/72 transition hover:border-white/20 hover:text-white">
+              <Search className="size-5" />
+            </button>
+            <button className="inline-flex size-12 items-center justify-center rounded-full border border-white/10 text-white/72 transition hover:border-white/20 hover:text-white">
+              <Eye className="size-5" />
+            </button>
+            <button className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-[0.95rem] font-medium text-white transition hover:border-white/20">
+              <Zap className="size-4" />
+              Akış Modu
+            </button>
+            <Link
+              href="/login"
+              className="inline-flex items-center rounded-full bg-white px-5 py-3 text-[0.95rem] font-semibold text-black transition hover:bg-white/92"
+            >
+              Giriş
+            </Link>
+          </div>
         </div>
       </header>
 
-      <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
+      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
         {articles.length === 0 ? (
           <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-8 md:p-10">
             <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-white/50">Live Surface</p>
@@ -356,7 +385,16 @@ function KantanLikeHome({
         ) : (
           <>
             {heroArticle ? (
-              <section id="featured" className="grid gap-5 xl:grid-cols-[0.58fr_minmax(0,2.18fr)]">
+              <section id="featured" className="relative grid gap-5 xl:grid-cols-[0.58fr_minmax(0,2.18fr)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden justify-center xl:flex">
+                  <div className="pointer-events-auto -mt-6">
+                    <PublicNewsAlert
+                      articleId={heroArticle.id}
+                      articleHref={getArticleHref(site.slug, heroArticle.slug, useHostRouting ?? false)}
+                      siteId={site.id}
+                    />
+                  </div>
+                </div>
                 <div className="grid gap-5">
                   {heroRailArticles.map((article) => (
                     <EditorialFeatureCard
