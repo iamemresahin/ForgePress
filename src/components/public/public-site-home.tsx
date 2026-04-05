@@ -192,6 +192,36 @@ function resolveArticleVisual(
   return article.imageUrl ?? buildEditorialImageDataUri(article, siteNiche, topicLabelOverrides)
 }
 
+function buildEditorialNavItems(
+  site: PublicSiteHomeProps['site'],
+  topics: ReturnType<typeof buildDerivedTopics>,
+  useHostRouting: boolean,
+) {
+  const topicMap = new Map(topics.map((topic) => [topic.slug, topic]))
+  const preferredOrder = ['ai', 'tools', 'startups', 'development', 'design', 'technology']
+
+  const orderedTopics = preferredOrder
+    .map((slug) => topicMap.get(slug))
+    .filter((topic): topic is NonNullable<typeof topic> => Boolean(topic))
+
+  for (const topic of topics) {
+    if (!orderedTopics.find((item) => item.slug === topic.slug)) {
+      orderedTopics.push(topic)
+    }
+  }
+
+  const sectionTopics = orderedTopics.slice(0, 4)
+
+  return [
+    { href: useHostRouting ? '/#featured' : `/${site.slug}#featured`, label: 'Öne Çıkanlar' },
+    { href: useHostRouting ? '/#latest' : `/${site.slug}#latest`, label: 'Tümü' },
+    ...sectionTopics.map((topic) => ({
+      href: getTopicHref(site.slug, topic.slug, useHostRouting),
+      label: topic.label,
+    })),
+  ]
+}
+
 function KantanLikeHome({
   site,
   theme,
@@ -204,14 +234,7 @@ function KantanLikeHome({
   const quickScanArticles = articles.slice(0, 5)
   const trendingArticles = getTrendingArticles(articles, site.niche, site.topicLabelOverrides, 4)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides).slice(0, 4)
-  const navItems = [
-    { href: useHostRouting ? '/' : `/${site.slug}`, label: 'Featured' },
-    { href: useHostRouting ? '/' : `/${site.slug}`, label: 'All' },
-    ...topics.map((topic) => ({
-      href: getTopicHref(site.slug, topic.slug, useHostRouting ?? false),
-      label: topic.label,
-    })),
-  ]
+  const navItems = buildEditorialNavItems(site, topics, useHostRouting ?? false)
 
   return (
     <main className="min-h-screen bg-black text-white" style={theme.style}>
