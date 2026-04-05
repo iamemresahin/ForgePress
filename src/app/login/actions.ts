@@ -20,7 +20,17 @@ export async function loginAction(_: { error?: string } | undefined, formData: F
     return { error: 'Enter a valid email and password.' }
   }
 
-  const admin = await authenticateAdmin(parsed.data.email, parsed.data.password)
+  let admin = null
+
+  try {
+    admin = await authenticateAdmin(parsed.data.email, parsed.data.password)
+  } catch (error) {
+    console.error('Login failed during admin authentication.', error)
+    return {
+      error:
+        'Login is temporarily unavailable. Check the database connection and local environment, then try again.',
+    }
+  }
 
   if (!admin) {
     return { error: 'Email or password is incorrect.' }

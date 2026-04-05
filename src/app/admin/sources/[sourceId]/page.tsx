@@ -1,10 +1,16 @@
 import Link from 'next/link'
 import { notFound, redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
+import { ArrowLeft, RadioTower, Trash2 } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { sites, sources } from '@/lib/db/schema'
+import { translateSourceType } from '@/lib/interface-locale'
+import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
 import { deleteSourceAction, updateSourceAction } from '../actions'
 import { EditSourceForm } from './edit-source-form'
@@ -15,6 +21,8 @@ export default async function EditSourcePage({
   params: Promise<{ sourceId: string }>
 }) {
   await requireAdminSession()
+  const locale = await getInterfaceLocale()
+  const tr = locale === 'tr'
   const { sourceId } = await params
 
   const siteOptions = await db
@@ -53,24 +61,46 @@ export default async function EditSourcePage({
   }
 
   return (
-    <section className="stack" style={{ gap: 24 }}>
-      <header className="panel stack">
-        <span className="eyebrow">Edit source</span>
-        <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.6rem)', lineHeight: 0.96 }}>{source.label}</h1>
-        <p className="muted" style={{ maxWidth: 760 }}>
-          {source.siteName} · {source.locale} · {source.type}
-        </p>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link className="button" href="/admin/sources">
-            Back to source list
-          </Link>
+    <section className="space-y-6">
+      <Card>
+        <CardHeader className="space-y-4">
+          <div className="space-y-3">
+            <span className="eyebrow">{tr ? 'Kaynağı düzenle' : 'Edit source'}</span>
+            <CardTitle className="text-[clamp(2.2rem,4vw,3.6rem)] leading-[0.96]">{source.label}</CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="rounded-full px-3 py-1">
+                <RadioTower className="mr-1 size-3.5" />
+                {source.siteName}
+              </Badge>
+              <Badge variant="secondary" className="rounded-full px-3 py-1">
+                {source.locale}
+              </Badge>
+              <Badge variant="outline" className="rounded-full px-3 py-1">
+                {translateSourceType(locale, source.type)}
+              </Badge>
+            </div>
+            <CardDescription className="text-sm leading-6">
+              {tr
+                ? 'Kaynak davranışını, tarama ritmini ve hedef dili tek yüzeyden ayarlayın.'
+                : 'Tune source behavior, polling cadence, and target locale from one surface.'}
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link href="/admin/sources">
+              <ArrowLeft className="size-4" />
+              {tr ? 'Kaynak listesine dön' : 'Back to source list'}
+            </Link>
+          </Button>
           <form action={handleDelete}>
-            <button className="button danger" type="submit">
-              Delete source
-            </button>
+            <Button className="rounded-xl" variant="destructive" type="submit">
+              <Trash2 className="size-4" />
+              {tr ? 'Kaynağı sil' : 'Delete source'}
+            </Button>
           </form>
-        </div>
-      </header>
+        </CardContent>
+      </Card>
 
       <EditSourceForm
         sourceId={source.id}
@@ -85,6 +115,7 @@ export default async function EditSourcePage({
           isActive: source.isActive ? 'true' : 'false',
         }}
         action={updateSourceAction}
+        locale={locale}
       />
     </section>
   )

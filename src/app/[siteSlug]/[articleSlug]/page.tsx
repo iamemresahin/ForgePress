@@ -1,6 +1,9 @@
 import { notFound } from 'next/navigation'
 import { and, eq } from 'drizzle-orm'
+import { CalendarClock, Globe2 } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { db } from '@/lib/db'
 import { articleLocalizations, articles, sites } from '@/lib/db/schema'
 
@@ -67,19 +70,28 @@ export default async function PublicArticlePage({
 
   return (
     <main className="page">
-      <div className="shell stack" style={{ gap: 24 }}>
-        <article className="panel article-surface stack">
-          <span className="eyebrow">
-            {article.siteName} · {article.locale}
-          </span>
-          <h1 style={{ fontSize: 'clamp(2.8rem, 6vw, 4.8rem)', lineHeight: 0.94 }}>{article.title}</h1>
-          {article.excerpt ? <p className="muted" style={{ fontSize: '1.08rem' }}>{article.excerpt}</p> : null}
-
-          <div className="article-body">
+      <div className="shell space-y-6">
+        <Card className="overflow-hidden">
+          <CardHeader className="space-y-4 border-b border-border/60">
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="rounded-full px-3 py-1">
+                <Globe2 className="mr-1 size-3.5" />
+                {article.siteName} · {article.locale}
+              </Badge>
+              <Badge variant="secondary" className="rounded-full px-3 py-1">
+                <CalendarClock className="mr-1 size-3.5" />
+                {article.publishedAt.toLocaleDateString('en-US')}
+              </Badge>
+            </div>
+            <CardTitle className="text-[clamp(2.8rem,6vw,4.8rem)] leading-[0.94]">{article.title}</CardTitle>
+            {article.excerpt ? <p className="max-w-3xl text-lg leading-8 text-muted-foreground">{article.excerpt}</p> : null}
+          </CardHeader>
+          <CardContent className="p-6 md:p-8">
+            <div className="article-body">
             {sections.map((section, index) => {
               if (section.startsWith('## ')) {
                 return (
-                  <h2 key={`${index}-${section}`} style={{ fontSize: 'clamp(1.6rem, 3vw, 2.1rem)' }}>
+                  <h2 key={`${index}-${section}`} className="text-[clamp(1.6rem,3vw,2.1rem)]">
                     {section.replace(/^##\s+/, '')}
                   </h2>
                 )
@@ -87,7 +99,7 @@ export default async function PublicArticlePage({
 
               if (section.startsWith('# ')) {
                 return (
-                  <h2 key={`${index}-${section}`} style={{ fontSize: 'clamp(1.9rem, 3vw, 2.4rem)' }}>
+                  <h2 key={`${index}-${section}`} className="text-[clamp(1.9rem,3vw,2.4rem)]">
                     {section.replace(/^#\s+/, '')}
                   </h2>
                 )
@@ -95,8 +107,9 @@ export default async function PublicArticlePage({
 
               return <p key={`${index}-${section}`}>{section.replace(/^\*\s+/, '')}</p>
             })}
-          </div>
-        </article>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </main>
   )

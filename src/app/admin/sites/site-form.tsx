@@ -2,6 +2,13 @@
 
 import { useActionState } from 'react'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import type { InterfaceLocale } from '@/lib/interface-locale'
+
 type SiteFormValues = {
   name: string
   slug: string
@@ -21,111 +28,150 @@ export function SiteForm({
   submitLabel,
   description,
   initialValues,
+  locale,
 }: {
   action: (state: { error?: string } | undefined, formData: FormData) => Promise<{ error?: string }>
   submitLabel: string
   description: string
   initialValues: SiteFormValues
+  locale: InterfaceLocale
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
+  const tr = locale === 'tr'
 
   return (
-    <form action={formAction} className="panel stack">
-      <div className="stack" style={{ gap: 4 }}>
-        <span className="eyebrow">Site rules</span>
-        <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.6rem)' }}>{submitLabel}</h2>
-        <p className="muted">{description}</p>
-      </div>
+    <Card>
+      <CardHeader className="space-y-4">
+        <div className="space-y-2">
+          <span className="eyebrow">{tr ? 'Site kuralları' : 'Site rules'}</span>
+          <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">{submitLabel}</CardTitle>
+          <CardDescription className="text-sm leading-6">{description}</CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <form action={formAction} className="grid gap-5">
+          <div className="form-grid">
+            <div className="field">
+              <Label htmlFor="name">{tr ? 'Site adı' : 'Site name'}</Label>
+              <Input id="name" name="name" type="text" defaultValue={initialValues.name} />
+            </div>
+            <div className="field">
+              <Label htmlFor="slug">Slug</Label>
+              <Input id="slug" name="slug" type="text" defaultValue={initialValues.slug} />
+            </div>
+            <div className="field">
+              <Label htmlFor="defaultLocale">{tr ? 'Varsayılan dil' : 'Default locale'}</Label>
+              <Input
+                id="defaultLocale"
+                name="defaultLocale"
+                type="text"
+                defaultValue={initialValues.defaultLocale}
+              />
+            </div>
+            <div className="field">
+              <Label htmlFor="supportedLocales">{tr ? 'Desteklenen diller' : 'Supported locales'}</Label>
+              <Input
+                id="supportedLocales"
+                name="supportedLocales"
+                type="text"
+                defaultValue={initialValues.supportedLocales}
+              />
+            </div>
+          </div>
 
-      <div className="form-grid">
-        <label className="field">
-          <span>Site name</span>
-          <input name="name" type="text" defaultValue={initialValues.name} />
-        </label>
+          <div className="field">
+            <Label htmlFor="niche">{tr ? 'Niş alan' : 'Niche'}</Label>
+            <Input id="niche" name="niche" type="text" defaultValue={initialValues.niche} />
+          </div>
 
-        <label className="field">
-          <span>Slug</span>
-          <input name="slug" type="text" defaultValue={initialValues.slug} />
-        </label>
+          <div className="field">
+            <Label htmlFor="toneGuide">{tr ? 'Ton kılavuzu' : 'Tone guide'}</Label>
+            <Textarea id="toneGuide" name="toneGuide" rows={4} defaultValue={initialValues.toneGuide} />
+          </div>
 
-        <label className="field">
-          <span>Default locale</span>
-          <input name="defaultLocale" type="text" defaultValue={initialValues.defaultLocale} />
-        </label>
+          <div className="field">
+            <Label htmlFor="editorialGuidelines">{tr ? 'Editoryal kurallar' : 'Editorial guidelines'}</Label>
+            <Textarea
+              id="editorialGuidelines"
+              name="editorialGuidelines"
+              rows={5}
+              defaultValue={initialValues.editorialGuidelines}
+              placeholder={
+                tr
+                  ? 'Kaynak kullanımı, atıf kuralları, izin verilen iddia seviyesi ve yayın dilini belirtin.'
+                  : 'State sourcing standards, attribution rules, allowed claim strength, and editorial voice.'
+              }
+            />
+          </div>
 
-        <label className="field">
-          <span>Supported locales</span>
-          <input name="supportedLocales" type="text" defaultValue={initialValues.supportedLocales} />
-        </label>
-      </div>
+          <div className="field">
+            <Label htmlFor="adsensePolicyNotes">{tr ? 'AdSense politika notları' : 'AdSense policy notes'}</Label>
+            <Textarea
+              id="adsensePolicyNotes"
+              name="adsensePolicyNotes"
+              rows={5}
+              defaultValue={initialValues.adsensePolicyNotes}
+              placeholder={
+                tr
+                  ? 'Reklam yoğunluğu, yanıltıcı tıklamadan kaçınma, hassas konu yönetimi ve sayfa kalite kurallarını tanımlayın.'
+                  : 'Define ad density limits, misleading click avoidance, sensitive topic handling, and page quality constraints.'
+              }
+            />
+          </div>
 
-      <label className="field">
-        <span>Niche</span>
-        <input name="niche" type="text" defaultValue={initialValues.niche} />
-      </label>
+          <div className="form-grid">
+            <div className="field">
+              <Label htmlFor="prohibitedTopics">{tr ? 'Yasaklı konular' : 'Prohibited topics'}</Label>
+              <Textarea
+                id="prohibitedTopics"
+                name="prohibitedTopics"
+                rows={4}
+                defaultValue={initialValues.prohibitedTopics}
+                placeholder={
+                  tr
+                    ? 'Virgülle ayırın: kumar, silahlar, tıbbi iddialar'
+                    : 'Comma-separated: gambling, weapons, medical claims'
+                }
+              />
+            </div>
+            <div className="field">
+              <Label htmlFor="requiredSections">{tr ? 'Zorunlu bölümler' : 'Required sections'}</Label>
+              <Textarea
+                id="requiredSections"
+                name="requiredSections"
+                rows={4}
+                defaultValue={initialValues.requiredSections}
+                placeholder={
+                  tr
+                    ? 'Virgülle ayırın: Özet, Bağlam, Dikkat edilmesi gerekenler'
+                    : 'Comma-separated: Summary, Context, What to watch'
+                }
+              />
+            </div>
+          </div>
 
-      <label className="field">
-        <span>Tone guide</span>
-        <textarea name="toneGuide" rows={4} defaultValue={initialValues.toneGuide} />
-      </label>
+          <div className="field">
+            <Label htmlFor="reviewChecklist">{tr ? 'İnceleme kontrol listesi' : 'Review checklist'}</Label>
+            <Textarea
+              id="reviewChecklist"
+              name="reviewChecklist"
+              rows={4}
+              defaultValue={initialValues.reviewChecklist}
+              placeholder={
+                tr
+                  ? 'Virgülle ayırın: kaynak atfını doğrula, kopya paragraf olmadığını kontrol et, başlık doğruluğunu onayla'
+                  : 'Comma-separated: verify source attribution, confirm no copied paragraphs, confirm headline accuracy'
+              }
+            />
+          </div>
 
-      <label className="field">
-        <span>Editorial guidelines</span>
-        <textarea
-          name="editorialGuidelines"
-          rows={5}
-          defaultValue={initialValues.editorialGuidelines}
-          placeholder="State sourcing standards, attribution rules, allowed claim strength, and editorial voice."
-        />
-      </label>
+          {state?.error ? <p className="form-error">{state.error}</p> : null}
 
-      <label className="field">
-        <span>AdSense policy notes</span>
-        <textarea
-          name="adsensePolicyNotes"
-          rows={5}
-          defaultValue={initialValues.adsensePolicyNotes}
-          placeholder="Define ad density limits, misleading click avoidance, sensitive topic handling, and page quality constraints."
-        />
-      </label>
-
-      <div className="form-grid">
-        <label className="field">
-          <span>Prohibited topics</span>
-          <textarea
-            name="prohibitedTopics"
-            rows={4}
-            defaultValue={initialValues.prohibitedTopics}
-            placeholder="Comma-separated: gambling, weapons, medical claims"
-          />
-        </label>
-
-        <label className="field">
-          <span>Required sections</span>
-          <textarea
-            name="requiredSections"
-            rows={4}
-            defaultValue={initialValues.requiredSections}
-            placeholder="Comma-separated: Summary, Context, What to watch"
-          />
-        </label>
-      </div>
-
-      <label className="field">
-        <span>Review checklist</span>
-        <textarea
-          name="reviewChecklist"
-          rows={4}
-          defaultValue={initialValues.reviewChecklist}
-          placeholder="Comma-separated: verify source attribution, confirm no copied paragraphs, confirm headline accuracy"
-        />
-      </label>
-
-      {state?.error ? <p className="form-error">{state.error}</p> : null}
-
-      <button className="button primary" type="submit" disabled={pending}>
-        {pending ? 'Saving...' : submitLabel}
-      </button>
-    </form>
+          <Button className="h-11 rounded-xl" type="submit" disabled={pending}>
+            {pending ? (tr ? 'Kaydediliyor...' : 'Saving...') : submitLabel}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

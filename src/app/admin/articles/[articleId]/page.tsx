@@ -1,10 +1,16 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
+import { Globe2, PencilLine, Rocket } from 'lucide-react'
 
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { articleLocalizations, articles, sites } from '@/lib/db/schema'
+import { translateArticleStatus } from '@/lib/interface-locale'
+import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
 import { publishArticleAction, updateArticleAction } from '../actions'
 import { EditArticleForm } from './edit-form'
@@ -15,6 +21,8 @@ export default async function EditArticlePage({
   params: Promise<{ articleId: string }>
 }) {
   await requireAdminSession()
+  const locale = await getInterfaceLocale()
+  const tr = locale === 'tr'
   const { articleId } = await params
 
   const siteOptions = await db
@@ -54,25 +62,50 @@ export default async function EditArticlePage({
   const publicUrl = `/${article.siteSlug}/${article.slug}`
 
   return (
-    <section className="stack" style={{ gap: 24 }}>
-      <header className="panel stack">
-        <span className="eyebrow">Edit article</span>
-        <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.6rem)', lineHeight: 0.96 }}>{article.title}</h1>
-        <p className="muted" style={{ maxWidth: 760 }}>
-          {article.siteName} · {article.locale} · {article.status}
-        </p>
-        <p className="muted">Public route: {publicUrl}</p>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <Link className="button" href="/admin/articles">
-            Back to article list
-          </Link>
+    <section className="space-y-6">
+      <Card>
+        <CardHeader className="space-y-4">
+          <div className="space-y-3">
+            <span className="eyebrow">{tr ? 'Makaleyi düzenle' : 'Edit article'}</span>
+            <CardTitle className="text-[clamp(2.2rem,4vw,3.6rem)] leading-[0.96]">{article.title}</CardTitle>
+            <div className="flex flex-wrap items-center gap-2">
+              <Badge variant="outline" className="rounded-full px-3 py-1">
+                <Globe2 className="mr-1 size-3.5" />
+                {article.siteName}
+              </Badge>
+              <Badge variant="secondary" className="rounded-full px-3 py-1">
+                {article.locale}
+              </Badge>
+              <Badge variant="outline" className="rounded-full px-3 py-1 capitalize">
+                {translateArticleStatus(locale, article.status)}
+              </Badge>
+            </div>
+            <CardDescription className="text-sm leading-6">
+              {tr ? 'Açık rota' : 'Public route'}: {publicUrl}
+            </CardDescription>
+          </div>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-3">
+          <Button asChild variant="outline" className="rounded-xl">
+            <Link href="/admin/articles">
+              <PencilLine className="size-4" />
+              {tr ? 'Makale listesine dön' : 'Back to article list'}
+            </Link>
+          </Button>
           <form action={publishArticleAction.bind(null, article.id)}>
-            <button className="button primary" type="submit">
-              {article.status === 'published' ? 'Refresh publish' : 'Publish article'}
-            </button>
+            <Button className="rounded-xl">
+              <Rocket className="size-4" />
+              {article.status === 'published'
+                ? tr
+                  ? 'Yayını yenile'
+                  : 'Refresh publish'
+                : tr
+                  ? 'Makaleyi yayınla'
+                  : 'Publish article'}
+            </Button>
           </form>
-        </div>
-      </header>
+        </CardContent>
+      </Card>
 
       <EditArticleForm
         articleId={article.id}
@@ -91,6 +124,7 @@ export default async function EditArticlePage({
           status: article.status,
         }}
         action={updateArticleAction}
+        locale={locale}
       />
     </section>
   )

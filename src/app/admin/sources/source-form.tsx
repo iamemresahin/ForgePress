@@ -2,6 +2,12 @@
 
 import { useActionState } from 'react'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import type { InterfaceLocale } from '@/lib/interface-locale'
+
 type SiteOption = {
   id: string
   name: string
@@ -24,79 +30,87 @@ export function SourceForm({
   initialValues,
   submitLabel,
   description,
+  locale,
 }: {
   action: (state: { error?: string } | undefined, formData: FormData) => Promise<{ error?: string }>
   siteOptions: SiteOption[]
   initialValues: SourceFormValues
   submitLabel: string
   description: string
+  locale: InterfaceLocale
 }) {
   const [state, formAction, pending] = useActionState(action, undefined)
+  const tr = locale === 'tr'
 
   return (
-    <form action={formAction} className="panel stack">
-      <div className="stack" style={{ gap: 4 }}>
-        <span className="eyebrow">Source management</span>
-        <h2 style={{ fontSize: 'clamp(1.8rem, 3vw, 2.6rem)' }}>{submitLabel}</h2>
-        <p className="muted">{description}</p>
-      </div>
+    <Card>
+      <CardHeader className="space-y-4">
+        <div className="space-y-2">
+          <span className="eyebrow">{tr ? 'Kaynak yönetimi' : 'Source management'}</span>
+          <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">{submitLabel}</CardTitle>
+          <CardDescription className="text-sm leading-6">{description}</CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <form action={formAction} className="grid gap-5">
+          <div className="form-grid">
+            <div className="field">
+              <Label htmlFor="siteId">{tr ? 'Site' : 'Site'}</Label>
+              <select id="siteId" name="siteId" defaultValue={initialValues.siteId}>
+                {siteOptions.map((site) => (
+                  <option key={site.id} value={site.id}>
+                    {site.name}
+                  </option>
+                ))}
+              </select>
+            </div>
 
-      <div className="form-grid">
-        <label className="field">
-          <span>Site</span>
-          <select name="siteId" defaultValue={initialValues.siteId}>
-            {siteOptions.map((site) => (
-              <option key={site.id} value={site.id}>
-                {site.name}
-              </option>
-            ))}
-          </select>
-        </label>
+            <div className="field">
+              <Label htmlFor="type">{tr ? 'Tür' : 'Type'}</Label>
+              <select id="type" name="type" defaultValue={initialValues.type}>
+                <option value="rss">RSS</option>
+                <option value="sitemap">{tr ? 'Site haritası' : 'Sitemap'}</option>
+                <option value="manual_url">{tr ? 'Manuel URL' : 'Manual URL'}</option>
+                <option value="custom_feed">{tr ? 'Özel feed' : 'Custom feed'}</option>
+              </select>
+            </div>
 
-        <label className="field">
-          <span>Type</span>
-          <select name="type" defaultValue={initialValues.type}>
-            <option value="rss">RSS</option>
-            <option value="sitemap">Sitemap</option>
-            <option value="manual_url">Manual URL</option>
-            <option value="custom_feed">Custom feed</option>
-          </select>
-        </label>
+            <div className="field">
+              <Label htmlFor="locale">{tr ? 'Dil' : 'Locale'}</Label>
+              <Input id="locale" name="locale" type="text" defaultValue={initialValues.locale} />
+            </div>
 
-        <label className="field">
-          <span>Locale</span>
-          <input name="locale" type="text" defaultValue={initialValues.locale} />
-        </label>
+            <div className="field">
+              <Label htmlFor="pollMinutes">{tr ? 'Tarama dakikası' : 'Poll minutes'}</Label>
+              <Input id="pollMinutes" name="pollMinutes" type="number" min={1} defaultValue={initialValues.pollMinutes} />
+            </div>
+          </div>
 
-        <label className="field">
-          <span>Poll minutes</span>
-          <input name="pollMinutes" type="number" min={1} defaultValue={initialValues.pollMinutes} />
-        </label>
-      </div>
+          <div className="field">
+            <Label htmlFor="label">{tr ? 'Etiket' : 'Label'}</Label>
+            <Input id="label" name="label" type="text" defaultValue={initialValues.label} />
+          </div>
 
-      <label className="field">
-        <span>Label</span>
-        <input name="label" type="text" defaultValue={initialValues.label} />
-      </label>
+          <div className="field">
+            <Label htmlFor="url">URL</Label>
+            <Input id="url" name="url" type="url" defaultValue={initialValues.url} />
+          </div>
 
-      <label className="field">
-        <span>URL</span>
-        <input name="url" type="url" defaultValue={initialValues.url} />
-      </label>
+          <div className="field">
+            <Label htmlFor="isActive">{tr ? 'Durum' : 'Status'}</Label>
+            <select id="isActive" name="isActive" defaultValue={initialValues.isActive}>
+              <option value="true">{tr ? 'Aktif' : 'Active'}</option>
+              <option value="false">{tr ? 'Duraklatıldı' : 'Paused'}</option>
+            </select>
+          </div>
 
-      <label className="field">
-        <span>Status</span>
-        <select name="isActive" defaultValue={initialValues.isActive}>
-          <option value="true">Active</option>
-          <option value="false">Paused</option>
-        </select>
-      </label>
+          {state?.error ? <p className="form-error">{state.error}</p> : null}
 
-      {state?.error ? <p className="form-error">{state.error}</p> : null}
-
-      <button className="button primary" type="submit" disabled={pending}>
-        {pending ? 'Saving...' : submitLabel}
-      </button>
-    </form>
+          <Button className="h-11 rounded-xl" type="submit" disabled={pending}>
+            {pending ? (tr ? 'Kaydediliyor...' : 'Saving...') : submitLabel}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

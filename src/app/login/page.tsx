@@ -1,35 +1,42 @@
-import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
+import { BrandMark } from '@/components/brand-mark'
+import { LoginForm } from '@/components/login-form'
 import { getAdminSession } from '@/lib/auth'
-
-import { LoginForm } from './login-form'
+import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
 export default async function LoginPage() {
   const session = await getAdminSession()
+  const locale = await getInterfaceLocale()
+
   if (session) {
     redirect('/admin')
   }
 
   return (
-    <main className="page auth-page">
-      <div className="shell auth-shell">
-        <section className="stack auth-copy">
-          <span className="eyebrow">ForgePress Platform</span>
-          <h2 style={{ fontSize: 'clamp(3rem, 8vw, 5.6rem)', lineHeight: 0.92 }}>
-            Multi-site publishing ops without blind automation.
-          </h2>
-          <p className="muted" style={{ maxWidth: 580 }}>
-            This admin surface is now protected by first-party auth. The next layers are site
-            creation, manual article drafting, source control, jobs, and assisted publishing flows.
-          </p>
-          <Link className="button" href="/">
-            Back to overview
-          </Link>
-        </section>
-
-        <LoginForm />
+    <div className="grid min-h-svh bg-background lg:grid-cols-2">
+      <div className="flex flex-col justify-between p-6 md:p-10">
+        <div className="flex justify-center md:justify-start">
+          <div className="flex items-center gap-3 text-foreground">
+            <BrandMark className="size-6 text-sky-600" />
+            <span className="text-base font-semibold tracking-tight">ForgePress</span>
+          </div>
+        </div>
+        <div className="flex flex-1 items-center justify-center">
+          <div className="w-full max-w-sm">
+            <LoginForm locale={locale} />
+          </div>
+        </div>
+        <div />
       </div>
-    </main>
+      <div className="relative hidden overflow-hidden lg:block">
+        <iframe
+          src="https://my.spline.design/animatedbackgroundgradientforweb-jvJDeBWjMvShkjPKxPRUswLq"
+          className="absolute inset-0 h-full w-full border-0"
+          title="ForgePress login background"
+        />
+        <div className="absolute inset-0 bg-black/10" />
+      </div>
+    </div>
   )
 }

@@ -1,6 +1,7 @@
 'use client'
 
 import { ArticleForm } from '../article-form'
+import type { InterfaceLocale } from '@/lib/interface-locale'
 
 type SiteOption = {
   id: string
@@ -27,10 +28,12 @@ export function EditArticleForm({
   siteOptions,
   initialValues,
   action,
+  locale,
 }: {
   articleId: string
   siteOptions: SiteOption[]
   initialValues: ArticleValues
+  locale: InterfaceLocale
   action: (
     articleId: string,
     state: { error?: string } | undefined,
@@ -39,8 +42,13 @@ export function EditArticleForm({
 }) {
   return (
     <ArticleForm
-      submitLabel="Save article changes"
-      description="Update body copy, SEO metadata, status, and publishing context from the same editing surface."
+      locale={locale}
+      submitLabel={locale === 'tr' ? 'Makale değişikliklerini kaydet' : 'Save article changes'}
+      description={
+        locale === 'tr'
+          ? 'Gövde metnini, SEO metaverisini, durumu ve yayın bağlamını aynı düzenleme yüzeyinden güncelleyin.'
+          : 'Update body copy, SEO metadata, status, and publishing context from the same editing surface.'
+      }
       siteOptions={siteOptions}
       initialValues={initialValues}
       action={action.bind(null, articleId)}

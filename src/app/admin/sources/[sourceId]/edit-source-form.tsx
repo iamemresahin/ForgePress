@@ -1,6 +1,7 @@
 'use client'
 
 import { SourceForm } from '../source-form'
+import type { InterfaceLocale } from '@/lib/interface-locale'
 
 type SiteOption = {
   id: string
@@ -23,10 +24,12 @@ export function EditSourceForm({
   siteOptions,
   initialValues,
   action,
+  locale,
 }: {
   sourceId: string
   siteOptions: SiteOption[]
   initialValues: SourceValues
+  locale: InterfaceLocale
   action: (
     sourceId: string,
     state: { error?: string } | undefined,
@@ -35,11 +38,16 @@ export function EditSourceForm({
 }) {
   return (
     <SourceForm
+      locale={locale}
       action={action.bind(null, sourceId)}
       siteOptions={siteOptions}
       initialValues={initialValues}
-      submitLabel="Save source changes"
-      description="Adjust feed behavior, locale targeting, and polling cadence from one editing surface."
+      submitLabel={locale === 'tr' ? 'Kaynak değişikliklerini kaydet' : 'Save source changes'}
+      description={
+        locale === 'tr'
+          ? 'Feed davranışını, dil hedeflemesini ve tarama ritmini tek yüzeyden ayarlayın.'
+          : 'Adjust feed behavior, locale targeting, and polling cadence from one editing surface.'
+      }
     />
   )
 }

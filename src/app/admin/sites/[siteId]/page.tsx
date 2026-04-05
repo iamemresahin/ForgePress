@@ -2,9 +2,12 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 
+import { Button } from '@/components/ui/button'
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { sites } from '@/lib/db/schema'
+import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
 import { updateSiteAction } from '../actions'
 import { SiteForm } from '../site-form'
@@ -15,6 +18,8 @@ export default async function EditSitePage({
   params: Promise<{ siteId: string }>
 }) {
   await requireAdminSession()
+  const locale = await getInterfaceLocale()
+  const tr = locale === 'tr'
   const { siteId } = await params
 
   const [site] = await db.select().from(sites).where(eq(sites.id, siteId)).limit(1)
@@ -24,22 +29,33 @@ export default async function EditSitePage({
   }
 
   return (
-    <section className="stack" style={{ gap: 24 }}>
-      <header className="panel stack">
-        <span className="eyebrow">Edit site rules</span>
-        <h1 style={{ fontSize: 'clamp(2.2rem, 4vw, 3.6rem)', lineHeight: 0.96 }}>{site.name}</h1>
-        <p className="muted" style={{ maxWidth: 760 }}>
-          Tighten editorial behavior, prohibited topics, required structure, and AdSense safety per site.
-        </p>
-        <Link className="button" href="/admin/sites">
-          Back to sites
-        </Link>
-      </header>
+    <section className="space-y-6">
+      <Card>
+        <CardHeader className="space-y-4">
+          <div className="space-y-2">
+            <span className="eyebrow">{tr ? 'Site kurallarını düzenle' : 'Edit site rules'}</span>
+            <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">{site.name}</CardTitle>
+            <CardDescription className="max-w-3xl text-sm leading-6">
+              {tr
+                ? 'Her site için editoryal davranışı, yasaklı konuları, zorunlu yapıyı ve AdSense güvenliğini sıkılaştırın.'
+                : 'Tighten editorial behavior, prohibited topics, required structure, and AdSense safety per site.'}
+            </CardDescription>
+          </div>
+          <Button asChild variant="outline" className="w-fit rounded-xl">
+            <Link href="/admin/sites">{tr ? 'Sitelere dön' : 'Back to sites'}</Link>
+          </Button>
+        </CardHeader>
+      </Card>
 
       <SiteForm
+        locale={locale}
         action={updateSiteAction.bind(null, site.id)}
-        submitLabel="Save site rules"
-        description="These rules will be used as the site-specific control layer for future OpenAI-assisted drafts and editorial review."
+        submitLabel={tr ? 'Site kurallarını kaydet' : 'Save site rules'}
+        description={
+          tr
+            ? 'Bu kurallar gelecekteki OpenAI destekli taslaklar ve editoryal inceleme için siteye özel kontrol katmanı olarak kullanılacak.'
+            : 'These rules will be used as the site-specific control layer for future OpenAI-assisted drafts and editorial review.'
+        }
         initialValues={{
           name: site.name,
           slug: site.slug,
