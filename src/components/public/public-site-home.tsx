@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, Globe2, Sparkles } from 'lucide-react'
+import { ArrowRight, ChevronRight, Search } from 'lucide-react'
 
 import { type PublicArticleSummary } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
@@ -24,7 +24,11 @@ function formatPublishedDate(date: Date | null, locale: string) {
   if (!date) return null
 
   try {
-    return date.toLocaleDateString(locale)
+    return date.toLocaleDateString(locale, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
   } catch {
     return date.toLocaleDateString('en-US')
   }
@@ -34,7 +38,206 @@ function getArticleHref(siteSlug: string, articleSlug: string, useHostRouting: b
   return useHostRouting ? `/${articleSlug}` : `/${siteSlug}/${articleSlug}`
 }
 
-export function PublicSiteHome({
+function ArticleImage({
+  imageUrl,
+  title,
+  heightClassName,
+  accent,
+}: {
+  imageUrl?: string | null
+  title: string
+  heightClassName: string
+  accent: string
+}) {
+  if (imageUrl) {
+    return (
+      <div className={`overflow-hidden rounded-[22px] ${heightClassName}`}>
+        <img src={imageUrl} alt={title} className="h-full w-full object-cover" />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className={`overflow-hidden rounded-[22px] ${heightClassName}`}
+      style={{
+        background: `linear-gradient(135deg, rgba(255,255,255,0.08), transparent 58%), radial-gradient(circle at top right, ${accent}, transparent 34%), #171717`,
+      }}
+    />
+  )
+}
+
+function EditorialMeta({
+  article,
+  locale,
+  muted,
+}: {
+  article: PublicArticleSummary
+  locale: string
+  muted: string
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium uppercase tracking-[0.24em]">
+      <span style={{ color: '#fb923c' }}>{article.locale}</span>
+      <span style={{ color: muted }}>{formatPublishedDate(article.publishedAt, locale) ?? 'Live'}</span>
+      <span style={{ color: muted }}>ForgePress</span>
+    </div>
+  )
+}
+
+function KantanLikeHome({
+  site,
+  theme,
+  articles,
+  useHostRouting,
+}: PublicSiteHomeProps) {
+  const featuredArticle = articles[0]
+  const railArticles = articles.slice(1, 3)
+  const feedArticles = articles.slice(3)
+  const navItems = [
+    'Featured',
+    'All',
+    'Technology',
+    'AI',
+    'Tools',
+    'Startups',
+  ]
+
+  return (
+    <main className="min-h-screen bg-black text-white" style={theme.style}>
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-4 px-4 py-4 md:px-6">
+          <Link href={useHostRouting ? '/' : `/${site.slug}`} className="text-[1.75rem] font-semibold tracking-tight text-white">
+            {site.name}
+          </Link>
+          <div className="hidden items-center gap-2 lg:flex">
+            {navItems.map((item, index) => (
+              <span
+                key={item}
+                className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
+                  index === 0 ? 'border-white/20 text-white' : 'border-white/10 text-white/65'
+                }`}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+          <div className="flex items-center gap-2">
+            <button className="hidden rounded-full border border-white/10 px-4 py-2 text-sm text-white/72 md:inline-flex">
+              Hide read
+            </button>
+            <button className="inline-flex items-center justify-center rounded-full border border-white/10 p-2 text-white/72">
+              <Search className="size-4" />
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
+        {featuredArticle ? (
+          <section className="grid gap-5 xl:grid-cols-[0.42fr_minmax(0,1fr)]">
+            <div className="grid gap-5">
+              {railArticles.map((article) => (
+                <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
+                  <article className="grid gap-4 border-b border-white/10 pb-5">
+                    <ArticleImage
+                      imageUrl={article.imageUrl}
+                      title={article.title}
+                      heightClassName="h-48"
+                      accent={theme.tokens.heroGlow}
+                    />
+                    <div className="space-y-3">
+                      <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                      <h2 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
+                        {article.title}
+                      </h2>
+                      {article.excerpt ? (
+                        <p className="line-clamp-3 text-sm leading-6" style={{ color: theme.tokens.muted }}>
+                          {article.excerpt}
+                        </p>
+                      ) : null}
+                    </div>
+                  </article>
+                </Link>
+              ))}
+            </div>
+
+            <Link href={getArticleHref(site.slug, featuredArticle.slug, useHostRouting ?? false)} className="group">
+              <article className="grid gap-5">
+                <ArticleImage
+                  imageUrl={featuredArticle.imageUrl}
+                  title={featuredArticle.title}
+                  heightClassName="h-[320px] md:h-[420px] xl:h-[520px]"
+                  accent={theme.tokens.heroGlow}
+                />
+                <div className="space-y-4">
+                  <EditorialMeta article={featuredArticle} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                  <h1 className="max-w-4xl text-[clamp(2.1rem,4.7vw,4.8rem)] font-semibold leading-[0.95] tracking-tight text-white transition group-hover:text-white/88">
+                    {featuredArticle.title}
+                  </h1>
+                  <p className="max-w-3xl text-base leading-7 md:text-lg" style={{ color: theme.tokens.muted }}>
+                    {featuredArticle.excerpt ??
+                      site.toneGuide ??
+                      site.niche ??
+                      'A dense, image-led editorial surface for AI-assisted publishing operations.'}
+                  </p>
+                </div>
+              </article>
+            </Link>
+          </section>
+        ) : (
+          <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-8 md:p-10">
+            <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-white/50">Live Surface</p>
+            <h1 className="text-[clamp(2.4rem,5vw,4.6rem)] font-semibold leading-[0.94] text-white">{site.name}</h1>
+            <p className="mt-4 max-w-2xl text-base leading-7" style={{ color: theme.tokens.muted }}>
+              Publish the first story from the admin workspace and this editorial front page will populate automatically.
+            </p>
+          </section>
+        )}
+
+        <section className="space-y-5">
+          <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">Latest Stories</p>
+              <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">Latest Stories</h2>
+            </div>
+            <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} published stories</span>
+          </div>
+
+          <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
+            {(feedArticles.length > 0 ? feedArticles : articles.slice(0, 6)).map((article) => (
+              <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
+                <article className="grid gap-4">
+                  <ArticleImage
+                    imageUrl={article.imageUrl}
+                    title={article.title}
+                    heightClassName="h-56"
+                    accent={theme.tokens.heroGlow}
+                  />
+                  <div className="space-y-3">
+                    <EditorialMeta article={article} locale={site.defaultLocale} muted={theme.tokens.muted} />
+                    <h3 className="text-[1.42rem] font-semibold leading-[1.08] text-white transition group-hover:text-white/88">
+                      {article.title}
+                    </h3>
+                    <p className="text-sm leading-6" style={{ color: theme.tokens.muted }}>
+                      {article.excerpt ?? 'Open the story to read the full article and source context.'}
+                    </p>
+                    <span className="inline-flex items-center gap-2 text-sm font-medium text-white">
+                      Continue Reading
+                      <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
+                    </span>
+                  </div>
+                </article>
+              </Link>
+            ))}
+          </div>
+        </section>
+      </div>
+    </main>
+  )
+}
+
+function DefaultHome({
   site,
   theme,
   articles,
@@ -119,7 +322,6 @@ export function PublicSiteHome({
                   <>
                     <div className="flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium" style={chipStyle}>
-                        <Sparkles className="mr-1 size-3.5" />
                         Featured
                       </span>
                       <span className="text-xs uppercase tracking-[0.18em]" style={{ color: theme.tokens.muted }}>
@@ -166,7 +368,6 @@ export function PublicSiteHome({
                 >
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium" style={chipStyle}>
-                      <Globe2 className="mr-1 size-3.5" />
                       {article.locale}
                     </span>
                     <span className="text-xs uppercase tracking-[0.18em]" style={{ color: theme.tokens.muted }}>
@@ -198,7 +399,6 @@ export function PublicSiteHome({
                   <article className="h-full rounded-[24px] border p-5 transition hover:-translate-y-0.5" style={cardStyle}>
                     <div className="mb-4 flex flex-wrap items-center gap-2">
                       <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium" style={chipStyle}>
-                        <Globe2 className="mr-1 size-3.5" />
                         {article.locale}
                       </span>
                     </div>
@@ -217,4 +417,12 @@ export function PublicSiteHome({
       </div>
     </main>
   )
+}
+
+export function PublicSiteHome(props: PublicSiteHomeProps) {
+  if (props.theme.preset === 'kantan_editorial') {
+    return <KantanLikeHome {...props} />
+  }
+
+  return <DefaultHome {...props} />
 }

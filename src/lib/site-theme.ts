@@ -3,7 +3,12 @@ import type { InferSelectModel } from 'drizzle-orm'
 
 import type { sites } from '@/lib/db/schema'
 
-export type ThemePresetKey = 'forge_blue' | 'editorial_glow' | 'news_sand' | 'midnight_signal'
+export type ThemePresetKey =
+  | 'forge_blue'
+  | 'editorial_glow'
+  | 'news_sand'
+  | 'midnight_signal'
+  | 'kantan_editorial'
 export type HomepageLayoutKey = 'spotlight' | 'digest'
 export type ArticleLayoutKey = 'editorial' | 'feature'
 
@@ -120,6 +125,27 @@ export const THEME_PRESETS: Record<ThemePresetKey, ThemePresetDefinition> = {
       accent: '#8af0ff',
       buttonForeground: '#08111d',
       heroGlow: 'rgba(108,197,255,0.18)',
+    },
+  },
+  kantan_editorial: {
+    key: 'kantan_editorial',
+    label: { tr: 'Kantan Editorial', en: 'Kantan Editorial' },
+    description: {
+      tr: 'Siyah zemin, yoğun haber akışı ve güçlü görsel odaklı koyu editoryal yüzey.',
+      en: 'Black-surface, image-led, dense editorial feed inspired by dark newsrooms.',
+    },
+    tokens: {
+      background: '#050505',
+      backgroundSoft: '#0b0b0b',
+      panel: 'rgba(13,13,13,0.94)',
+      panelStrong: '#111111',
+      border: 'rgba(255,255,255,0.12)',
+      foreground: '#ffffff',
+      muted: '#a1a1aa',
+      primary: '#f97316',
+      accent: '#fdba74',
+      buttonForeground: '#ffffff',
+      heroGlow: 'rgba(249,115,22,0.12)',
     },
   },
 }

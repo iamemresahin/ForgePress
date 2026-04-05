@@ -1,4 +1,5 @@
-import { CalendarClock, Globe2 } from 'lucide-react'
+import Link from 'next/link'
+import { ArrowLeft, ArrowUpRight, CalendarClock } from 'lucide-react'
 
 import { type PublicArticleDetail } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
@@ -8,8 +9,168 @@ type PublicArticlePageProps = {
   theme: ResolvedSiteTheme
 }
 
-export function PublicArticlePage({ article, theme }: PublicArticlePageProps) {
-  const sections = article.body.split('\n').filter((line) => line.trim().length > 0)
+function splitBody(body: string) {
+  return body.split('\n').filter((line) => line.trim().length > 0)
+}
+
+function formatPublishedDate(date: Date | null, locale: string) {
+  if (!date) return 'Ready'
+
+  try {
+    return date.toLocaleDateString(locale, {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    })
+  } catch {
+    return date.toLocaleDateString('en-US')
+  }
+}
+
+function ArticleBody({ body, color }: { body: string; color: string }) {
+  const sections = splitBody(body)
+
+  return (
+    <div className="article-body" style={{ color }}>
+      {sections.map((section, index) => {
+        if (section.startsWith('## ')) {
+          return (
+            <h2 key={`${index}-${section}`} className="text-[clamp(1.6rem,3vw,2.1rem)]">
+              {section.replace(/^##\s+/, '')}
+            </h2>
+          )
+        }
+
+        if (section.startsWith('# ')) {
+          return (
+            <h2 key={`${index}-${section}`} className="text-[clamp(1.9rem,3vw,2.4rem)]">
+              {section.replace(/^#\s+/, '')}
+            </h2>
+          )
+        }
+
+        return (
+          <p key={`${index}-${section}`} style={{ color }}>
+            {section.replace(/^\*\s+/, '')}
+          </p>
+        )
+      })}
+    </div>
+  )
+}
+
+function EditorialImage({
+  imageUrl,
+  title,
+  accent,
+}: {
+  imageUrl?: string | null
+  title: string
+  accent: string
+}) {
+  if (imageUrl) {
+    return (
+      <div className="overflow-hidden rounded-[28px]">
+        <img src={imageUrl} alt={title} className="h-full max-h-[620px] w-full object-cover" />
+      </div>
+    )
+  }
+
+  return (
+    <div
+      className="h-[320px] rounded-[28px] md:h-[440px]"
+      style={{
+        background: `linear-gradient(135deg, rgba(255,255,255,0.08), transparent 58%), radial-gradient(circle at top right, ${accent}, transparent 34%), #171717`,
+      }}
+    />
+  )
+}
+
+function KantanLikeArticle({ article, theme }: PublicArticlePageProps) {
+  const publishedLabel = formatPublishedDate(article.publishedAt, article.locale)
+  const homeHref = `/${article.siteSlug}`
+
+  return (
+    <main className="min-h-screen bg-black text-white" style={theme.style}>
+      <header className="border-b border-white/10 bg-black/94 backdrop-blur-xl">
+        <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between gap-4 px-4 py-4 md:px-6">
+          <div className="flex items-center gap-3">
+            <Link href={homeHref} className="text-[1.4rem] font-semibold tracking-tight text-white">
+              {article.siteName}
+            </Link>
+            <Link href={homeHref} className="hidden rounded-full border border-white/10 px-4 py-2 text-sm text-white/70 md:inline-flex">
+              Geri Dön
+            </Link>
+          </div>
+          <button className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70">Giriş</button>
+        </div>
+      </header>
+
+      <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
+        <section className="space-y-5">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium uppercase tracking-[0.24em]">
+            <span style={{ color: '#fb923c' }}>{article.locale}</span>
+            <span className="inline-flex items-center gap-2 text-white/55">
+              <CalendarClock className="size-3.5" />
+              {publishedLabel}
+            </span>
+            <span className="text-white/40">AI-assisted</span>
+          </div>
+
+          <h1 className="max-w-5xl text-[clamp(2.4rem,5vw,5.25rem)] font-semibold leading-[0.95] tracking-tight text-white">
+            {article.title}
+          </h1>
+
+          {article.excerpt ? (
+            <p className="max-w-3xl text-base leading-7 text-white/68 md:text-lg">{article.excerpt}</p>
+          ) : null}
+        </section>
+
+        <EditorialImage imageUrl={article.imageUrl} title={article.title} accent={theme.tokens.heroGlow} />
+
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+          <article className="min-w-0 rounded-[28px] border border-white/10 bg-[#0f0f10] px-6 py-7 md:px-8 md:py-8">
+            <ArticleBody body={article.body} color="#f3f4f6" />
+          </article>
+
+          <aside className="grid content-start gap-4">
+            <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] p-5">
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Story Info</p>
+              <div className="mt-4 space-y-3 text-sm text-white/68">
+                <p>Site: {article.siteName}</p>
+                <p>Locale: {article.locale}</p>
+                <p>Published: {publishedLabel}</p>
+              </div>
+            </div>
+
+            {article.sourceUrl ? (
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-between rounded-[24px] border border-white/10 bg-white px-5 py-4 text-sm font-semibold text-black transition hover:bg-white/92"
+              >
+                Kaynak Habere Git
+                <ArrowUpRight className="size-4" />
+              </a>
+            ) : null}
+
+            <Link
+              href={homeHref}
+              className="inline-flex items-center gap-2 rounded-[24px] border border-white/10 bg-transparent px-5 py-4 text-sm font-medium text-white/74 transition hover:text-white"
+            >
+              <ArrowLeft className="size-4" />
+              Geri Dön
+            </Link>
+          </aside>
+        </div>
+      </div>
+    </main>
+  )
+}
+
+function DefaultArticle({ article, theme }: PublicArticlePageProps) {
+  const sections = splitBody(article.body)
   const publishedLabel = article.publishedAt
     ? article.publishedAt.toLocaleDateString(article.locale)
     : 'Ready'
@@ -52,7 +213,6 @@ export function PublicArticlePage({ article, theme }: PublicArticlePageProps) {
           <div className="space-y-5">
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium" style={chipStyle}>
-                <Globe2 className="mr-1 size-3.5" />
                 {article.siteName} · {article.locale}
               </span>
               <span className="inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium" style={chipStyle}>
@@ -110,4 +270,12 @@ export function PublicArticlePage({ article, theme }: PublicArticlePageProps) {
       </div>
     </main>
   )
+}
+
+export function PublicArticlePage(props: PublicArticlePageProps) {
+  if (props.theme.preset === 'kantan_editorial') {
+    return <KantanLikeArticle {...props} />
+  }
+
+  return <DefaultArticle {...props} />
 }

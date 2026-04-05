@@ -29,7 +29,12 @@ type SiteFormValues = {
   reviewChecklist: string
   primaryHostname: string
   additionalHostnames: string
-  themePreset: 'forge_blue' | 'editorial_glow' | 'news_sand' | 'midnight_signal'
+  themePreset:
+    | 'forge_blue'
+    | 'editorial_glow'
+    | 'news_sand'
+    | 'midnight_signal'
+    | 'kantan_editorial'
   homepageLayout: 'spotlight' | 'digest'
   articleLayout: 'editorial' | 'feature'
   themePrimary: string

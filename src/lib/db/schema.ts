@@ -27,6 +27,7 @@ export const siteThemePresetEnum = pgEnum('site_theme_preset', [
   'editorial_glow',
   'news_sand',
   'midnight_signal',
+  'kantan_editorial',
 ])
 export const siteHomepageLayoutEnum = pgEnum('site_homepage_layout', ['spotlight', 'digest'])
 export const siteArticleLayoutEnum = pgEnum('site_article_layout', ['editorial', 'feature'])
