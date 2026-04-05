@@ -8,6 +8,7 @@ import { PublicArticlePage } from '@/components/public/public-article-page'
 import { PublicSiteHome } from '@/components/public/public-site-home'
 import {
   findSiteByHostname,
+  getNextPublishedArticleForSite,
   getPublicOriginForSite,
   getPublishedArticleBySiteAndSlug,
   getPublishedArticlesForSite,
@@ -91,7 +92,16 @@ export default async function PublicSitePage({
       notFound()
     }
 
-    return <PublicArticlePage article={article} theme={resolveSiteTheme(article)} useHostRouting />
+    const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
+
+    return (
+      <PublicArticlePage
+        article={article}
+        theme={resolveSiteTheme(article)}
+        useHostRouting
+        nextArticle={nextArticle}
+      />
+    )
   }
 
   const [site] = await db.select().from(sites).where(eq(sites.slug, siteSlug)).limit(1)

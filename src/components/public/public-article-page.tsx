@@ -1,13 +1,14 @@
 import Link from 'next/link'
-import { ArrowLeft, ArrowUpRight, CalendarClock } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarClock } from 'lucide-react'
 
-import { type PublicArticleDetail } from '@/lib/public-site'
+import { type PublicArticleDetail, type PublicArticleSummary } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
   theme: ResolvedSiteTheme
   useHostRouting?: boolean
+  nextArticle?: PublicArticleSummary | null
 }
 
 function splitBody(body: string) {
@@ -87,9 +88,19 @@ function EditorialImage({
   )
 }
 
-function KantanLikeArticle({ article, theme, useHostRouting = false }: PublicArticlePageProps) {
+function KantanLikeArticle({
+  article,
+  theme,
+  useHostRouting = false,
+  nextArticle,
+}: PublicArticlePageProps) {
   const publishedLabel = formatPublishedDate(article.publishedAt, article.locale)
   const homeHref = useHostRouting ? '/' : `/${article.siteSlug}`
+  const nextHref = nextArticle
+    ? useHostRouting
+      ? `/${nextArticle.slug}`
+      : `/${article.siteSlug}/${nextArticle.slug}`
+    : null
 
   return (
     <main className="min-h-screen bg-black text-white" style={theme.style}>
@@ -129,6 +140,34 @@ function KantanLikeArticle({ article, theme, useHostRouting = false }: PublicArt
 
         <EditorialImage imageUrl={article.imageUrl} title={article.title} accent={theme.tokens.heroGlow} />
 
+        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
+          <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4">
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Source Context</p>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/68">
+              This story was prepared for {article.siteName} with a compact, source-led editorial format designed for dense news feeds and faster scanning.
+            </p>
+          </div>
+
+          {article.sourceUrl ? (
+            <a
+              href={article.sourceUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex min-h-[112px] items-center justify-between rounded-[24px] border border-white/10 bg-white px-5 py-4 text-sm font-semibold text-black transition hover:bg-white/92"
+            >
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45">Source</p>
+                <p className="mt-2 text-base">Open original coverage</p>
+              </div>
+              <ArrowUpRight className="size-5" />
+            </a>
+          ) : (
+            <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4 text-sm text-white/58">
+              External source link is not available for this article yet.
+            </div>
+          )}
+        </section>
+
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
           <article className="min-w-0 rounded-[28px] border border-white/10 bg-[#0f0f10] px-6 py-7 md:px-8 md:py-8">
             <ArticleBody body={article.body} color="#f3f4f6" />
@@ -144,18 +183,6 @@ function KantanLikeArticle({ article, theme, useHostRouting = false }: PublicArt
               </div>
             </div>
 
-            {article.sourceUrl ? (
-              <a
-                href={article.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-between rounded-[24px] border border-white/10 bg-white px-5 py-4 text-sm font-semibold text-black transition hover:bg-white/92"
-              >
-                Kaynak Habere Git
-                <ArrowUpRight className="size-4" />
-              </a>
-            ) : null}
-
             <Link
               href={homeHref}
               className="inline-flex items-center gap-2 rounded-[24px] border border-white/10 bg-transparent px-5 py-4 text-sm font-medium text-white/74 transition hover:text-white"
@@ -163,6 +190,20 @@ function KantanLikeArticle({ article, theme, useHostRouting = false }: PublicArt
               <ArrowLeft className="size-4" />
               Geri Dön
             </Link>
+
+            {nextHref && nextArticle ? (
+              <Link
+                href={nextHref}
+                className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4 transition hover:border-white/20"
+              >
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/45">Next Story</p>
+                <p className="mt-3 text-base font-semibold leading-6 text-white">{nextArticle.title}</p>
+                <span className="mt-4 inline-flex items-center gap-2 text-sm text-white/72">
+                  Read next
+                  <ArrowRight className="size-4" />
+                </span>
+              </Link>
+            ) : null}
           </aside>
         </div>
       </div>

@@ -159,6 +159,17 @@ export async function getPublishedArticleBySiteAndSlug(siteId: string, articleSl
   return article
 }
 
+export async function getNextPublishedArticleForSite(siteId: string, currentArticleId: string) {
+  const publishedArticles = await getPublishedArticlesForSite(siteId)
+  const currentIndex = publishedArticles.findIndex((article) => article.id === currentArticleId)
+
+  if (currentIndex === -1) {
+    return publishedArticles[0] ?? null
+  }
+
+  return publishedArticles[currentIndex + 1] ?? publishedArticles[0] ?? null
+}
+
 export type PublicArticleDetail = NonNullable<
   Awaited<ReturnType<typeof getPublishedArticleBySiteAndSlug>>
 >

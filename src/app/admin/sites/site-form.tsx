@@ -298,19 +298,62 @@ export function SiteForm({
                           : 'border-sky-100 bg-white/80 hover:border-sky-200'
                       }`}
                     >
-                      <div className="mb-3 flex items-center gap-2">
-                        <span
-                          className="size-4 rounded-full border border-white/70 shadow-sm"
-                          style={{ backgroundColor: starter.primary }}
-                        />
-                        <span
-                          className="size-4 rounded-full border border-white/70 shadow-sm"
-                          style={{ backgroundColor: starter.accent }}
-                        />
-                        <span
-                          className="size-4 rounded-full border border-slate-200 shadow-sm"
-                          style={{ backgroundColor: starter.background }}
-                        />
+                      <div
+                        className="mb-3 overflow-hidden rounded-[16px] border"
+                        style={{
+                          background:
+                            starter.key === 'kantan_editorial'
+                              ? 'linear-gradient(180deg, #050505, #111111)'
+                              : `linear-gradient(180deg, ${starter.background}, ${starter.background})`,
+                          borderColor: starter.key === 'kantan_editorial' ? 'rgba(255,255,255,0.1)' : 'rgba(148,163,184,0.2)',
+                        }}
+                      >
+                        <div className="flex items-center justify-between border-b px-3 py-2 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                          style={{
+                            borderColor: starter.key === 'kantan_editorial' ? 'rgba(255,255,255,0.08)' : 'rgba(148,163,184,0.16)',
+                            color: starter.key === 'kantan_editorial' ? 'rgba(255,255,255,0.82)' : '#334155',
+                          }}
+                        >
+                          <span>{starter.key === 'kantan_editorial' ? 'Dark Feed' : 'Starter'}</span>
+                          <div className="flex items-center gap-1.5">
+                            <span className="size-2.5 rounded-full" style={{ backgroundColor: starter.primary }} />
+                            <span className="size-2.5 rounded-full" style={{ backgroundColor: starter.accent }} />
+                          </div>
+                        </div>
+                        <div className="grid gap-2 p-3">
+                          <div
+                            className="rounded-[12px]"
+                            style={{
+                              height: starter.key === 'kantan_editorial' ? 54 : 46,
+                              background:
+                                starter.key === 'kantan_editorial'
+                                  ? 'linear-gradient(135deg, rgba(255,255,255,0.08), transparent 58%), #1a1a1a'
+                                  : `linear-gradient(135deg, ${starter.primary}22, transparent 58%), ${starter.background}`,
+                            }}
+                          />
+                          <div className="grid grid-cols-2 gap-2">
+                            <div
+                              className="rounded-[10px]"
+                              style={{
+                                height: 30,
+                                background:
+                                  starter.key === 'kantan_editorial'
+                                    ? 'rgba(255,255,255,0.06)'
+                                    : `${starter.primary}16`,
+                              }}
+                            />
+                            <div
+                              className="rounded-[10px]"
+                              style={{
+                                height: 30,
+                                background:
+                                  starter.key === 'kantan_editorial'
+                                    ? 'rgba(255,255,255,0.09)'
+                                    : `${starter.accent}22`,
+                              }}
+                            />
+                          </div>
+                        </div>
                       </div>
                       <p className="text-sm font-semibold text-slate-950">
                         {tr ? preset.label.tr : preset.label.en}

@@ -129,10 +129,10 @@ export const THEME_PRESETS: Record<ThemePresetKey, ThemePresetDefinition> = {
   },
   kantan_editorial: {
     key: 'kantan_editorial',
-    label: { tr: 'Kantan Editorial', en: 'Kantan Editorial' },
+    label: { tr: 'Signal Editorial', en: 'Signal Editorial' },
     description: {
       tr: 'Siyah zemin, yoğun haber akışı ve güçlü görsel odaklı koyu editoryal yüzey.',
-      en: 'Black-surface, image-led, dense editorial feed inspired by dark newsrooms.',
+      en: 'Black-surface, image-led, dense editorial feed for a premium dark newsroom feel.',
     },
     tokens: {
       background: '#050505',

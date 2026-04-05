@@ -2,7 +2,12 @@ import { notFound } from 'next/navigation'
 import { headers } from 'next/headers'
 
 import { PublicArticlePage as PublicArticleSurface } from '@/components/public/public-article-page'
-import { getPublicOriginForSite, getPublishedArticleBySiteAndSlug, getSiteBySlug } from '@/lib/public-site'
+import {
+  getNextPublishedArticleForSite,
+  getPublicOriginForSite,
+  getPublishedArticleBySiteAndSlug,
+  getSiteBySlug,
+} from '@/lib/public-site'
 import { isPlatformHost, normalizeHostname } from '@/lib/site-domain'
 import { resolveSiteTheme } from '@/lib/site-theme'
 
@@ -66,5 +71,7 @@ export default async function PublicArticleRoute({
     notFound()
   }
 
-  return <PublicArticleSurface article={article} theme={resolveSiteTheme(article)} />
+  const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
+
+  return <PublicArticleSurface article={article} theme={resolveSiteTheme(article)} nextArticle={nextArticle} />
 }
