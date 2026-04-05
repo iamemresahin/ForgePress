@@ -388,7 +388,6 @@ function KantanLikeHome({
         redirectPath={activeTopicSlug ? getTopicHref(site.slug, activeTopicSlug, useHostRouting ?? false) : homeHref}
         navItems={resolvedNavItems}
         extraItems={extraItems}
-        flowModeLabel={copy.flowMode}
         signInLabel={copy.signIn}
         otherCategoriesLabel={copy.otherCategories}
         currentReader={currentReader}

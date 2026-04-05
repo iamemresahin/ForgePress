@@ -116,8 +116,7 @@ export function getPublicCopy(locale: string) {
     publishFirstStory: tr
       ? 'İlk haberi admin panelinden yayınlayın; bu editoryal ön yüz otomatik dolacaktır.'
       : 'Publish the first story from the admin workspace and this editorial front page will populate automatically.',
-    flowMode: tr ? 'Akış Modu' : 'Flow Mode',
-    signIn: tr ? 'Giriş' : 'Sign in',
+    signIn: tr ? 'Google ile gir' : 'Continue with Google',
     signInToComment: tr ? 'Yorum yapmak için giriş yap' : 'Sign in to comment',
     comments: tr ? 'Yorumlar' : 'Comments',
     commentsLocked: tr

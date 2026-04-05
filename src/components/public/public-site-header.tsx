@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { CarFront, Eye, FlaskConical, Gamepad2, Monitor, Moon, Plus, Search, Sun, Zap } from 'lucide-react'
+import { CarFront, FlaskConical, Gamepad2, Monitor, Moon, Plus, Sun } from 'lucide-react'
 
 import { usePublicColorMode } from '@/components/public/public-color-mode'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
@@ -34,7 +34,6 @@ export function PublicSiteHeader({
   siteName,
   navItems,
   extraItems,
-  flowModeLabel,
   signInLabel,
   otherCategoriesLabel,
   siteId,
@@ -51,7 +50,6 @@ export function PublicSiteHeader({
   redirectPath: string
   navItems: NavItem[]
   extraItems: NavItem[]
-  flowModeLabel: string
   signInLabel: string
   otherCategoriesLabel: string
   currentReader?: { id: string; displayName: string; email: string } | null
@@ -71,8 +69,8 @@ export function PublicSiteHeader({
       : 'inline-flex size-12 items-center justify-center rounded-full border border-white/10 text-white/72 transition hover:border-white/20 hover:text-white'
   const utilityButtonClassName =
     mode === 'light'
-      ? 'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-3 text-[0.95rem] font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950'
-      : 'inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-[0.95rem] font-medium text-white transition hover:border-white/20'
+      ? 'inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2.5 text-[0.92rem] font-medium text-slate-700 transition hover:border-slate-300 hover:text-slate-950'
+      : 'inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2.5 text-[0.92rem] font-medium text-white transition hover:border-white/20'
 
   return (
     <header className={headerClassName}>
@@ -83,9 +81,6 @@ export function PublicSiteHeader({
         </Link>
 
         <div className="flex items-center gap-2 lg:hidden">
-          <button type="button" onClick={toggleMode} className={ghostButtonClassName}>
-            {mode === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
-          </button>
           <PublicReaderAuthDialog
             siteId={siteId}
             siteName={siteName}
@@ -101,6 +96,9 @@ export function PublicSiteHeader({
                 : 'inline-flex items-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/92'
             }
           />
+          <button type="button" onClick={toggleMode} className={ghostButtonClassName}>
+            {mode === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
+          </button>
         </div>
 
         <div className="hidden items-center gap-2 lg:flex">
@@ -132,8 +130,9 @@ export function PublicSiteHeader({
         <div className="hidden items-center gap-3 lg:flex">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className={ghostButtonClassName}>
+              <button className={utilityButtonClassName}>
                 <Plus className="size-5" />
+                {otherCategoriesLabel}
               </button>
             </DropdownMenuTrigger>
             <DropdownMenuContent
@@ -177,19 +176,9 @@ export function PublicSiteHeader({
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <button className={ghostButtonClassName}>
-            <Search className="size-5" />
-          </button>
-          <button className={ghostButtonClassName}>
-            <Eye className="size-5" />
-          </button>
           <button type="button" onClick={toggleMode} className={utilityButtonClassName}>
             {mode === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
             {mode === 'light' ? (tr ? 'Karanlık' : 'Dark') : tr ? 'Aydınlık' : 'Light'}
-          </button>
-          <button className={utilityButtonClassName}>
-            <Zap className="size-4" />
-            {flowModeLabel}
           </button>
           <PublicReaderAuthDialog
             siteId={siteId}
@@ -202,8 +191,8 @@ export function PublicSiteHeader({
             triggerLabel={signInLabel}
             triggerClassName={
               mode === 'light'
-                ? 'inline-flex items-center rounded-full bg-slate-950 px-5 py-3 text-[0.95rem] font-semibold text-white transition hover:bg-slate-800'
-                : 'inline-flex items-center rounded-full bg-white px-5 py-3 text-[0.95rem] font-semibold text-black transition hover:bg-white/92'
+                ? 'inline-flex items-center rounded-full bg-slate-950 px-5 py-2.5 text-[0.92rem] font-semibold text-white transition hover:bg-slate-800'
+                : 'inline-flex items-center rounded-full bg-white px-5 py-2.5 text-[0.92rem] font-semibold text-black transition hover:bg-white/92'
             }
           />
         </div>

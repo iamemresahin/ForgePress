@@ -83,8 +83,8 @@ export function PublicCommentsPanel({
         <div className={mode === 'light' ? 'mt-5 rounded-[24px] border border-slate-200 bg-slate-50 p-5' : 'mt-5 rounded-[24px] border border-white/10 bg-white/[0.03] p-5'}>
           <p className={mode === 'light' ? 'max-w-2xl text-sm leading-7 text-slate-600' : 'max-w-2xl text-sm leading-7 text-white/64'}>
             {tr
-              ? 'Yorum bırakmak için bu yayın markası altında açılan popup içinde Google hesabınla giriş yap.'
-              : 'Sign in with your Google account inside this publication popup before posting a comment.'}
+              ? 'Yorum bırakmak için yalnızca Google ile giriş yapman yeterli.'
+              : 'Use Google sign-in to join the discussion.'}
           </p>
           <div className="mt-5">
             <PublicReaderAuthDialog

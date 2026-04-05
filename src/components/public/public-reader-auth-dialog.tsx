@@ -244,7 +244,7 @@ export function PublicReaderAuthDialog({
                     <p className={cn('mt-3 text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
                       {tr
                         ? 'Bu yayında okuyucu erişimi yalnızca Google hesabı ile açılır.'
-                        : 'Reader access for this publication is available only through Google sign-in.'}
+                        : 'Reader access on this site is available only through Google.'}
                     </p>
                   </div>
 
@@ -258,7 +258,7 @@ export function PublicReaderAuthDialog({
                     <p className={cn('mt-3 text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
                       {tr
                         ? 'Google butonu bu siteye ait istemciyle açılır. Okuyucu oturumu yalnızca bu yayın için geçerlidir.'
-                        : 'The Google button uses this site’s own client and keeps the reader session scoped to this publication.'}
+                        : 'This Google button belongs to this site and keeps the reader session scoped here.'}
                     </p>
 
                     <div className="mt-5">
