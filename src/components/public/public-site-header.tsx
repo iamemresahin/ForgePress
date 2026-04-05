@@ -82,7 +82,7 @@ export function PublicSiteHeader({
           <span>{siteName}</span>
         </Link>
 
-        <div className="hidden items-center gap-2 xl:flex">
+        <div className="hidden items-center gap-2 lg:flex">
           {navItems.map((item, index) => {
             const Icon = item.icon ? iconMap[item.icon] : null
 
@@ -108,7 +108,7 @@ export function PublicSiteHeader({
           })}
         </div>
 
-        <div className="hidden items-center gap-3 xl:flex">
+        <div className="hidden items-center gap-3 lg:flex">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={ghostButtonClassName}>
