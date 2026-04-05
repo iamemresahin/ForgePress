@@ -105,7 +105,7 @@ function EditorialFeatureCard({
     <Link href={href} className="group">
       <article
         className={`relative overflow-hidden rounded-[28px] border border-white/12 bg-[#080809] ${
-          size === 'large' ? 'min-h-[460px] md:min-h-[620px]' : 'min-h-[310px]'
+          size === 'large' ? 'min-h-[440px] md:min-h-[610px]' : 'min-h-[300px] md:min-h-[320px]'
         }`}
       >
         <img
@@ -124,33 +124,33 @@ function EditorialFeatureCard({
         />
         <div
           className={`absolute inset-x-0 bottom-0 z-10 flex flex-col ${
-            size === 'large' ? 'gap-4 p-7 md:p-9' : 'gap-3 p-6'
+            size === 'large' ? 'gap-4 p-7 md:p-8' : 'gap-2.5 p-5 md:p-6'
           }`}
         >
           <div className="flex items-center gap-3">
-            <span className="inline-flex rounded-[10px] bg-[#ff5a4f] px-3 py-1.5 text-[0.7rem] font-bold uppercase tracking-[0.2em] text-white">
+            <span className="inline-flex rounded-[10px] bg-[#ff5a4f] px-3 py-1.5 text-[0.68rem] font-bold uppercase tracking-[0.18em] text-white">
               {topic.label}
             </span>
           </div>
           <h2
             className={`max-w-5xl font-semibold tracking-tight text-white ${
               size === 'large'
-                ? 'text-[clamp(2.2rem,4.4vw,4rem)] leading-[1.02]'
-                : 'text-[clamp(1.55rem,2.2vw,2.1rem)] leading-[1.12]'
+                ? 'text-[clamp(1.95rem,3.5vw,3.35rem)] leading-[1.04]'
+                : 'max-w-[24rem] text-[clamp(1.15rem,1.55vw,1.85rem)] leading-[1.16]'
             }`}
           >
             {article.title}
           </h2>
-          {article.excerpt ? (
+          {size === 'large' && article.excerpt ? (
             <p
               className={`max-w-4xl text-white/82 ${
-                size === 'large' ? 'text-[1.02rem] leading-8 md:text-[1.1rem]' : 'line-clamp-2 text-sm leading-6'
+                size === 'large' ? 'text-[0.95rem] leading-7 md:text-[1rem]' : 'hidden'
               }`}
             >
               {article.excerpt}
             </p>
           ) : null}
-          <p className="text-sm text-white/58">{publishedLabel}</p>
+          <p className={size === 'large' ? 'text-sm text-white/58' : 'text-[0.82rem] text-white/52'}>{publishedLabel}</p>
         </div>
       </article>
     </Link>

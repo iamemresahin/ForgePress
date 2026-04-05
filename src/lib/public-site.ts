@@ -158,15 +158,6 @@ function hashString(input: string) {
   return Math.abs(hash)
 }
 
-function escapeSvgText(text: string) {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;')
-}
-
 const EDITORIAL_PALETTES = [
   { start: '#1d4ed8', end: '#0f172a', glow: '#38bdf8' },
   { start: '#0f766e', end: '#111827', glow: '#2dd4bf' },
@@ -186,12 +177,9 @@ export function buildEditorialImageDataUri(
   const angle = hash % 360
   const accentX = 18 + (hash % 48)
   const accentY = 20 + (hash % 30)
-  const headline = escapeSvgText(article.title)
-  const kicker = escapeSvgText(topic.label.toUpperCase())
-  const strap = escapeSvgText((article.excerpt ?? siteNiche ?? 'Signal Editorial').slice(0, 120))
 
   const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="${headline}">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" role="img" aria-label="${article.title}">
       <defs>
         <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stop-color="${palette.start}" />
@@ -212,20 +200,11 @@ export function buildEditorialImageDataUri(
         <circle cx="170" cy="126" r="72" fill="#ffffff" />
         <circle cx="228" cy="182" r="14" fill="#ffffff" />
       </g>
-      <text x="72" y="108" fill="rgba(255,255,255,0.72)" font-size="24" font-family="Arial, Helvetica, sans-serif" letter-spacing="7">${kicker}</text>
-      <foreignObject x="72" y="156" width="760" height="360">
-        <div xmlns="http://www.w3.org/1999/xhtml" style="display:flex;height:100%;align-items:flex-start;">
-          <div style="font-family:Arial, Helvetica, sans-serif;font-size:72px;line-height:1.02;font-weight:700;color:white;max-width:760px;">
-            ${headline}
-          </div>
-        </div>
-      </foreignObject>
-      <foreignObject x="72" y="560" width="640" height="120">
-        <div xmlns="http://www.w3.org/1999/xhtml" style="font-family:Arial, Helvetica, sans-serif;font-size:28px;line-height:1.35;color:rgba(255,255,255,0.74);max-width:640px;">
-          ${strap}
-        </div>
-      </foreignObject>
-      <text x="74" y="716" fill="rgba(255,255,255,0.58)" font-size="22" font-family="Arial, Helvetica, sans-serif" letter-spacing="4">SIGNAL EDITORIAL</text>
+      <g opacity="0.16">
+        <rect x="78" y="590" width="240" height="12" rx="6" fill="#ffffff" />
+        <rect x="78" y="620" width="170" height="12" rx="6" fill="#ffffff" />
+      </g>
+      <circle cx="1030" cy="116" r="84" fill="rgba(255,255,255,0.08)" />
     </svg>
   `.trim()
 
