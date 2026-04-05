@@ -146,6 +146,14 @@ export function buildDerivedTopics(
     .sort((left, right) => right.articles.length - left.articles.length)
 }
 
+export function getDerivedTopicBySlug(
+  articles: PublicArticleSummary[],
+  topicSlug: string,
+  siteNiche?: string | null,
+) {
+  return buildDerivedTopics(articles, siteNiche).find((topic) => topic.slug === topicSlug) ?? null
+}
+
 export async function getSiteBySlug(siteSlug: string) {
   const [site] = await db
     .select({

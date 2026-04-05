@@ -38,6 +38,10 @@ function getArticleHref(siteSlug: string, articleSlug: string, useHostRouting: b
   return useHostRouting ? `/${articleSlug}` : `/${siteSlug}/${articleSlug}`
 }
 
+function getTopicHref(siteSlug: string, topicSlug: string, useHostRouting: boolean) {
+  return useHostRouting ? `/topics/${topicSlug}` : `/${siteSlug}/topics/${topicSlug}`
+}
+
 function ArticleImage({
   imageUrl,
   title,
@@ -96,10 +100,10 @@ function KantanLikeHome({
   const feedArticles = articles.slice(3)
   const topics = buildDerivedTopics(articles, site.niche).slice(0, 4)
   const navItems = [
-    { href: '#featured', label: 'Featured' },
-    { href: '#latest', label: 'All' },
+    { href: useHostRouting ? '/' : `/${site.slug}`, label: 'Featured' },
+    { href: useHostRouting ? '/' : `/${site.slug}`, label: 'All' },
     ...topics.map((topic) => ({
-      href: `#topic-${topic.slug}`,
+      href: getTopicHref(site.slug, topic.slug, useHostRouting ?? false),
       label: topic.label,
     })),
   ]
@@ -113,7 +117,7 @@ function KantanLikeHome({
           </Link>
           <div className="hidden items-center gap-2 lg:flex">
             {navItems.map((item, index) => (
-              <a
+              <Link
                 key={item.label}
                 href={item.href}
                 className={`rounded-full border px-4 py-2 text-xs font-medium transition ${
@@ -121,7 +125,7 @@ function KantanLikeHome({
                 }`}
               >
                 {item.label}
-              </a>
+              </Link>
             ))}
           </div>
           <div className="flex items-center gap-2">
