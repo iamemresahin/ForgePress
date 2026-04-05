@@ -28,6 +28,9 @@ type SiteFormValues = {
   requiredSections: string
   reviewChecklist: string
   topicLabelOverrides: string
+  featuredNavLabel: string
+  allNavLabel: string
+  navTopicSlugs: string
   primaryHostname: string
   additionalHostnames: string
   themePreset:
@@ -284,6 +287,55 @@ export function SiteForm({
                   : 'Comma-separated: ai:Artificial Intelligence, tools:Tools, startups:Startups'
               }
             />
+          </div>
+
+          <div className="space-y-4 rounded-[24px] border border-slate-200 bg-white p-5">
+            <div className="space-y-1">
+              <p className="eyebrow">{tr ? 'Üst navigasyon' : 'Header navigation'}</p>
+              <p className="text-sm text-slate-600">
+                {tr
+                  ? 'Öne çıkanlar ve tümü etiketlerini değiştirin, üst barda hangi 4 konunun görüneceğini belirleyin.'
+                  : 'Change the featured and all labels, and control which 4 topics appear in the top navigation.'}
+              </p>
+            </div>
+
+            <div className="form-grid">
+              <div className="field">
+                <Label htmlFor="featuredNavLabel">{tr ? 'Öne çıkanlar etiketi' : 'Featured label'}</Label>
+                <Input
+                  id="featuredNavLabel"
+                  name="featuredNavLabel"
+                  type="text"
+                  defaultValue={initialValues.featuredNavLabel}
+                  placeholder={tr ? 'Öne Çıkanlar' : 'Featured'}
+                />
+              </div>
+              <div className="field">
+                <Label htmlFor="allNavLabel">{tr ? 'Tümü etiketi' : 'All label'}</Label>
+                <Input
+                  id="allNavLabel"
+                  name="allNavLabel"
+                  type="text"
+                  defaultValue={initialValues.allNavLabel}
+                  placeholder={tr ? 'Tümü' : 'All'}
+                />
+              </div>
+            </div>
+
+            <div className="field">
+              <Label htmlFor="navTopicSlugs">{tr ? 'Üst barda görünecek konu slugları' : 'Top-bar topic slugs'}</Label>
+              <Input
+                id="navTopicSlugs"
+                name="navTopicSlugs"
+                type="text"
+                defaultValue={initialValues.navTopicSlugs}
+                placeholder={
+                  tr
+                    ? 'Virgülle ayırın: ai, tools, startups, technology'
+                    : 'Comma-separated: ai, tools, startups, technology'
+                }
+              />
+            </div>
           </div>
 
           <div className="space-y-4 rounded-[24px] border border-sky-100 bg-sky-50/70 p-5">

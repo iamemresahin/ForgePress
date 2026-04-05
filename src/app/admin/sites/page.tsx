@@ -104,6 +104,9 @@ export default async function AdminSitesPage() {
               ? 'kaynak atfını doğrula, başlık doğruluğunu onayla, AdSense uyumlu sayfa kalitesini kontrol et'
               : 'verify source attribution, confirm headline accuracy, confirm AdSense-safe page quality',
             topicLabelOverrides: '',
+            featuredNavLabel: '',
+            allNavLabel: '',
+            navTopicSlugs: '',
             primaryHostname: '',
             additionalHostnames: '',
             themePreset: 'forge_blue',

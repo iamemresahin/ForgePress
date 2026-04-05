@@ -75,7 +75,13 @@ export default async function PublicArticleRoute({
 
   const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
   const publishedArticles = await getPublishedArticlesForSite(site.id)
-  const relatedArticles = getRelatedArticles(article, publishedArticles, site.niche, site.topicLabelOverrides)
+  const relatedArticles = getRelatedArticles(
+    article,
+    publishedArticles,
+    site.niche,
+    site.topicLabelOverrides,
+    site.defaultLocale,
+  )
 
   return (
     <PublicArticleSurface

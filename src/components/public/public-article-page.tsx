@@ -5,10 +5,12 @@ import {
   buildEditorialImageDataUri,
   estimateReadTimeMinutes,
   formatFreshnessLabel,
+  getPublicCopy,
   type PublicArticleDetail,
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
+import { CommentLoginGate } from '@/components/public/comment-login-gate'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
@@ -102,10 +104,12 @@ function KantanLikeArticle({
   nextArticle,
   relatedArticles = [],
 }: PublicArticlePageProps) {
+  const copy = getPublicCopy(article.locale)
   const publishedLabel = formatPublishedDate(article.publishedAt, article.locale)
   const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''} ${article.body}`)
   const freshness = formatFreshnessLabel(article.publishedAt)
   const homeHref = useHostRouting ? '/' : `/${article.siteSlug}`
+  const loginHref = `/login?next=${encodeURIComponent(useHostRouting ? `/${article.slug}#comments` : `/${article.siteSlug}/${article.slug}#comments`)}`
   const nextHref = nextArticle
     ? useHostRouting
       ? `/${nextArticle.slug}`
@@ -121,10 +125,17 @@ function KantanLikeArticle({
               {article.siteName}
             </Link>
             <Link href={homeHref} className="hidden rounded-full border border-white/10 px-4 py-2 text-sm text-white/70 md:inline-flex">
-              Geri Dön
+              {copy.backHome}
             </Link>
           </div>
-          <button className="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70">Giriş</button>
+          <CommentLoginGate
+            title={copy.signInToComment}
+            description={copy.commentsLocked}
+            body={copy.commentsLocked}
+            buttonLabel={copy.signIn}
+            loginHref={loginHref}
+            loginLabel={copy.continueToLogin}
+          />
         </div>
       </header>
 
@@ -159,7 +170,7 @@ function KantanLikeArticle({
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Source Context</p>
+            <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.sourceContext}</p>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-white/68">
               This story was prepared for {article.siteName} with a compact, source-led editorial format designed for dense news feeds and faster scanning.
             </p>
@@ -173,15 +184,13 @@ function KantanLikeArticle({
               className="inline-flex min-h-[112px] items-center justify-between rounded-[24px] border border-white/10 bg-white px-5 py-4 text-sm font-semibold text-black transition hover:bg-white/92"
             >
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45">Source</p>
-                <p className="mt-2 text-base">Open original coverage</p>
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45">{copy.source}</p>
+                <p className="mt-2 text-base">{copy.openOriginalCoverage}</p>
               </div>
               <ArrowUpRight className="size-5" />
             </a>
           ) : (
-            <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4 text-sm text-white/58">
-              External source link is not available for this article yet.
-            </div>
+            <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4 text-sm text-white/58">{copy.sourceUnavailable}</div>
           )}
         </section>
 
@@ -194,8 +203,8 @@ function KantanLikeArticle({
             {relatedArticles.length > 0 ? (
               <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5 md:p-6">
                 <div className="border-b border-white/10 pb-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Related Stories</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">Keep reading</h2>
+                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.relatedStories}</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">{copy.keepReading}</h2>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-3">
                   {relatedArticles.map((relatedArticle) => {
@@ -224,7 +233,7 @@ function KantanLikeArticle({
                           {relatedArticle.excerpt ?? 'Open the story to continue through the editorial feed.'}
                         </p>
                         <span className="mt-4 inline-flex items-center gap-2 text-sm text-white/72">
-                          Read story
+                          {copy.readStory}
                           <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
                         </span>
                       </Link>
@@ -233,11 +242,29 @@ function KantanLikeArticle({
                 </div>
               </section>
             ) : null}
+
+            <section id="comments" className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5 md:p-6">
+              <div className="border-b border-white/10 pb-4">
+                <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.comments}</p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">{copy.signInToComment}</h2>
+              </div>
+              <p className="mt-5 max-w-2xl text-sm leading-7 text-white/62">{copy.commentsLocked}</p>
+              <div className="mt-5">
+                <CommentLoginGate
+                  title={copy.signInToComment}
+                  description={copy.commentsLocked}
+                  body={copy.commentsLocked}
+                  buttonLabel={copy.signInToComment}
+                  loginHref={loginHref}
+                  loginLabel={copy.continueToLogin}
+                />
+              </div>
+            </section>
           </div>
 
           <aside className="grid content-start gap-4">
             <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] p-5">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Story Info</p>
+              <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.storyInfo}</p>
               <div className="mt-4 space-y-3 text-sm text-white/68">
                 <p>Site: {article.siteName}</p>
                 <p>Locale: {article.locale}</p>
@@ -252,7 +279,7 @@ function KantanLikeArticle({
               className="inline-flex items-center gap-2 rounded-[24px] border border-white/10 bg-transparent px-5 py-4 text-sm font-medium text-white/74 transition hover:text-white"
             >
               <ArrowLeft className="size-4" />
-              Geri Dön
+              {copy.backHome}
             </Link>
 
             {nextHref && nextArticle ? (
@@ -260,10 +287,10 @@ function KantanLikeArticle({
                 href={nextHref}
                 className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4 transition hover:border-white/20"
               >
-                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/45">Next Story</p>
+                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/45">{copy.nextStory}</p>
                 <p className="mt-3 text-base font-semibold leading-6 text-white">{nextArticle.title}</p>
                 <span className="mt-4 inline-flex items-center gap-2 text-sm text-white/72">
-                  Read next
+                  {copy.readNext}
                   <ArrowRight className="size-4" />
                 </span>
               </Link>

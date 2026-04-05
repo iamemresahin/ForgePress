@@ -8,9 +8,10 @@ type PublicNewsAlertProps = {
   articleId: string
   articleHref: string
   siteId: string
+  label: string
 }
 
-export function PublicNewsAlert({ articleId, articleHref, siteId }: PublicNewsAlertProps) {
+export function PublicNewsAlert({ articleId, articleHref, siteId, label }: PublicNewsAlertProps) {
   const storageKey = useMemo(() => `forgepress:last-seen-article:${siteId}`, [siteId])
   const [visible, setVisible] = useState(false)
 
@@ -31,7 +32,7 @@ export function PublicNewsAlert({ articleId, articleHref, siteId }: PublicNewsAl
       className="inline-flex items-center gap-3 rounded-full bg-[#3b82f6] px-7 py-3 text-[1.05rem] font-semibold text-white shadow-[0_18px_50px_-18px_rgba(59,130,246,0.85)] transition hover:bg-[#4c8dff]"
     >
       <ArrowUp className="size-5" />
-      <span>1 yeni haber okunmayı bekliyor</span>
+      <span>{label}</span>
     </Link>
   )
 }

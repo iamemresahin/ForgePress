@@ -51,6 +51,9 @@ export async function findSiteByHostname(hostname: string) {
         homepageLayout: sites.homepageLayout,
         articleLayout: sites.articleLayout,
         topicLabelOverrides: sites.topicLabelOverrides,
+        featuredNavLabel: sites.featuredNavLabel,
+        allNavLabel: sites.allNavLabel,
+        navTopicSlugs: sites.navTopicSlugs,
         themePrimary: sites.themePrimary,
         themeAccent: sites.themeAccent,
         themeBackground: sites.themeBackground,
@@ -93,6 +96,48 @@ export function estimateReadTimeMinutes(text: string) {
   return Math.max(1, Math.ceil(words / 180))
 }
 
+export function isTurkishLocale(locale: string) {
+  return locale.toLowerCase().startsWith('tr')
+}
+
+export function getPublicCopy(locale: string) {
+  const tr = isTurkishLocale(locale)
+
+  return {
+    featured: tr ? 'Öne Çıkanlar' : 'Featured',
+    all: tr ? 'Tümü' : 'All',
+    otherCategories: tr ? 'Diğer Kategoriler' : 'More Categories',
+    latestStories: tr ? 'Son Haberler' : 'Latest Stories',
+    publishedStories: tr ? 'yayınlanmış haber' : 'published stories',
+    newStoryAlert: tr ? '1 yeni haber okunmayı bekliyor' : '1 new story is waiting to be read',
+    liveSurface: tr ? 'Canlı Yüzey' : 'Live Surface',
+    publishFirstStory: tr
+      ? 'İlk haberi admin panelinden yayınlayın; bu editoryal ön yüz otomatik dolacaktır.'
+      : 'Publish the first story from the admin workspace and this editorial front page will populate automatically.',
+    flowMode: tr ? 'Akış Modu' : 'Flow Mode',
+    signIn: tr ? 'Giriş' : 'Sign in',
+    signInToComment: tr ? 'Yorum yapmak için giriş yap' : 'Sign in to comment',
+    comments: tr ? 'Yorumlar' : 'Comments',
+    commentsLocked: tr
+      ? 'Yazıya yorum bırakmak için oturum açmanız gerekiyor.'
+      : 'You need to sign in before joining the discussion.',
+    continueToLogin: tr ? 'Giriş sayfasına git' : 'Continue to login',
+    backHome: tr ? 'Geri Dön' : 'Back',
+    sourceContext: tr ? 'Kaynak Bağlamı' : 'Source Context',
+    source: tr ? 'Kaynak' : 'Source',
+    openOriginalCoverage: tr ? 'Orijinal haberi aç' : 'Open original coverage',
+    sourceUnavailable: tr
+      ? 'Bu haber için henüz harici kaynak bağlantısı yok.'
+      : 'External source link is not available for this article yet.',
+    relatedStories: tr ? 'İlgili Haberler' : 'Related Stories',
+    keepReading: tr ? 'Okumaya devam et' : 'Keep reading',
+    readStory: tr ? 'Haberi aç' : 'Read story',
+    storyInfo: tr ? 'Haber Bilgisi' : 'Story Info',
+    nextStory: tr ? 'Sonraki Haber' : 'Next Story',
+    readNext: tr ? 'Sonrakini oku' : 'Read next',
+  }
+}
+
 export function formatFreshnessLabel(date: Date | null) {
   if (!date) return 'Fresh'
 
@@ -119,32 +164,34 @@ export type DerivedTopic = {
   articles: PublicArticleSummary[]
 }
 
-const TOPIC_RULES: Array<{ slug: string; label: string; pattern: RegExp }> = [
-  { slug: 'ai', label: 'AI', pattern: /\b(ai|agent|agents|gpt|llm|model|models|prompt|prompts)\b/i },
-  { slug: 'tools', label: 'Tools', pattern: /\b(tool|tools|stack|stacks|workflow|workflows|automation|automations)\b/i },
-  { slug: 'startups', label: 'Startups', pattern: /\b(startup|startups|founder|founders|funding|launch|launched)\b/i },
-  { slug: 'development', label: 'Development', pattern: /\b(dev|developer|developers|build|builder|builders|code|coding|software)\b/i },
-  { slug: 'design', label: 'Design', pattern: /\b(design|designer|designers|ui|ux|brand|branding)\b/i },
-  { slug: 'technology', label: 'Technology', pattern: /\b(tech|technology|platform|platforms|product|products)\b/i },
+const TOPIC_RULES: Array<{ slug: string; label: { tr: string; en: string }; pattern: RegExp }> = [
+  { slug: 'ai', label: { tr: 'Yapay Zeka', en: 'AI' }, pattern: /\b(ai|agent|agents|gpt|llm|model|models|prompt|prompts)\b/i },
+  { slug: 'tools', label: { tr: 'Araçlar', en: 'Tools' }, pattern: /\b(tool|tools|stack|stacks|workflow|workflows|automation|automations)\b/i },
+  { slug: 'startups', label: { tr: 'Girişimler', en: 'Startups' }, pattern: /\b(startup|startups|founder|founders|funding|launch|launched)\b/i },
+  { slug: 'development', label: { tr: 'Geliştirme', en: 'Development' }, pattern: /\b(dev|developer|developers|build|builder|builders|code|coding|software)\b/i },
+  { slug: 'design', label: { tr: 'Tasarım', en: 'Design' }, pattern: /\b(design|designer|designers|ui|ux|brand|branding)\b/i },
+  { slug: 'technology', label: { tr: 'Teknoloji', en: 'Technology' }, pattern: /\b(tech|technology|platform|platforms|product|products)\b/i },
 ]
 
 export function deriveTopicForArticle(
   article: Pick<PublicArticleSummary, 'title' | 'excerpt'>,
   siteNiche?: string | null,
   topicLabelOverrides?: Record<string, string>,
+  locale = 'en',
 ) {
+  const tr = isTurkishLocale(locale)
   const haystack = `${article.title} ${article.excerpt ?? ''} ${siteNiche ?? ''}`.trim()
 
   for (const topic of TOPIC_RULES) {
     if (topic.pattern.test(haystack)) {
       return {
         slug: topic.slug,
-        label: topicLabelOverrides?.[topic.slug] ?? topic.label,
+        label: topicLabelOverrides?.[topic.slug] ?? (tr ? topic.label.tr : topic.label.en),
       }
     }
   }
 
-  return { slug: 'latest', label: topicLabelOverrides?.latest ?? 'Latest' }
+  return { slug: 'latest', label: topicLabelOverrides?.latest ?? (tr ? 'Son Haberler' : 'Latest') }
 }
 
 function hashString(input: string) {
@@ -215,11 +262,12 @@ export function buildDerivedTopics(
   articles: PublicArticleSummary[],
   siteNiche?: string | null,
   topicLabelOverrides?: Record<string, string>,
+  locale = 'en',
 ) {
   const groups = new Map<string, DerivedTopic>()
 
   for (const article of articles) {
-    const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+    const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides, locale)
     const current = groups.get(topic.slug)
 
     if (current) {
@@ -244,7 +292,7 @@ function scoreArticleForTrending(
   siteNiche?: string | null,
   topicLabelOverrides?: Record<string, string>,
 ) {
-  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+      const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
   const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)
   const freshness = article.publishedAt ? Math.max(1, 96 - (Date.now() - article.publishedAt.getTime()) / (1000 * 60 * 60)) : 24
   const titleWeight = Math.min(article.title.length / 12, 8)
@@ -274,9 +322,10 @@ export function getDerivedTopicBySlug(
   topicSlug: string,
   siteNiche?: string | null,
   topicLabelOverrides?: Record<string, string>,
+  locale = 'en',
 ) {
   return (
-    buildDerivedTopics(articles, siteNiche, topicLabelOverrides).find((topic) => topic.slug === topicSlug) ??
+    buildDerivedTopics(articles, siteNiche, topicLabelOverrides, locale).find((topic) => topic.slug === topicSlug) ??
     null
   )
 }
@@ -295,6 +344,9 @@ export async function getSiteBySlug(siteSlug: string) {
       homepageLayout: sites.homepageLayout,
       articleLayout: sites.articleLayout,
       topicLabelOverrides: sites.topicLabelOverrides,
+      featuredNavLabel: sites.featuredNavLabel,
+      allNavLabel: sites.allNavLabel,
+      navTopicSlugs: sites.navTopicSlugs,
       themePrimary: sites.themePrimary,
       themeAccent: sites.themeAccent,
       themeBackground: sites.themeBackground,
@@ -328,6 +380,9 @@ export async function getPublishedArticleBySiteAndSlug(siteId: string, articleSl
       homepageLayout: sites.homepageLayout,
       articleLayout: sites.articleLayout,
       topicLabelOverrides: sites.topicLabelOverrides,
+      featuredNavLabel: sites.featuredNavLabel,
+      allNavLabel: sites.allNavLabel,
+      navTopicSlugs: sites.navTopicSlugs,
       themePrimary: sites.themePrimary,
       themeAccent: sites.themeAccent,
       themeBackground: sites.themeBackground,
@@ -369,15 +424,16 @@ export function getRelatedArticles(
   articles: PublicArticleSummary[],
   siteNiche?: string | null,
   topicLabelOverrides?: Record<string, string>,
+  locale = 'en',
   limit = 3,
 ) {
-  const currentTopic = deriveTopicForArticle(currentArticle, siteNiche, topicLabelOverrides)
+  const currentTopic = deriveTopicForArticle(currentArticle, siteNiche, topicLabelOverrides, locale)
 
   return articles
     .filter((article) => article.id !== currentArticle.id)
     .sort((left, right) => {
-      const leftTopic = deriveTopicForArticle(left, siteNiche, topicLabelOverrides)
-      const rightTopic = deriveTopicForArticle(right, siteNiche, topicLabelOverrides)
+      const leftTopic = deriveTopicForArticle(left, siteNiche, topicLabelOverrides, locale)
+      const rightTopic = deriveTopicForArticle(right, siteNiche, topicLabelOverrides, locale)
       const leftTopicScore = leftTopic.slug === currentTopic.slug ? 2 : 0
       const rightTopicScore = rightTopic.slug === currentTopic.slug ? 2 : 0
       const leftDate = left.publishedAt?.getTime() ?? 0

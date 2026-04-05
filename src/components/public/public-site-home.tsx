@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, CarFront, ChevronRight, Eye, FlaskConical, Gamepad2, Monitor, Plus, Search, Zap } from 'lucide-react'
+import { ArrowRight, ChevronRight } from 'lucide-react'
 
 import {
   buildEditorialImageDataUri,
@@ -7,10 +7,12 @@ import {
   deriveTopicForArticle,
   estimateReadTimeMinutes,
   formatFreshnessLabel,
+  getPublicCopy,
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 import { PublicNewsAlert } from '@/components/public/public-news-alert'
+import { PublicSiteHeader } from '@/components/public/public-site-header'
 
 type PublicSiteHomeProps = {
   site: {
@@ -22,6 +24,9 @@ type PublicSiteHomeProps = {
     niche: string | null
     toneGuide: string | null
     topicLabelOverrides?: Record<string, string>
+    featuredNavLabel?: string | null
+    allNavLabel?: string | null
+    navTopicSlugs?: string[]
     homepageLayout: 'spotlight' | 'digest'
   }
   theme: ResolvedSiteTheme
@@ -97,7 +102,7 @@ function EditorialFeatureCard({
   accent: string
   size?: 'small' | 'large'
 }) {
-  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides, locale)
   const imageUrl = resolveArticleVisual(article, siteNiche, topicLabelOverrides)
   const publishedLabel = formatPublishedDate(article.publishedAt, locale) ?? 'Live'
 
@@ -172,7 +177,7 @@ function EditorialMeta({
 }) {
   const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)
   const freshness = formatFreshnessLabel(article.publishedAt)
-  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides, locale)
 
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium uppercase tracking-[0.24em]">
@@ -195,6 +200,8 @@ function EditorialStoryCard({
   theme: ResolvedSiteTheme
   useHostRouting: boolean
 }) {
+  const copy = getPublicCopy(site.defaultLocale)
+
   return (
     <Link href={getArticleHref(site.slug, article.slug, useHostRouting)} className="group">
       <article className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#121214] transition duration-300 hover:-translate-y-0.5 hover:border-white/16">
@@ -222,7 +229,7 @@ function EditorialStoryCard({
           </div>
           <div className="flex items-center justify-between gap-3">
             <span className="inline-flex items-center gap-2 text-[1rem] font-semibold text-white">
-              Devamını Oku
+              {copy.readStory}
               <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
             </span>
           </div>
@@ -245,8 +252,12 @@ function buildEditorialNavItems(
   topics: ReturnType<typeof buildDerivedTopics>,
   useHostRouting: boolean,
 ) {
+  const copy = getPublicCopy(site.defaultLocale)
   const topicMap = new Map(topics.map((topic) => [topic.slug, topic]))
-  const preferredOrder = ['ai', 'tools', 'startups', 'development', 'design', 'technology']
+  const preferredOrder =
+    site.navTopicSlugs && site.navTopicSlugs.length > 0
+      ? site.navTopicSlugs
+      : ['ai', 'tools', 'startups', 'development', 'design', 'technology']
 
   const orderedTopics = preferredOrder
     .map((slug) => topicMap.get(slug))
@@ -258,17 +269,40 @@ function buildEditorialNavItems(
     }
   }
 
-  const sectionTopics = orderedTopics.slice(0, 4)
-  const topicHrefBySlug = new Map(sectionTopics.map((topic) => [topic.slug, getTopicHref(site.slug, topic.slug, useHostRouting)]))
+  const iconBySlug: Record<string, 'monitor' | 'gamepad' | 'flask' | 'car'> = {
+    technology: 'monitor',
+    tools: 'car',
+    design: 'gamepad',
+    ai: 'flask',
+  }
 
-  return [
-    { href: useHostRouting ? '/#featured' : `/${site.slug}#featured`, label: 'Öne Çıkanlar', icon: null, accentDot: true },
-    { href: useHostRouting ? '/#latest' : `/${site.slug}#latest`, label: 'Tümü', icon: null },
-    { href: topicHrefBySlug.get('technology') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Teknoloji', icon: Monitor },
-    { href: topicHrefBySlug.get('design') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Oyun', icon: Gamepad2 },
-    { href: topicHrefBySlug.get('ai') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Bilim', icon: FlaskConical },
-    { href: topicHrefBySlug.get('tools') ?? (useHostRouting ? '/#latest' : `/${site.slug}#latest`), label: 'Otomobil', icon: CarFront },
-  ]
+  const primaryTopics = orderedTopics.slice(0, 4)
+  const extraTopics = orderedTopics.slice(4)
+  const homeAnchor = useHostRouting ? '/' : `/${site.slug}`
+
+  return {
+    primaryItems: [
+      {
+        href: `${homeAnchor}#featured`,
+        label: site.featuredNavLabel?.trim() || copy.featured,
+        accentDot: true,
+      },
+      {
+        href: `${homeAnchor}#latest`,
+        label: site.allNavLabel?.trim() || copy.all,
+      },
+      ...primaryTopics.map((topic) => ({
+        href: getTopicHref(site.slug, topic.slug, useHostRouting),
+        label: topic.label,
+        icon: iconBySlug[topic.slug],
+      })),
+    ],
+    extraItems: extraTopics.map((topic) => ({
+      href: getTopicHref(site.slug, topic.slug, useHostRouting),
+      label: topic.label,
+      icon: iconBySlug[topic.slug],
+    })),
+  }
 }
 
 function chunkArticles(articles: PublicArticleSummary[], size: number) {
@@ -315,63 +349,28 @@ function KantanLikeHome({
   articles,
   useHostRouting,
 }: PublicSiteHomeProps) {
+  const copy = getPublicCopy(site.defaultLocale)
   const heroArticle = articles[0]
   const heroRailArticles = articles.slice(1, 3)
   const firstGridArticles = articles.slice(3, 9)
   const spotlightArticles = articles.slice(9, 12)
   const recurringChunks = chunkArticles(articles.slice(12), 6)
-  const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides).slice(0, 4)
-  const navItems = buildEditorialNavItems(site, topics, useHostRouting ?? false)
+  const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides, site.defaultLocale)
+  const { primaryItems: navItems, extraItems } = buildEditorialNavItems(site, topics, useHostRouting ?? false)
+  const homeHref = useHostRouting ? '/' : `/${site.slug}`
 
   return (
     <main className="min-h-screen bg-black text-white" style={theme.style}>
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 backdrop-blur-xl">
-        <div className="mx-auto flex w-full max-w-[1480px] items-center justify-between gap-6 px-4 py-4 md:px-6">
-          <Link href={useHostRouting ? '/' : `/${site.slug}`} className="flex items-center gap-3 text-[1.75rem] font-semibold tracking-tight text-white">
-            <span className="h-12 w-3 rounded-full bg-white/95" />
-            <span>{site.name}</span>
-          </Link>
-          <div className="hidden items-center gap-2 xl:flex">
-            {navItems.map((item, index) => (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 text-[0.92rem] font-medium transition ${
-                  index === 1
-                    ? 'border-white/0 bg-white text-black'
-                    : 'border-transparent text-white/72 hover:text-white'
-                }`}
-              >
-                {item.accentDot ? <span className="size-2 rounded-full bg-[#ff5a4f]" /> : null}
-                {item.icon ? <item.icon className="size-4" /> : null}
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="hidden items-center gap-3 xl:flex">
-            <button className="inline-flex size-12 items-center justify-center rounded-full border border-white/10 text-white/72 transition hover:border-white/20 hover:text-white">
-              <Plus className="size-5" />
-            </button>
-            <button className="inline-flex size-12 items-center justify-center rounded-full border border-white/10 text-white/72 transition hover:border-white/20 hover:text-white">
-              <Search className="size-5" />
-            </button>
-            <button className="inline-flex size-12 items-center justify-center rounded-full border border-white/10 text-white/72 transition hover:border-white/20 hover:text-white">
-              <Eye className="size-5" />
-            </button>
-            <button className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-[0.95rem] font-medium text-white transition hover:border-white/20">
-              <Zap className="size-4" />
-              Akış Modu
-            </button>
-            <Link
-              href="/login"
-              className="inline-flex items-center rounded-full bg-white px-5 py-3 text-[0.95rem] font-semibold text-black transition hover:bg-white/92"
-            >
-              Giriş
-            </Link>
-          </div>
-        </div>
-      </header>
+      <PublicSiteHeader
+        homeHref={homeHref}
+        siteName={site.name}
+        navItems={navItems}
+        extraItems={extraItems}
+        flowModeLabel={copy.flowMode}
+        signInLabel={copy.signIn}
+        otherCategoriesLabel={copy.otherCategories}
+        signInHref="/login"
+      />
 
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
         {articles.length === 0 ? (
@@ -392,6 +391,7 @@ function KantanLikeHome({
                       articleId={heroArticle.id}
                       articleHref={getArticleHref(site.slug, heroArticle.slug, useHostRouting ?? false)}
                       siteId={site.id}
+                      label={copy.newStoryAlert}
                     />
                   </div>
                 </div>
@@ -424,10 +424,10 @@ function KantanLikeHome({
             <section id="latest" className="space-y-5">
               <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">Latest Stories</p>
-                  <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">Latest Stories</h2>
+                  <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">{copy.latestStories}</p>
+                  <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">{copy.latestStories}</h2>
                 </div>
-                <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} published stories</span>
+                <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} {copy.publishedStories}</span>
               </div>
 
               <EditorialGridBlock

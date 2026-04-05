@@ -29,7 +29,7 @@ export async function generateMetadata({
   if (!site) return {}
 
   const articles = await getPublishedArticlesForSite(site.id)
-  const topic = getDerivedTopicBySlug(articles, topicSlug, site.niche, site.topicLabelOverrides)
+  const topic = getDerivedTopicBySlug(articles, topicSlug, site.niche, site.topicLabelOverrides, site.defaultLocale)
   if (!topic) return {}
 
   return {
@@ -60,7 +60,7 @@ export default async function HostTopicPage({
   }
 
   const articles = await getPublishedArticlesForSite(site.id)
-  const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides)
+  const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides, site.defaultLocale)
   const topic = topics.find((item) => item.slug === topicSlug)
   if (!topic) {
     notFound()

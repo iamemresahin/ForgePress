@@ -83,6 +83,9 @@ export default async function EditSitePage({
           topicLabelOverrides: Object.entries(site.topicLabelOverrides ?? {})
             .map(([slug, label]) => `${slug}:${label}`)
             .join(', '),
+          featuredNavLabel: site.featuredNavLabel ?? '',
+          allNavLabel: site.allNavLabel ?? '',
+          navTopicSlugs: (site.navTopicSlugs ?? []).join(', '),
           primaryHostname: primaryDomain,
           additionalHostnames: additionalDomains,
           themePreset: site.themePreset,
