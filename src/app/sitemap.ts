@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server'
+import type { MetadataRoute } from 'next'
 import { headers } from 'next/headers'
 import { asc, eq } from 'drizzle-orm'
 
@@ -8,11 +8,7 @@ import { env } from '@/lib/env'
 import { findSiteByHostname } from '@/lib/public-site'
 import { isPlatformHost, normalizeHostname } from '@/lib/site-domain'
 
-function toUrlTag(url: string, lastModified?: Date | null) {
-  return `<url><loc>${url}</loc>${lastModified ? `<lastmod>${lastModified.toISOString()}</lastmod>` : ''}</url>`
-}
-
-export async function GET() {
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const headerStore = await headers()
   const hostname = normalizeHostname(headerStore.get('host') ?? '')
 
@@ -32,21 +28,18 @@ export async function GET() {
         .where(eq(articles.siteId, site.id))
         .orderBy(asc(articleLocalizations.slug))
 
-      const urls = [
-        toUrlTag(`https://${hostname}`),
+      return [
+        {
+          url: `https://${hostname}`,
+          lastModified: new Date(),
+        },
         ...items
           .filter((item) => item.status === 'published' && item.publishedAt)
-          .map((item) => toUrlTag(`https://${hostname}/${item.slug}`, item.updatedAt)),
+          .map((item) => ({
+            url: `https://${hostname}/${item.slug}`,
+            lastModified: item.updatedAt,
+          })),
       ]
-
-      return new NextResponse(
-        `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`,
-        {
-          headers: {
-            'Content-Type': 'application/xml; charset=utf-8',
-          },
-        },
-      )
     }
   }
 
@@ -59,17 +52,14 @@ export async function GET() {
     .from(sites)
     .orderBy(asc(sites.slug))
 
-  const urls = [
-    toUrlTag(appOrigin),
-    ...siteRows.map((site) => toUrlTag(`${appOrigin}/${site.slug}`, site.updatedAt)),
-  ]
-
-  return new NextResponse(
-    `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join('')}</urlset>`,
+  return [
     {
-      headers: {
-        'Content-Type': 'application/xml; charset=utf-8',
-      },
+      url: appOrigin,
+      lastModified: new Date(),
     },
-  )
+    ...siteRows.map((site) => ({
+      url: `${appOrigin}/${site.slug}`,
+      lastModified: site.updatedAt,
+    })),
+  ]
 }
