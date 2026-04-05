@@ -30,28 +30,41 @@ export async function findSiteByHostname(hostname: string) {
     return null
   }
 
-  const [site] = await db
-    .select({
-      id: sites.id,
-      name: sites.name,
-      slug: sites.slug,
-      defaultLocale: sites.defaultLocale,
-      supportedLocales: sites.supportedLocales,
-      niche: sites.niche,
-      toneGuide: sites.toneGuide,
-      themePreset: sites.themePreset,
-      homepageLayout: sites.homepageLayout,
-      articleLayout: sites.articleLayout,
-      themePrimary: sites.themePrimary,
-      themeAccent: sites.themeAccent,
-      themeBackground: sites.themeBackground,
-    })
-    .from(siteDomains)
-    .innerJoin(sites, eq(sites.id, siteDomains.siteId))
-    .where(eq(siteDomains.hostname, normalized))
-    .limit(1)
+  const candidateHostnames = Array.from(
+    new Set([
+      normalized,
+      normalized.startsWith('www.') ? normalized.replace(/^www\./, '') : `www.${normalized}`,
+    ]),
+  )
 
-  return site ?? null
+  for (const candidate of candidateHostnames) {
+    const [site] = await db
+      .select({
+        id: sites.id,
+        name: sites.name,
+        slug: sites.slug,
+        defaultLocale: sites.defaultLocale,
+        supportedLocales: sites.supportedLocales,
+        niche: sites.niche,
+        toneGuide: sites.toneGuide,
+        themePreset: sites.themePreset,
+        homepageLayout: sites.homepageLayout,
+        articleLayout: sites.articleLayout,
+        themePrimary: sites.themePrimary,
+        themeAccent: sites.themeAccent,
+        themeBackground: sites.themeBackground,
+      })
+      .from(siteDomains)
+      .innerJoin(sites, eq(sites.id, siteDomains.siteId))
+      .where(eq(siteDomains.hostname, candidate))
+      .limit(1)
+
+    if (site) {
+      return site
+    }
+  }
+
+  return null
 }
 
 export async function getPublishedArticlesForSite(siteId: string) {
