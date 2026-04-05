@@ -29,6 +29,8 @@ export default async function AdminSitesPage() {
       niche: sites.niche,
       status: sites.status,
       themePreset: sites.themePreset,
+      authBrandName: sites.authBrandName,
+      googleClientId: sites.googleClientId,
       primaryDomain: siteDomains.hostname,
     })
     .from(sites)
@@ -159,6 +161,15 @@ export default async function AdminSitesPage() {
                       <Badge variant="outline" className="rounded-full px-3 py-1">
                         <Languages className="mr-1 size-3.5" />
                         {site.supportedLocales.join(', ')}
+                      </Badge>
+                      <Badge variant={site.authBrandName && site.googleClientId ? 'success' : 'outline'} className="rounded-full px-3 py-1">
+                        {site.authBrandName && site.googleClientId
+                          ? tr
+                            ? 'Okuyucu girişi hazır'
+                            : 'Reader auth ready'
+                          : tr
+                            ? 'Okuyucu girişi eksik'
+                            : 'Reader auth incomplete'}
                       </Badge>
                     </div>
                     <div className="space-y-1">
