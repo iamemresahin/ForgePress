@@ -3,9 +3,11 @@ import { headers } from 'next/headers'
 
 import { PublicArticlePage as PublicArticleSurface } from '@/components/public/public-article-page'
 import {
+  getRelatedArticles,
   getNextPublishedArticleForSite,
   getPublicOriginForSite,
   getPublishedArticleBySiteAndSlug,
+  getPublishedArticlesForSite,
   getSiteBySlug,
 } from '@/lib/public-site'
 import { isPlatformHost, normalizeHostname } from '@/lib/site-domain'
@@ -72,6 +74,15 @@ export default async function PublicArticleRoute({
   }
 
   const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
+  const publishedArticles = await getPublishedArticlesForSite(site.id)
+  const relatedArticles = getRelatedArticles(article, publishedArticles, site.niche, site.topicLabelOverrides)
 
-  return <PublicArticleSurface article={article} theme={resolveSiteTheme(article)} nextArticle={nextArticle} />
+  return (
+    <PublicArticleSurface
+      article={article}
+      theme={resolveSiteTheme(article)}
+      nextArticle={nextArticle}
+      relatedArticles={relatedArticles}
+    />
+  )
 }

@@ -8,6 +8,7 @@ import { PublicArticlePage } from '@/components/public/public-article-page'
 import { PublicSiteHome } from '@/components/public/public-site-home'
 import {
   findSiteByHostname,
+  getRelatedArticles,
   getNextPublishedArticleForSite,
   getPublicOriginForSite,
   getPublishedArticleBySiteAndSlug,
@@ -93,6 +94,8 @@ export default async function PublicSitePage({
     }
 
     const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
+    const publishedArticles = await getPublishedArticlesForSite(site.id)
+    const relatedArticles = getRelatedArticles(article, publishedArticles, site.niche, site.topicLabelOverrides)
 
     return (
       <PublicArticlePage
@@ -100,6 +103,7 @@ export default async function PublicSitePage({
         theme={resolveSiteTheme(article)}
         useHostRouting
         nextArticle={nextArticle}
+        relatedArticles={relatedArticles}
       />
     )
   }

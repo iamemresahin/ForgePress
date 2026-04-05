@@ -14,6 +14,7 @@ type PublicArticlePageProps = {
   theme: ResolvedSiteTheme
   useHostRouting?: boolean
   nextArticle?: PublicArticleSummary | null
+  relatedArticles?: PublicArticleSummary[]
 }
 
 function splitBody(body: string) {
@@ -98,6 +99,7 @@ function KantanLikeArticle({
   theme,
   useHostRouting = false,
   nextArticle,
+  relatedArticles = [],
 }: PublicArticlePageProps) {
   const publishedLabel = formatPublishedDate(article.publishedAt, article.locale)
   const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''} ${article.body}`)
@@ -178,9 +180,49 @@ function KantanLikeArticle({
         </section>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <article className="min-w-0 rounded-[28px] border border-white/10 bg-[#0f0f10] px-6 py-7 md:px-8 md:py-8">
-            <ArticleBody body={article.body} color="#f3f4f6" />
-          </article>
+          <div className="grid gap-6">
+            <article className="min-w-0 rounded-[28px] border border-white/10 bg-[#0f0f10] px-6 py-7 md:px-8 md:py-8">
+              <ArticleBody body={article.body} color="#f3f4f6" />
+            </article>
+
+            {relatedArticles.length > 0 ? (
+              <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5 md:p-6">
+                <div className="border-b border-white/10 pb-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Related Stories</p>
+                  <h2 className="mt-2 text-2xl font-semibold text-white">Keep reading</h2>
+                </div>
+                <div className="mt-5 grid gap-4 md:grid-cols-3">
+                  {relatedArticles.map((relatedArticle) => {
+                    const relatedHref = useHostRouting
+                      ? `/${relatedArticle.slug}`
+                      : `/${article.siteSlug}/${relatedArticle.slug}`
+
+                    return (
+                      <Link
+                        key={relatedArticle.id}
+                        href={relatedHref}
+                        className="group rounded-[24px] border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20"
+                      >
+                        <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
+                          {formatFreshnessLabel(relatedArticle.publishedAt)}
+                        </p>
+                        <h3 className="mt-3 text-lg font-semibold leading-6 text-white transition group-hover:text-white/88">
+                          {relatedArticle.title}
+                        </h3>
+                        <p className="mt-3 text-sm leading-6 text-white/58">
+                          {relatedArticle.excerpt ?? 'Open the story to continue through the editorial feed.'}
+                        </p>
+                        <span className="mt-4 inline-flex items-center gap-2 text-sm text-white/72">
+                          Read story
+                          <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                        </span>
+                      </Link>
+                    )
+                  })}
+                </div>
+              </section>
+            ) : null}
+          </div>
 
           <aside className="grid content-start gap-4">
             <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] p-5">

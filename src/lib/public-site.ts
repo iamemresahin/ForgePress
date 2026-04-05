@@ -175,6 +175,36 @@ export function buildDerivedTopics(
     .sort((left, right) => right.articles.length - left.articles.length)
 }
 
+function scoreArticleForTrending(
+  article: PublicArticleSummary,
+  siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
+) {
+  const topic = deriveTopicForArticle(article, siteNiche, topicLabelOverrides)
+  const readTime = estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)
+  const freshness = article.publishedAt ? Math.max(1, 96 - (Date.now() - article.publishedAt.getTime()) / (1000 * 60 * 60)) : 24
+  const titleWeight = Math.min(article.title.length / 12, 8)
+  const excerptWeight = Math.min((article.excerpt?.length ?? 0) / 40, 5)
+  const topicWeight = topic.slug === 'latest' ? 0.8 : 1.4
+
+  return freshness + titleWeight + excerptWeight + readTime * 0.6 + topicWeight
+}
+
+export function getTrendingArticles(
+  articles: PublicArticleSummary[],
+  siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
+  limit = 4,
+) {
+  return [...articles]
+    .sort(
+      (left, right) =>
+        scoreArticleForTrending(right, siteNiche, topicLabelOverrides) -
+        scoreArticleForTrending(left, siteNiche, topicLabelOverrides),
+    )
+    .slice(0, limit)
+}
+
 export function getDerivedTopicBySlug(
   articles: PublicArticleSummary[],
   topicSlug: string,
@@ -268,6 +298,34 @@ export async function getNextPublishedArticleForSite(siteId: string, currentArti
   }
 
   return publishedArticles[currentIndex + 1] ?? publishedArticles[0] ?? null
+}
+
+export function getRelatedArticles(
+  currentArticle: Pick<PublicArticleDetail, 'id' | 'title' | 'excerpt'>,
+  articles: PublicArticleSummary[],
+  siteNiche?: string | null,
+  topicLabelOverrides?: Record<string, string>,
+  limit = 3,
+) {
+  const currentTopic = deriveTopicForArticle(currentArticle, siteNiche, topicLabelOverrides)
+
+  return articles
+    .filter((article) => article.id !== currentArticle.id)
+    .sort((left, right) => {
+      const leftTopic = deriveTopicForArticle(left, siteNiche, topicLabelOverrides)
+      const rightTopic = deriveTopicForArticle(right, siteNiche, topicLabelOverrides)
+      const leftTopicScore = leftTopic.slug === currentTopic.slug ? 2 : 0
+      const rightTopicScore = rightTopic.slug === currentTopic.slug ? 2 : 0
+      const leftDate = left.publishedAt?.getTime() ?? 0
+      const rightDate = right.publishedAt?.getTime() ?? 0
+
+      if (rightTopicScore !== leftTopicScore) {
+        return rightTopicScore - leftTopicScore
+      }
+
+      return rightDate - leftDate
+    })
+    .slice(0, limit)
 }
 
 export type PublicArticleDetail = NonNullable<

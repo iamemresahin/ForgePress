@@ -6,6 +6,7 @@ import {
   deriveTopicForArticle,
   estimateReadTimeMinutes,
   formatFreshnessLabel,
+  getTrendingArticles,
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
@@ -115,6 +116,7 @@ function KantanLikeHome({
   const railArticles = articles.slice(1, 3)
   const feedArticles = articles.slice(3)
   const quickScanArticles = articles.slice(0, 5)
+  const trendingArticles = getTrendingArticles(articles, site.niche, site.topicLabelOverrides, 4)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides).slice(0, 4)
   const navItems = [
     { href: useHostRouting ? '/' : `/${site.slug}`, label: 'Featured' },
@@ -279,31 +281,66 @@ function KantanLikeHome({
               ))}
             </div>
 
-            <aside className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5">
-              <div className="border-b border-white/10 pb-4">
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Quick Scan</p>
-                <h3 className="mt-2 text-2xl font-semibold text-white">Editor&apos;s Picks</h3>
-              </div>
-              <div className="mt-4 grid gap-4">
-                {quickScanArticles.map((article, index) => (
-                  <Link
-                    key={article.id}
-                    href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
-                    className="group border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
-                  >
-                    <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
-                      {String(index + 1).padStart(2, '0')} · {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
-                    </p>
-                    <h4 className="mt-2 text-base font-semibold leading-6 text-white transition group-hover:text-white/88">
-                      {article.title}
-                    </h4>
-                    <p className="mt-2 text-sm leading-6 text-white/58">
-                      {formatPublishedDate(article.publishedAt, site.defaultLocale) ?? 'Live'} · {estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)} min read
-                    </p>
-                  </Link>
-                ))}
-              </div>
-            </aside>
+            <div className="grid gap-5">
+              <aside className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5">
+                <div className="border-b border-white/10 pb-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Quick Scan</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-white">Editor&apos;s Picks</h3>
+                </div>
+                <div className="mt-4 grid gap-4">
+                  {quickScanArticles.map((article, index) => (
+                    <Link
+                      key={article.id}
+                      href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
+                      className="group border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
+                    >
+                      <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
+                        {String(index + 1).padStart(2, '0')} · {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
+                      </p>
+                      <h4 className="mt-2 text-base font-semibold leading-6 text-white transition group-hover:text-white/88">
+                        {article.title}
+                      </h4>
+                      <p className="mt-2 text-sm leading-6 text-white/58">
+                        {formatPublishedDate(article.publishedAt, site.defaultLocale) ?? 'Live'} · {estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)} min read
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </aside>
+
+              <aside className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5">
+                <div className="border-b border-white/10 pb-4">
+                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Trending</p>
+                  <h3 className="mt-2 text-2xl font-semibold text-white">Now building momentum</h3>
+                </div>
+                <div className="mt-4 grid gap-4">
+                  {trendingArticles.map((article, index) => (
+                    <Link
+                      key={`${article.id}-trending`}
+                      href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
+                      className="group rounded-[22px] border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
+                            #{String(index + 1).padStart(2, '0')} · {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
+                          </p>
+                          <h4 className="mt-2 text-base font-semibold leading-6 text-white transition group-hover:text-white/88">
+                            {article.title}
+                          </h4>
+                        </div>
+                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/58">
+                          Hot
+                        </span>
+                      </div>
+                      <p className="mt-3 text-sm leading-6 text-white/58">
+                        {formatFreshnessLabel(article.publishedAt)} · {estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)} min read
+                      </p>
+                    </Link>
+                  ))}
+                </div>
+              </aside>
+            </div>
           </div>
         </section>
 
