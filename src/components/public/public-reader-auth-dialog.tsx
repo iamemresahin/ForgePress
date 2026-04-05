@@ -80,6 +80,18 @@ export function PublicReaderAuthDialog({
   )
 
   useEffect(() => {
+    if (window.google?.accounts?.id) {
+      setGoogleReady(true)
+    }
+  }, [])
+
+  useEffect(() => {
+    if (open && window.google?.accounts?.id) {
+      setGoogleReady(true)
+    }
+  }, [open])
+
+  useEffect(() => {
     if (signInState?.success || signUpState?.success || googleMessage?.success) {
       setOpen(false)
       router.refresh()
@@ -158,6 +170,7 @@ export function PublicReaderAuthDialog({
           src="https://accounts.google.com/gsi/client"
           strategy="afterInteractive"
           onLoad={() => setGoogleReady(true)}
+          onReady={() => setGoogleReady(true)}
         />
       ) : null}
 
