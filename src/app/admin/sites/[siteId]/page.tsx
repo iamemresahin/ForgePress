@@ -8,6 +8,7 @@ import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { sites } from '@/lib/db/schema'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
+import { getThemePreset } from '@/lib/site-theme'
 
 import { updateSiteAction } from '../actions'
 import { SiteForm } from '../site-form'
@@ -68,6 +69,12 @@ export default async function EditSitePage({
           prohibitedTopics: site.prohibitedTopics.join(', '),
           requiredSections: site.requiredSections.join(', '),
           reviewChecklist: site.reviewChecklist.join(', '),
+          themePreset: site.themePreset,
+          homepageLayout: site.homepageLayout,
+          articleLayout: site.articleLayout,
+          themePrimary: site.themePrimary ?? getThemePreset(site.themePreset).tokens.primary,
+          themeAccent: site.themeAccent ?? getThemePreset(site.themePreset).tokens.accent,
+          themeBackground: site.themeBackground ?? getThemePreset(site.themePreset).tokens.background,
         }}
       />
     </section>

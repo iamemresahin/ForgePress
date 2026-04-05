@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import type { InterfaceLocale } from '@/lib/interface-locale'
+import { ARTICLE_LAYOUT_OPTIONS, HOMEPAGE_LAYOUT_OPTIONS, THEME_PRESETS } from '@/lib/site-theme'
 
 type SiteFormValues = {
   name: string
@@ -21,6 +22,12 @@ type SiteFormValues = {
   prohibitedTopics: string
   requiredSections: string
   reviewChecklist: string
+  themePreset: 'forge_blue' | 'editorial_glow' | 'news_sand' | 'midnight_signal'
+  homepageLayout: 'spotlight' | 'digest'
+  articleLayout: 'editorial' | 'feature'
+  themePrimary: string
+  themeAccent: string
+  themeBackground: string
 }
 
 export function SiteForm({
@@ -163,6 +170,77 @@ export function SiteForm({
                   : 'Comma-separated: verify source attribution, confirm no copied paragraphs, confirm headline accuracy'
               }
             />
+          </div>
+
+          <div className="space-y-4 rounded-[24px] border border-sky-100 bg-sky-50/70 p-5">
+            <div className="space-y-1">
+              <p className="eyebrow">{tr ? 'Tema sistemi' : 'Theme system'}</p>
+              <p className="text-sm text-slate-600">
+                {tr
+                  ? 'Her site için görsel yön, anasayfa akışı ve makale tonu burada tanımlanır.'
+                  : 'Define the visual direction, homepage flow, and article tone for each site here.'}
+              </p>
+            </div>
+
+            <div className="field">
+              <Label htmlFor="themePreset">{tr ? 'Tema preset’i' : 'Theme preset'}</Label>
+              <select id="themePreset" name="themePreset" defaultValue={initialValues.themePreset}>
+                {Object.values(THEME_PRESETS).map((preset) => (
+                  <option key={preset.key} value={preset.key}>
+                    {tr ? preset.label.tr : preset.label.en}
+                  </option>
+                ))}
+              </select>
+              <p className="text-xs text-slate-500">
+                {tr
+                  ? (THEME_PRESETS[initialValues.themePreset]?.description.tr ?? '')
+                  : (THEME_PRESETS[initialValues.themePreset]?.description.en ?? '')}
+              </p>
+            </div>
+
+            <div className="form-grid">
+              <div className="field">
+                <Label htmlFor="homepageLayout">{tr ? 'Anasayfa düzeni' : 'Homepage layout'}</Label>
+                <select id="homepageLayout" name="homepageLayout" defaultValue={initialValues.homepageLayout}>
+                  {HOMEPAGE_LAYOUT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {tr ? option.label.tr : option.label.en}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="field">
+                <Label htmlFor="articleLayout">{tr ? 'Makale düzeni' : 'Article layout'}</Label>
+                <select id="articleLayout" name="articleLayout" defaultValue={initialValues.articleLayout}>
+                  {ARTICLE_LAYOUT_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {tr ? option.label.tr : option.label.en}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="form-grid">
+              <div className="field">
+                <Label htmlFor="themePrimary">{tr ? 'Ana renk' : 'Primary color'}</Label>
+                <Input id="themePrimary" name="themePrimary" type="color" defaultValue={initialValues.themePrimary} />
+              </div>
+              <div className="field">
+                <Label htmlFor="themeAccent">{tr ? 'Vurgu rengi' : 'Accent color'}</Label>
+                <Input id="themeAccent" name="themeAccent" type="color" defaultValue={initialValues.themeAccent} />
+              </div>
+            </div>
+
+            <div className="field">
+              <Label htmlFor="themeBackground">{tr ? 'Arka plan rengi' : 'Background color'}</Label>
+              <Input
+                id="themeBackground"
+                name="themeBackground"
+                type="color"
+                defaultValue={initialValues.themeBackground}
+              />
+            </div>
           </div>
 
           {state?.error ? <p className="form-error">{state.error}</p> : null}

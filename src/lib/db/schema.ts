@@ -22,6 +22,14 @@ export const articleStatusEnum = pgEnum('article_status', [
 ])
 export const jobStatusEnum = pgEnum('job_status', ['queued', 'running', 'completed', 'failed'])
 export const adminRoleEnum = pgEnum('admin_role', ['platform_admin', 'site_editor', 'reviewer'])
+export const siteThemePresetEnum = pgEnum('site_theme_preset', [
+  'forge_blue',
+  'editorial_glow',
+  'news_sand',
+  'midnight_signal',
+])
+export const siteHomepageLayoutEnum = pgEnum('site_homepage_layout', ['spotlight', 'digest'])
+export const siteArticleLayoutEnum = pgEnum('site_article_layout', ['editorial', 'feature'])
 
 export const adminUsers = pgTable(
   'admin_users',
@@ -55,6 +63,12 @@ export const sites = pgTable(
     prohibitedTopics: jsonb('prohibited_topics').$type<string[]>().notNull().default([]),
     requiredSections: jsonb('required_sections').$type<string[]>().notNull().default([]),
     reviewChecklist: jsonb('review_checklist').$type<string[]>().notNull().default([]),
+    themePreset: siteThemePresetEnum('theme_preset').notNull().default('forge_blue'),
+    homepageLayout: siteHomepageLayoutEnum('homepage_layout').notNull().default('spotlight'),
+    articleLayout: siteArticleLayoutEnum('article_layout').notNull().default('editorial'),
+    themePrimary: varchar('theme_primary', { length: 16 }),
+    themeAccent: varchar('theme_accent', { length: 16 }),
+    themeBackground: varchar('theme_background', { length: 16 }),
     createdByAdminId: uuid('created_by_admin_id').references(() => adminUsers.id, {
       onDelete: 'set null',
     }),

@@ -24,6 +24,12 @@ const createSiteSchema = z.object({
   prohibitedTopics: z.string().max(2000).optional(),
   requiredSections: z.string().max(2000).optional(),
   reviewChecklist: z.string().max(2000).optional(),
+  themePreset: z.enum(['forge_blue', 'editorial_glow', 'news_sand', 'midnight_signal']),
+  homepageLayout: z.enum(['spotlight', 'digest']),
+  articleLayout: z.enum(['editorial', 'feature']),
+  themePrimary: z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/).optional().or(z.literal('')),
+  themeAccent: z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/).optional().or(z.literal('')),
+  themeBackground: z.string().regex(/^#(?:[0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/).optional().or(z.literal('')),
 })
 
 function parseLocales(rawLocales: string) {
@@ -64,6 +70,12 @@ export async function createSiteAction(_: { error?: string } | undefined, formDa
     prohibitedTopics: formData.get('prohibitedTopics') || undefined,
     requiredSections: formData.get('requiredSections') || undefined,
     reviewChecklist: formData.get('reviewChecklist') || undefined,
+    themePreset: formData.get('themePreset'),
+    homepageLayout: formData.get('homepageLayout'),
+    articleLayout: formData.get('articleLayout'),
+    themePrimary: formData.get('themePrimary') || undefined,
+    themeAccent: formData.get('themeAccent') || undefined,
+    themeBackground: formData.get('themeBackground') || undefined,
   })
 
   if (!parsed.success) {
@@ -89,6 +101,12 @@ export async function createSiteAction(_: { error?: string } | undefined, formDa
       prohibitedTopics: parseList(parsed.data.prohibitedTopics),
       requiredSections: parseList(parsed.data.requiredSections),
       reviewChecklist: parseList(parsed.data.reviewChecklist),
+      themePreset: parsed.data.themePreset,
+      homepageLayout: parsed.data.homepageLayout,
+      articleLayout: parsed.data.articleLayout,
+      themePrimary: parsed.data.themePrimary || null,
+      themeAccent: parsed.data.themeAccent || null,
+      themeBackground: parsed.data.themeBackground || null,
       createdByAdminId: session.id,
     })
   } catch (error) {
@@ -122,6 +140,12 @@ export async function updateSiteAction(
     prohibitedTopics: formData.get('prohibitedTopics') || undefined,
     requiredSections: formData.get('requiredSections') || undefined,
     reviewChecklist: formData.get('reviewChecklist') || undefined,
+    themePreset: formData.get('themePreset'),
+    homepageLayout: formData.get('homepageLayout'),
+    articleLayout: formData.get('articleLayout'),
+    themePrimary: formData.get('themePrimary') || undefined,
+    themeAccent: formData.get('themeAccent') || undefined,
+    themeBackground: formData.get('themeBackground') || undefined,
   })
 
   if (!parsed.success) {
@@ -148,6 +172,12 @@ export async function updateSiteAction(
         prohibitedTopics: parseList(parsed.data.prohibitedTopics),
         requiredSections: parseList(parsed.data.requiredSections),
         reviewChecklist: parseList(parsed.data.reviewChecklist),
+        themePreset: parsed.data.themePreset,
+        homepageLayout: parsed.data.homepageLayout,
+        articleLayout: parsed.data.articleLayout,
+        themePrimary: parsed.data.themePrimary || null,
+        themeAccent: parsed.data.themeAccent || null,
+        themeBackground: parsed.data.themeBackground || null,
         updatedAt: new Date(),
       })
       .where(eq(sites.id, siteId))

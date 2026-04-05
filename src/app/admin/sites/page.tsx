@@ -10,6 +10,7 @@ import { db } from '@/lib/db'
 import { sites } from '@/lib/db/schema'
 import { translateRole } from '@/lib/interface-locale'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
+import { getThemePreset } from '@/lib/site-theme'
 
 import { createSiteAction } from './actions'
 import { SiteForm } from './site-form'
@@ -88,6 +89,12 @@ export default async function AdminSitesPage() {
             reviewChecklist: tr
               ? 'kaynak atfını doğrula, başlık doğruluğunu onayla, AdSense uyumlu sayfa kalitesini kontrol et'
               : 'verify source attribution, confirm headline accuracy, confirm AdSense-safe page quality',
+            themePreset: 'forge_blue',
+            homepageLayout: 'spotlight',
+            articleLayout: 'editorial',
+            themePrimary: '#1782f6',
+            themeAccent: '#6ed6ff',
+            themeBackground: '#f7fbff',
           }}
         />
 
@@ -123,6 +130,9 @@ export default async function AdminSitesPage() {
                       </Badge>
                       <Badge variant="secondary" className="rounded-full px-3 py-1 capitalize">
                         {site.status}
+                      </Badge>
+                      <Badge variant="outline" className="rounded-full px-3 py-1">
+                        {tr ? getThemePreset(site.themePreset).label.tr : getThemePreset(site.themePreset).label.en}
                       </Badge>
                       <Badge variant="outline" className="rounded-full px-3 py-1">
                         <Languages className="mr-1 size-3.5" />
