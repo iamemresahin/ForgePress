@@ -53,6 +53,39 @@ function normalizeArticleInput(formData: FormData) {
   })
 }
 
+async function getSiteRouteContext(siteId: string) {
+  const [site] = await db
+    .select({
+      slug: sites.slug,
+    })
+    .from(sites)
+    .where(eq(sites.id, siteId))
+    .limit(1)
+
+  return site ?? null
+}
+
+function revalidatePublicArticleSurfaces(siteSlug: string, articleSlug: string) {
+  revalidatePath('/')
+  revalidatePath('/topics/[topicSlug]', 'page')
+  if (siteSlug) {
+    revalidatePath(`/${siteSlug}`)
+    revalidatePath(`/${siteSlug}/${articleSlug}`)
+    revalidatePath(`/${siteSlug}/topics/[topicSlug]`, 'page')
+  }
+  revalidatePath('/sitemap.xml')
+}
+
+function revalidatePublicListingSurfaces(siteSlug: string) {
+  revalidatePath('/')
+  revalidatePath('/topics/[topicSlug]', 'page')
+  if (siteSlug) {
+    revalidatePath(`/${siteSlug}`)
+    revalidatePath(`/${siteSlug}/topics/[topicSlug]`, 'page')
+  }
+  revalidatePath('/sitemap.xml')
+}
+
 export async function createArticleAction(_: { error?: string } | undefined, formData: FormData) {
   await requireAdminSession()
 
@@ -87,6 +120,14 @@ export async function createArticleAction(_: { error?: string } | undefined, for
 
   revalidatePath('/admin/articles')
   revalidatePath(`/admin/articles/${createdArticle.id}`)
+
+  if (article.status === 'published') {
+    const site = await getSiteRouteContext(article.siteId)
+    if (site) {
+      revalidatePublicListingSurfaces(site.slug)
+      revalidatePublicArticleSurfaces(site.slug, article.slug)
+    }
+  }
 
   return { error: undefined }
 }
@@ -133,6 +174,12 @@ export async function updateArticleAction(
 
   revalidatePath('/admin/articles')
   revalidatePath(`/admin/articles/${articleId}`)
+
+  const site = await getSiteRouteContext(article.siteId)
+  if (site) {
+    revalidatePublicListingSurfaces(site.slug)
+    revalidatePublicArticleSurfaces(site.slug, article.slug)
+  }
 
   return { error: undefined }
 }
@@ -218,16 +265,33 @@ export async function publishArticleAction(articleId: string) {
 
   revalidatePath('/admin/articles')
   revalidatePath(`/admin/articles/${articleId}`)
-  revalidatePath(`/${published.siteSlug}`)
-  revalidatePath(`/${published.siteSlug}/${published.slug}`)
+  revalidatePublicListingSurfaces(published.siteSlug)
+  revalidatePublicArticleSurfaces(published.siteSlug, published.slug)
 }
 
 export async function deleteArticleAction(articleId: string) {
   await requireAdminSession()
 
+  const [article] = await db
+    .select({
+      siteSlug: sites.slug,
+      articleSlug: articleLocalizations.slug,
+    })
+    .from(articles)
+    .innerJoin(sites, eq(sites.id, articles.siteId))
+    .innerJoin(articleLocalizations, eq(articleLocalizations.articleId, articles.id))
+    .where(eq(articles.id, articleId))
+    .limit(1)
+
   await db.delete(articles).where(eq(articles.id, articleId))
 
   revalidatePath('/admin')
   revalidatePath('/admin/articles')
+
+  if (article) {
+    revalidatePublicListingSurfaces(article.siteSlug)
+    revalidatePublicArticleSurfaces(article.siteSlug, article.articleSlug)
+  }
+
   redirect('/admin/articles')
 }
