@@ -1,8 +1,9 @@
 'use client'
 
 import { useActionState } from 'react'
+import { LogOut } from 'lucide-react'
 
-import { submitCommentAction } from '@/app/comments/actions'
+import { signOutPublicReaderAction, submitCommentAction } from '@/app/comments/actions'
 import { usePublicColorMode } from '@/components/public/public-color-mode'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 import { Button } from '@/components/ui/button'
@@ -39,6 +40,7 @@ export function PublicCommentsPanel({
   const tr = locale.toLowerCase().startsWith('tr')
   const { mode } = usePublicColorMode()
   const [commentState, commentAction, posting] = useActionState(submitCommentAction, undefined)
+  const [signOutState, signOutAction, signingOut] = useActionState(signOutPublicReaderAction, undefined)
 
   return (
     <section id="comments" className="public-panel rounded-[28px] border p-5 md:p-6">
@@ -57,9 +59,35 @@ export function PublicCommentsPanel({
       {currentReader ? (
         <div className="mt-5 space-y-5">
           <div className={mode === 'light' ? 'rounded-[24px] border border-slate-200 bg-slate-50 p-4' : 'rounded-[24px] border border-white/10 bg-white/[0.03] p-4'}>
-            <p className={mode === 'light' ? 'text-sm text-slate-600' : 'text-sm text-white/68'}>
-              {tr ? 'Oturum açık:' : 'Signed in as:'} <span className={mode === 'light' ? 'font-semibold text-slate-950' : 'font-semibold text-white'}>{currentReader.displayName}</span>
-            </p>
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className={mode === 'light' ? 'text-xs font-medium uppercase tracking-[0.2em] text-slate-400' : 'text-xs font-medium uppercase tracking-[0.2em] text-white/40'}>
+                  {tr ? 'Okuyucu oturumu' : 'Reader session'}
+                </p>
+                <p className={mode === 'light' ? 'mt-2 text-base font-semibold text-slate-950' : 'mt-2 text-base font-semibold text-white'}>
+                  {currentReader.displayName}
+                </p>
+                <p className={mode === 'light' ? 'mt-1 text-sm text-slate-500' : 'mt-1 text-sm text-white/62'}>
+                  {currentReader.email}
+                </p>
+              </div>
+
+              <form action={signOutAction}>
+                <input type="hidden" name="siteId" value={siteId} />
+                <input type="hidden" name="redirectPath" value={redirectPath} />
+                <Button
+                  type="submit"
+                  variant="outline"
+                  className={mode === 'light' ? 'rounded-full border-slate-200 bg-white text-slate-700 hover:bg-slate-100' : 'rounded-full border-white/10 bg-transparent text-white hover:bg-white/8'}
+                  disabled={signingOut}
+                >
+                  <LogOut className="size-4" />
+                  {signingOut ? (tr ? 'Çıkılıyor...' : 'Signing out...') : tr ? 'Çıkış yap' : 'Sign out'}
+                </Button>
+              </form>
+            </div>
+            {signOutState?.error ? <p className="mt-3 text-sm text-rose-300">{signOutState.error}</p> : null}
+            {signOutState?.success ? <p className="mt-3 text-sm text-emerald-300">{signOutState.success}</p> : null}
           </div>
 
           <form action={commentAction} className="space-y-4">

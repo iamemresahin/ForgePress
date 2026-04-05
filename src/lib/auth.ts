@@ -217,40 +217,6 @@ async function parseReaderSessionCookie(rawValue?: string) {
   return { memberId, siteId }
 }
 
-export async function registerSiteMember(siteId: string, displayName: string, email: string, password: string) {
-  const existingMember = await findSiteMemberByEmail(siteId, email)
-  if (existingMember) {
-    return null
-  }
-
-  const [member] = await db
-    .insert(siteMembers)
-    .values({
-      siteId,
-      displayName: displayName.trim(),
-      email: email.trim().toLowerCase(),
-      passwordHash: hashPassword(password),
-    })
-    .returning()
-
-  return member
-}
-
-export async function authenticateSiteMember(siteId: string, email: string, password: string) {
-  const member = await findSiteMemberByEmail(siteId, email)
-  if (!member) return null
-  if (!verifyPassword(password, member.passwordHash)) return null
-
-  await db
-    .update(siteMembers)
-    .set({
-      updatedAt: new Date(),
-    })
-    .where(eq(siteMembers.id, member.id))
-
-  return member
-}
-
 export async function createPublicReaderSession(reader: PublicReaderSession) {
   const cookieStore = await cookies()
   cookieStore.set(

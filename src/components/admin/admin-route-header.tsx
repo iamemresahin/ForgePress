@@ -8,6 +8,7 @@ type AdminRouteKey =
   | '/admin/sites'
   | '/admin/articles'
   | '/admin/sources'
+  | '/admin/comments'
   | '/admin/jobs'
   | '/admin/ops'
 
@@ -28,6 +29,10 @@ const titles = {
     '/admin/sources': {
       title: 'Sources',
       description: 'Control every feed, sitemap, and manual ingestion source from one place.',
+    },
+    '/admin/comments': {
+      title: 'Comments',
+      description: 'Review publication comments, hide risky replies, and keep discussion quality high.',
     },
     '/admin/jobs': {
       title: 'Jobs',
@@ -55,6 +60,10 @@ const titles = {
       title: 'Kaynaklar',
       description: 'Tüm feed, sitemap ve manuel içe aktarma kaynaklarını tek yerden yönetin.',
     },
+    '/admin/comments': {
+      title: 'Yorumlar',
+      description: 'Yayın yorumlarını inceleyin, riskli yanıtları gizleyin ve tartışma kalitesini koruyun.',
+    },
     '/admin/jobs': {
       title: 'Görevler',
       description: 'Kuyruk tabanlı akışları tetikleyin ve operasyon kayıtlarını izleyin.',
@@ -72,6 +81,7 @@ function matchRoute(pathname: string, locale: InterfaceLocale) {
   if (pathname.startsWith('/admin/sites/')) return dictionary['/admin/sites']
   if (pathname.startsWith('/admin/articles/')) return dictionary['/admin/articles']
   if (pathname.startsWith('/admin/sources/')) return dictionary['/admin/sources']
+  if (pathname.startsWith('/admin/comments/')) return dictionary['/admin/comments']
   if (pathname in dictionary) return dictionary[pathname as AdminRouteKey]
   return dictionary['/admin']
 }

@@ -7,6 +7,7 @@ import {
   IconFolderPlus,
   IconHelp,
   IconListDetails,
+  IconMessageCircle,
   IconNews,
   IconRadar2,
   IconSettings,
@@ -35,6 +36,7 @@ const primaryItems = [
   { title: "Sites", url: "/admin/sites", icon: IconTopologyStar3 },
   { title: "Articles", url: "/admin/articles", icon: IconArticle },
   { title: "Sources", url: "/admin/sources", icon: IconNews },
+  { title: "Comments", url: "/admin/comments", icon: IconMessageCircle },
 ]
 
 const systemItems = [
@@ -64,6 +66,8 @@ function translatePrimaryItem(locale: InterfaceLocale, title: string) {
       return 'Makaleler'
     case 'Sources':
       return 'Kaynaklar'
+    case 'Comments':
+      return 'Yorumlar'
     default:
       return title
   }
