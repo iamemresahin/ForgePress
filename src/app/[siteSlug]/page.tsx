@@ -1,10 +1,12 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { asc, desc, eq } from 'drizzle-orm'
 import { ArrowRight, Globe2, Sparkles } from 'lucide-react'
 
 import { db } from '@/lib/db'
 import { articleLocalizations, articles, sites } from '@/lib/db/schema'
+import { getPublicOriginForSite } from '@/lib/public-site'
 import { resolveSiteTheme } from '@/lib/site-theme'
 
 function formatPublishedDate(date: Date | null, locale: string) {
@@ -14,6 +16,35 @@ function formatPublishedDate(date: Date | null, locale: string) {
     return date.toLocaleDateString(locale)
   } catch {
     return date.toLocaleDateString('en-US')
+  }
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ siteSlug: string }>
+}): Promise<Metadata> {
+  const { siteSlug } = await params
+
+  const [site] = await db.select().from(sites).where(eq(sites.slug, siteSlug)).limit(1)
+  if (!site) return {}
+
+  const origin = await getPublicOriginForSite(site)
+  const canonical = origin.startsWith('http') ? origin : `https://${origin}`
+
+  return {
+    title: site.name,
+    description: site.niche ?? `${site.name} publishing surface`,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title: site.name,
+      description: site.niche ?? `${site.name} publishing surface`,
+      url: canonical,
+      siteName: site.name,
+      type: 'website',
+    },
   }
 }
 

@@ -18,6 +18,7 @@ const spaceGrotesk = Space_Grotesk({
 export const metadata: Metadata = {
   title: 'ForgePress',
   description: 'Multi-site AI publishing engine for automated content operations.',
+  metadataBase: new URL('https://www.forgepress.cc'),
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.svg',

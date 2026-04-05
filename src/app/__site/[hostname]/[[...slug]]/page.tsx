@@ -1,10 +1,12 @@
 import Link from 'next/link'
+import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { and, asc, desc, eq } from 'drizzle-orm'
 import { ArrowRight, CalendarClock, Globe2, Sparkles } from 'lucide-react'
 
 import { db } from '@/lib/db'
-import { articleLocalizations, articles, siteDomains, sites } from '@/lib/db/schema'
+import { articleLocalizations, articles, sites } from '@/lib/db/schema'
+import { findSiteByHostname } from '@/lib/public-site'
 import { resolveSiteTheme } from '@/lib/site-theme'
 
 type RouteParams = {
@@ -22,45 +24,31 @@ function formatPublishedDate(date: Date | null, locale: string) {
   }
 }
 
-async function findSiteByHostname(hostname: string) {
-  const [site] = await db
-    .select({
-      id: sites.id,
-      name: sites.name,
-      slug: sites.slug,
-      defaultLocale: sites.defaultLocale,
-      supportedLocales: sites.supportedLocales,
-      niche: sites.niche,
-      toneGuide: sites.toneGuide,
-      themePreset: sites.themePreset,
-      homepageLayout: sites.homepageLayout,
-      articleLayout: sites.articleLayout,
-      themePrimary: sites.themePrimary,
-      themeAccent: sites.themeAccent,
-      themeBackground: sites.themeBackground,
-    })
-    .from(siteDomains)
-    .innerJoin(sites, eq(sites.id, siteDomains.siteId))
-    .where(eq(siteDomains.hostname, hostname))
-    .limit(1)
-
-  return site ?? null
-}
-
 export async function generateMetadata({
   params,
 }: {
   params: Promise<RouteParams>
-}) {
+}): Promise<Metadata> {
   const { hostname, slug } = await params
   const site = await findSiteByHostname(hostname)
 
   if (!site) return {}
 
   if (!slug || slug.length === 0) {
+    const canonical = `https://${hostname}`
     return {
       title: site.name,
       description: site.niche ?? `${site.name} publishing surface`,
+      alternates: {
+        canonical,
+      },
+      openGraph: {
+        title: site.name,
+        description: site.niche ?? `${site.name} publishing surface`,
+        url: canonical,
+        siteName: site.name,
+        type: 'website',
+      },
     }
   }
 
@@ -79,9 +67,21 @@ export async function generateMetadata({
 
   if (!article) return {}
 
+  const canonical = `https://${hostname}/${slug[0]}`
+
   return {
     title: article.seoTitle ?? article.title,
     description: article.seoDescription ?? `${article.title} on ${site.name}`,
+    alternates: {
+      canonical,
+    },
+    openGraph: {
+      title: article.seoTitle ?? article.title,
+      description: article.seoDescription ?? `${article.title} on ${site.name}`,
+      url: canonical,
+      siteName: site.name,
+      type: 'article',
+    },
   }
 }
 

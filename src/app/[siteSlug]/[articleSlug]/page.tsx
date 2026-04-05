@@ -4,6 +4,7 @@ import { CalendarClock, Globe2 } from 'lucide-react'
 
 import { db } from '@/lib/db'
 import { articleLocalizations, articles, sites } from '@/lib/db/schema'
+import { getPublicOriginForSite } from '@/lib/public-site'
 import { resolveSiteTheme } from '@/lib/site-theme'
 
 export async function generateMetadata({
@@ -19,6 +20,8 @@ export async function generateMetadata({
       seoTitle: articleLocalizations.seoTitle,
       seoDescription: articleLocalizations.seoDescription,
       siteName: sites.name,
+      siteId: sites.id,
+      siteSlug: sites.slug,
     })
     .from(articles)
     .innerJoin(articleLocalizations, eq(articleLocalizations.articleId, articles.id))
@@ -32,6 +35,16 @@ export async function generateMetadata({
   return {
     title: article.seoTitle ?? article.title,
     description: article.seoDescription ?? `${article.title} on ${article.siteName}`,
+    alternates: {
+      canonical: `${await getPublicOriginForSite({ id: article.siteId, slug: article.siteSlug })}/${articleSlug}`,
+    },
+    openGraph: {
+      title: article.seoTitle ?? article.title,
+      description: article.seoDescription ?? `${article.title} on ${article.siteName}`,
+      url: `${await getPublicOriginForSite({ id: article.siteId, slug: article.siteSlug })}/${articleSlug}`,
+      siteName: article.siteName,
+      type: 'article',
+    },
   }
 }
 
