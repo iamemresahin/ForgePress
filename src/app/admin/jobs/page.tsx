@@ -74,8 +74,8 @@ export default async function AdminJobsPage() {
             </CardTitle>
             <CardDescription className="max-w-3xl text-sm leading-6">
               {tr
-                ? 'Bu ekran kalıcı görev kayıtları oluşturur ve BullMQ görevlerini kuyruğa almayı dener. İçe aktarma, yeniden yazım, görsel, yerelleştirme ve yayın akışları için operasyon merkezidir.'
-                : 'This screen creates persistent job records and attempts to enqueue BullMQ tasks. It is the operational hinge for ingestion, rewrite, image, localization, and publish flows.'}
+                ? 'Bu ekran kalıcı görev kayıtları oluşturur ve BullMQ görevlerini kuyruğa alır. İlk worker tüketicisi kayıtları running, completed ve failed durumlarına taşır.'
+                : 'This screen creates persistent job records and queues BullMQ tasks. The first worker consumer now moves records through running, completed, and failed states.'}
             </CardDescription>
           </div>
           <div className="stats-grid">
@@ -92,7 +92,7 @@ export default async function AdminJobsPage() {
             <article>
               <Bot className="mb-3 size-5 text-primary" />
               <span>{tr ? 'Worker modu' : 'Worker mode'}</span>
-              <strong>{tr ? 'Manuel tetikleme' : 'Manual trigger'}</strong>
+              <strong>{tr ? 'Queue consumer hazır' : 'Queue consumer ready'}</strong>
             </article>
             <article>
               <Clock3 className="mb-3 size-5 text-primary" />
