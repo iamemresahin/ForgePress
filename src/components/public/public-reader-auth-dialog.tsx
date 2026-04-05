@@ -57,6 +57,7 @@ export function PublicReaderAuthDialog({
   const resolvedAuthBrand = authBrandName?.trim() || `${siteName} Reader`
   const resolvedGoogleClientId = googleClientId?.trim() || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
   const googleButtonRef = useRef<HTMLDivElement | null>(null)
+  const [googleButtonElement, setGoogleButtonElement] = useState<HTMLDivElement | null>(null)
   const [open, setOpen] = useState(false)
   const [mode, setMode] = useState<'signin' | 'signup'>('signin')
   const [googleReady, setGoogleReady] = useState(false)
@@ -99,11 +100,11 @@ export function PublicReaderAuthDialog({
   }, [googleMessage?.success, router, signInState?.success, signUpState?.success])
 
   useEffect(() => {
-    if (!open || !googleReady || !resolvedGoogleClientId || !googleButtonRef.current || !window.google?.accounts?.id) {
+    if (!open || !googleReady || !resolvedGoogleClientId || !googleButtonElement || !window.google?.accounts?.id) {
       return
     }
 
-    googleButtonRef.current.innerHTML = ''
+    googleButtonElement.innerHTML = ''
 
     window.google.accounts.id.initialize({
       client_id: resolvedGoogleClientId,
@@ -153,7 +154,7 @@ export function PublicReaderAuthDialog({
       },
     })
 
-    window.google.accounts.id.renderButton(googleButtonRef.current, {
+    window.google.accounts.id.renderButton(googleButtonElement, {
       theme: 'outline',
       size: 'large',
       text: 'continue_with',
@@ -161,7 +162,7 @@ export function PublicReaderAuthDialog({
       width: 340,
       logo_alignment: 'left',
     })
-  }, [googleReady, open, redirectPath, resolvedGoogleClientId, siteId, siteName, tr])
+  }, [googleButtonElement, googleReady, open, redirectPath, resolvedGoogleClientId, siteId, siteName, tr])
 
   return (
     <>
@@ -381,7 +382,13 @@ export function PublicReaderAuthDialog({
                     </p>
                     <div className="mt-6 flex min-h-12 items-center">
                       {googleClientId ? (
-                        <div ref={googleButtonRef} className="w-full" />
+                        <div
+                          ref={(node) => {
+                            googleButtonRef.current = node
+                            setGoogleButtonElement(node)
+                          }}
+                          className="w-full"
+                        />
                       ) : (
                         <div
                           className={cn(
