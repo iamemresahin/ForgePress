@@ -42,6 +42,8 @@ export type ThemePresetDefinition = {
   }
 }
 
+type ThemeTokens = ThemePresetDefinition['tokens']
+
 export const THEME_PRESETS: Record<ThemePresetKey, ThemePresetDefinition> = {
   forge_blue: {
     key: 'forge_blue',
@@ -221,11 +223,88 @@ function buildTheme(site: ThemeRecord) {
   }
 }
 
+function hexToRgbTuple(value: string) {
+  const normalized = value.replace('#', '')
+  const expanded =
+    normalized.length === 3
+      ? normalized
+          .split('')
+          .map((character) => `${character}${character}`)
+          .join('')
+      : normalized
+
+  const numeric = Number.parseInt(expanded, 16)
+
+  return {
+    r: (numeric >> 16) & 255,
+    g: (numeric >> 8) & 255,
+    b: numeric & 255,
+  }
+}
+
+function withAlpha(hex: string, alpha: number) {
+  const { r, g, b } = hexToRgbTuple(hex)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function getLuminance(hex: string) {
+  const { r, g, b } = hexToRgbTuple(hex)
+  const toLinear = (channel: number) => {
+    const value = channel / 255
+    return value <= 0.03928 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4
+  }
+
+  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
+}
+
+function buildLightTokens(tokens: ThemeTokens) {
+  return {
+    background: '#f7f7f5',
+    backgroundSoft: '#eceff4',
+    panel: 'rgba(255,255,255,0.92)',
+    panelStrong: '#ffffff',
+    border: 'rgba(15, 23, 42, 0.1)',
+    foreground: '#14181f',
+    muted: '#64748b',
+    primary: tokens.primary,
+    accent: tokens.accent,
+    buttonForeground: '#ffffff',
+    heroGlow: withAlpha(tokens.primary, 0.16),
+  }
+}
+
+function buildDarkTokens(tokens: ThemeTokens) {
+  return {
+    background: '#050505',
+    backgroundSoft: '#0b0d12',
+    panel: 'rgba(13,13,13,0.94)',
+    panelStrong: '#111214',
+    border: 'rgba(255,255,255,0.12)',
+    foreground: '#ffffff',
+    muted: '#a1a1aa',
+    primary: tokens.primary,
+    accent: tokens.accent,
+    buttonForeground: '#ffffff',
+    heroGlow: withAlpha(tokens.primary, 0.12),
+  }
+}
+
+function buildPublicModeTokens(tokens: ThemeTokens) {
+  const isDarkBase = getLuminance(tokens.background) < 0.2
+
+  return {
+    dark: isDarkBase ? tokens : buildDarkTokens(tokens),
+    light: isDarkBase ? buildLightTokens(tokens) : tokens,
+  }
+}
+
 export function resolveSiteTheme(site: ThemeRecord) {
   const theme = buildTheme(site)
+  const publicModes = buildPublicModeTokens(theme.tokens)
 
   return {
     ...theme,
+    publicModes,
     style: {
       '--site-background': theme.tokens.background,
       '--site-background-soft': theme.tokens.backgroundSoft,
@@ -238,6 +317,28 @@ export function resolveSiteTheme(site: ThemeRecord) {
       '--site-accent': theme.tokens.accent,
       '--site-button-foreground': theme.tokens.buttonForeground,
       '--site-hero-glow': theme.tokens.heroGlow,
+      '--site-background-dark': publicModes.dark.background,
+      '--site-background-soft-dark': publicModes.dark.backgroundSoft,
+      '--site-panel-dark': publicModes.dark.panel,
+      '--site-panel-strong-dark': publicModes.dark.panelStrong,
+      '--site-border-dark': publicModes.dark.border,
+      '--site-foreground-dark': publicModes.dark.foreground,
+      '--site-muted-dark': publicModes.dark.muted,
+      '--site-primary-dark': publicModes.dark.primary,
+      '--site-accent-dark': publicModes.dark.accent,
+      '--site-button-foreground-dark': publicModes.dark.buttonForeground,
+      '--site-hero-glow-dark': publicModes.dark.heroGlow,
+      '--site-background-light': publicModes.light.background,
+      '--site-background-soft-light': publicModes.light.backgroundSoft,
+      '--site-panel-light': publicModes.light.panel,
+      '--site-panel-strong-light': publicModes.light.panelStrong,
+      '--site-border-light': publicModes.light.border,
+      '--site-foreground-light': publicModes.light.foreground,
+      '--site-muted-light': publicModes.light.muted,
+      '--site-primary-light': publicModes.light.primary,
+      '--site-accent-light': publicModes.light.accent,
+      '--site-button-foreground-light': publicModes.light.buttonForeground,
+      '--site-hero-glow-light': publicModes.light.heroGlow,
     } as CSSProperties,
   }
 }

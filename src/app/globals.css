@@ -247,6 +247,74 @@
     @apply ml-5 space-y-2;
   }
 
+  .public-theme-shell {
+    --site-background-current: var(--site-background-dark);
+    --site-background-soft-current: var(--site-background-soft-dark);
+    --site-panel-current: var(--site-panel-dark);
+    --site-panel-strong-current: var(--site-panel-strong-dark);
+    --site-border-current: var(--site-border-dark);
+    --site-foreground-current: var(--site-foreground-dark);
+    --site-muted-current: var(--site-muted-dark);
+    --site-primary-current: var(--site-primary-dark);
+    --site-accent-current: var(--site-accent-dark);
+    --site-button-foreground-current: var(--site-button-foreground-dark);
+    --site-hero-glow-current: var(--site-hero-glow-dark);
+    background:
+      radial-gradient(circle at top left, color-mix(in srgb, var(--site-primary-current) 14%, transparent), transparent 22%),
+      linear-gradient(180deg, var(--site-background-current) 0%, var(--site-background-soft-current) 100%);
+    color: var(--site-foreground-current);
+  }
+
+  .public-theme-shell[data-public-mode='light'] {
+    --site-background-current: var(--site-background-light);
+    --site-background-soft-current: var(--site-background-soft-light);
+    --site-panel-current: var(--site-panel-light);
+    --site-panel-strong-current: var(--site-panel-strong-light);
+    --site-border-current: var(--site-border-light);
+    --site-foreground-current: var(--site-foreground-light);
+    --site-muted-current: var(--site-muted-light);
+    --site-primary-current: var(--site-primary-light);
+    --site-accent-current: var(--site-accent-light);
+    --site-button-foreground-current: var(--site-button-foreground-light);
+    --site-hero-glow-current: var(--site-hero-glow-light);
+  }
+
+  .public-theme-shell .public-panel {
+    border-color: var(--site-border-current);
+    background: var(--site-panel-current);
+    color: var(--site-foreground-current);
+  }
+
+  .public-theme-shell .public-panel-strong {
+    border-color: var(--site-border-current);
+    background: var(--site-panel-strong-current);
+    color: var(--site-foreground-current);
+  }
+
+  .public-theme-shell .public-border {
+    border-color: var(--site-border-current);
+  }
+
+  .public-theme-shell .public-text {
+    color: var(--site-foreground-current);
+  }
+
+  .public-theme-shell .public-muted {
+    color: var(--site-muted-current);
+  }
+
+  .public-theme-shell .public-text-soft {
+    color: color-mix(in srgb, var(--site-foreground-current) 84%, transparent);
+  }
+
+  .public-theme-shell .public-text-dim {
+    color: color-mix(in srgb, var(--site-foreground-current) 62%, transparent);
+  }
+
+  .public-theme-shell .public-text-faint {
+    color: color-mix(in srgb, var(--site-foreground-current) 46%, transparent);
+  }
+
   [data-admin-surface='true'] [data-slot='button'][data-variant='outline'] {
     @apply border-sky-200 bg-white text-sky-700 shadow-xs;
   }

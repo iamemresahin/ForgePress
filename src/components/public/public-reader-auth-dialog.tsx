@@ -10,6 +10,7 @@ import {
   publicReaderSignInAction,
   publicReaderSignUpAction,
 } from '@/app/comments/actions'
+import { usePublicColorMode } from '@/components/public/public-color-mode'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
@@ -52,6 +53,7 @@ export function PublicReaderAuthDialog({
 }) {
   const tr = locale.toLowerCase().startsWith('tr')
   const router = useRouter()
+  const { mode: colorMode } = usePublicColorMode()
   const resolvedAuthBrand = authBrandName?.trim() || `${siteName} Reader`
   const resolvedGoogleClientId = googleClientId?.trim() || process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID
   const googleButtonRef = useRef<HTMLDivElement | null>(null)
@@ -165,13 +167,28 @@ export function PublicReaderAuthDialog({
           <DialogPrimitive.Overlay className="fixed inset-0 z-50 bg-black/65 backdrop-blur-sm" />
           <DialogPrimitive.Content
             className={cn(
-              'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-[32px] border border-white/10 bg-[#111112] text-white shadow-[0_30px_120px_rgba(0,0,0,0.45)] outline-none',
+              'fixed left-1/2 top-1/2 z-50 w-[calc(100vw-2rem)] max-w-[760px] -translate-x-1/2 -translate-y-1/2 rounded-[32px] shadow-[0_30px_120px_rgba(0,0,0,0.45)] outline-none',
+              colorMode === 'light'
+                ? 'border border-slate-200 bg-white text-slate-950'
+                : 'border border-white/10 bg-[#111112] text-white',
             )}
           >
-            <div className="flex items-start justify-between border-b border-white/10 px-6 py-6 md:px-8">
+            <div
+              className={cn(
+                'flex items-start justify-between px-6 py-6 md:px-8',
+                colorMode === 'light' ? 'border-b border-slate-200' : 'border-b border-white/10',
+              )}
+            >
               <div>
-                <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/40">{resolvedAuthBrand}</p>
-                <DialogPrimitive.Title className="mt-2 text-[clamp(1.9rem,3vw,2.5rem)] font-semibold tracking-tight text-white">
+                <p className={cn('text-xs font-medium uppercase tracking-[0.24em]', colorMode === 'light' ? 'text-slate-400' : 'text-white/40')}>
+                  {resolvedAuthBrand}
+                </p>
+                <DialogPrimitive.Title
+                  className={cn(
+                    'mt-2 text-[clamp(1.9rem,3vw,2.5rem)] font-semibold tracking-tight',
+                    colorMode === 'light' ? 'text-slate-950' : 'text-white',
+                  )}
+                >
                   {currentReader
                     ? currentReader.displayName
                     : mode === 'signin'
@@ -182,13 +199,22 @@ export function PublicReaderAuthDialog({
                         ? 'Okuyucu hesabı oluştur'
                         : 'Create a reader account'}
                 </DialogPrimitive.Title>
-                <DialogPrimitive.Description className="mt-3 max-w-2xl text-sm leading-7 text-white/62">
+                <DialogPrimitive.Description
+                  className={cn('mt-3 max-w-2xl text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}
+                >
                   {tr
                     ? 'Yorum yapmak ve tartışmaya katılmak için site markası altında giriş yap.'
                     : 'Sign in under this publication to comment and join the discussion.'}
                 </DialogPrimitive.Description>
               </div>
-              <DialogPrimitive.Close className="inline-flex size-11 items-center justify-center rounded-full border border-white/10 text-white/56 transition hover:border-white/20 hover:text-white">
+              <DialogPrimitive.Close
+                className={cn(
+                  'inline-flex size-11 items-center justify-center rounded-full border transition',
+                  colorMode === 'light'
+                    ? 'border-slate-200 text-slate-500 hover:border-slate-300 hover:text-slate-950'
+                    : 'border-white/10 text-white/56 hover:border-white/20 hover:text-white',
+                )}
+              >
                 <X className="size-5" />
                 <span className="sr-only">{tr ? 'Kapat' : 'Close'}</span>
               </DialogPrimitive.Close>
@@ -196,24 +222,37 @@ export function PublicReaderAuthDialog({
 
             {currentReader ? (
               <div className="px-6 py-6 md:px-8">
-                <div className="rounded-[24px] border border-white/10 bg-white/[0.04] p-5">
-                  <p className="text-sm text-white/68">
+                <div className={cn('rounded-[24px] border p-5', colorMode === 'light' ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/[0.04]')}>
+                  <p className={cn('text-sm', colorMode === 'light' ? 'text-slate-600' : 'text-white/68')}>
                     {tr ? 'Zaten giriş yapıldı:' : 'Already signed in as:'}{' '}
-                    <span className="font-semibold text-white">{currentReader.displayName}</span>
+                    <span className={cn('font-semibold', colorMode === 'light' ? 'text-slate-950' : 'text-white')}>{currentReader.displayName}</span>
                   </p>
                 </div>
               </div>
             ) : (
               <div className="grid gap-0 md:grid-cols-[0.94fr_1.06fr]">
-                <div className="border-b border-white/10 px-6 py-6 md:border-b-0 md:border-r md:px-8">
-                  <div className="rounded-[26px] border border-white/10 bg-white/[0.03] p-5">
+                <div
+                  className={cn(
+                    'px-6 py-6 md:px-8',
+                    colorMode === 'light'
+                      ? 'border-b border-slate-200 md:border-b-0 md:border-r md:border-slate-200'
+                      : 'border-b border-white/10 md:border-b-0 md:border-r md:border-white/10',
+                  )}
+                >
+                  <div className={cn('rounded-[26px] border p-5', colorMode === 'light' ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/[0.03]')}>
                     <div className="mb-5 flex items-center gap-2">
                       <button
                         type="button"
                         onClick={() => setMode('signin')}
                         className={cn(
                           'rounded-full px-4 py-2 text-sm font-medium transition',
-                          mode === 'signin' ? 'bg-white text-black' : 'text-white/62 hover:text-white',
+                          mode === 'signin'
+                            ? colorMode === 'light'
+                              ? 'bg-slate-950 text-white'
+                              : 'bg-white text-black'
+                            : colorMode === 'light'
+                              ? 'text-slate-500 hover:text-slate-950'
+                              : 'text-white/62 hover:text-white',
                         )}
                       >
                         {tr ? 'Giriş yap' : 'Sign in'}
@@ -223,7 +262,13 @@ export function PublicReaderAuthDialog({
                         onClick={() => setMode('signup')}
                         className={cn(
                           'rounded-full px-4 py-2 text-sm font-medium transition',
-                          mode === 'signup' ? 'bg-white text-black' : 'text-white/62 hover:text-white',
+                          mode === 'signup'
+                            ? colorMode === 'light'
+                              ? 'bg-slate-950 text-white'
+                              : 'bg-white text-black'
+                            : colorMode === 'light'
+                              ? 'text-slate-500 hover:text-slate-950'
+                              : 'text-white/62 hover:text-white',
                         )}
                       >
                         {tr ? 'Hesap oluştur' : 'Create account'}
@@ -249,7 +294,11 @@ export function PublicReaderAuthDialog({
                         />
                         {signInState?.error ? <p className="text-sm text-rose-300">{signInState.error}</p> : null}
                         {signInState?.success ? <p className="text-sm text-emerald-300">{signInState.success}</p> : null}
-                        <Button type="submit" className="w-full rounded-full" disabled={signingIn}>
+                        <Button
+                          type="submit"
+                          className={cn('w-full rounded-full', colorMode === 'light' && 'bg-slate-950 text-white hover:bg-slate-800')}
+                          disabled={signingIn}
+                        >
                           <Mail className="size-4" />
                           {signingIn
                             ? tr
@@ -285,7 +334,11 @@ export function PublicReaderAuthDialog({
                         />
                         {signUpState?.error ? <p className="text-sm text-rose-300">{signUpState.error}</p> : null}
                         {signUpState?.success ? <p className="text-sm text-emerald-300">{signUpState.success}</p> : null}
-                        <Button type="submit" className="w-full rounded-full" disabled={signingUp}>
+                        <Button
+                          type="submit"
+                          className={cn('w-full rounded-full', colorMode === 'light' && 'bg-slate-950 text-white hover:bg-slate-800')}
+                          disabled={signingUp}
+                        >
                           <LogIn className="size-4" />
                           {signingUp
                             ? tr
@@ -301,14 +354,14 @@ export function PublicReaderAuthDialog({
                 </div>
 
                 <div className="px-6 py-6 md:px-8">
-                  <div className="rounded-[26px] border border-white/10 bg-white/[0.03] p-5">
-                    <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/40">
+                  <div className={cn('rounded-[26px] border p-5', colorMode === 'light' ? 'border-slate-200 bg-slate-50' : 'border-white/10 bg-white/[0.03]')}>
+                    <p className={cn('text-xs font-medium uppercase tracking-[0.24em]', colorMode === 'light' ? 'text-slate-400' : 'text-white/40')}>
                       {tr ? 'Hızlı giriş' : 'Quick access'}
                     </p>
-                    <h3 className="mt-3 text-xl font-semibold text-white">
+                    <h3 className={cn('mt-3 text-xl font-semibold', colorMode === 'light' ? 'text-slate-950' : 'text-white')}>
                       {tr ? 'Google ile devam et' : 'Continue with Google'}
                     </h3>
-                    <p className="mt-3 text-sm leading-7 text-white/62">
+                    <p className={cn('mt-3 text-sm leading-7', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>
                       {tr
                         ? 'Popup kapanmadan bu site markası altında okuyucu oturumu açılır.'
                         : 'A reader session opens under this publication without leaving the page.'}
@@ -317,16 +370,19 @@ export function PublicReaderAuthDialog({
                       {googleClientId ? (
                         <div ref={googleButtonRef} className="w-full" />
                       ) : (
-                        <div className="rounded-[20px] border border-dashed border-white/10 px-4 py-4 text-sm text-white/54">
+                        <div
+                          className={cn(
+                            'rounded-[20px] border border-dashed px-4 py-4 text-sm',
+                            colorMode === 'light' ? 'border-slate-200 text-slate-500' : 'border-white/10 text-white/54',
+                          )}
+                        >
                           {tr
                             ? 'Bu site için Google girişi henüz yapılandırılmadı.'
                             : 'Google sign-in is not configured for this site yet.'}
                         </div>
                       )}
                     </div>
-                    {googlePending ? (
-                      <p className="mt-4 text-sm text-white/62">{tr ? 'Google oturumu doğrulanıyor...' : 'Verifying Google sign-in...'}</p>
-                    ) : null}
+                    {googlePending ? <p className={cn('mt-4 text-sm', colorMode === 'light' ? 'text-slate-500' : 'text-white/62')}>{tr ? 'Google oturumu doğrulanıyor...' : 'Verifying Google sign-in...'}</p> : null}
                     {googleMessage?.error ? <p className="mt-4 text-sm text-rose-300">{googleMessage.error}</p> : null}
                     {googleMessage?.success ? <p className="mt-4 text-sm text-emerald-300">{googleMessage.success}</p> : null}
                   </div>

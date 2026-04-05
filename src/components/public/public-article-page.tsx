@@ -10,6 +10,7 @@ import {
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
+import { PublicThemeShell } from '@/components/public/public-color-mode'
 import { PublicCommentsPanel } from '@/components/public/public-comments-panel'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 
@@ -122,14 +123,14 @@ function KantanLikeArticle({
     : null
 
   return (
-    <main className="min-h-screen bg-black text-white" style={theme.style}>
-      <header className="border-b border-white/10 bg-black/94 backdrop-blur-xl">
+    <PublicThemeShell className="min-h-screen" style={theme.style}>
+      <header className="public-border border-b backdrop-blur-xl" style={{ background: 'color-mix(in srgb, var(--site-background-current) 92%, transparent)' }}>
         <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between gap-4 px-4 py-4 md:px-6">
           <div className="flex items-center gap-3">
-            <Link href={homeHref} className="text-[1.4rem] font-semibold tracking-tight text-white">
+            <Link href={homeHref} className="public-text text-[1.4rem] font-semibold tracking-tight">
               {article.siteName}
             </Link>
-            <Link href={homeHref} className="hidden rounded-full border border-white/10 px-4 py-2 text-sm text-white/70 md:inline-flex">
+            <Link href={homeHref} className="public-border public-text-dim hidden rounded-full border px-4 py-2 text-sm md:inline-flex">
               {copy.backHome}
             </Link>
           </div>
@@ -142,7 +143,7 @@ function KantanLikeArticle({
             authBrandName={article.authBrandName}
             googleClientId={article.googleClientId}
             triggerLabel={copy.signIn}
-            triggerClassName="rounded-full border border-white/10 px-4 py-2 text-sm text-white/70 transition hover:border-white/20 hover:text-white"
+            triggerClassName="public-border public-text-dim rounded-full border px-4 py-2 text-sm transition"
           />
         </div>
       </header>
@@ -151,21 +152,21 @@ function KantanLikeArticle({
         <section className="space-y-5">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium uppercase tracking-[0.24em]">
             <span style={{ color: '#fb923c' }}>{article.locale}</span>
-            <span className="inline-flex items-center gap-2 text-white/55">
+            <span className="public-text-dim inline-flex items-center gap-2">
               <CalendarClock className="size-3.5" />
               {publishedLabel}
             </span>
-            <span className="text-white/40">{readTime} min read</span>
-            <span className="text-white/40">{freshness}</span>
-            <span className="text-white/40">AI-assisted</span>
+            <span className="public-text-faint">{readTime} min read</span>
+            <span className="public-text-faint">{freshness}</span>
+            <span className="public-text-faint">AI-assisted</span>
           </div>
 
-          <h1 className="max-w-5xl text-[clamp(2.4rem,5vw,5.25rem)] font-semibold leading-[0.95] tracking-tight text-white">
+          <h1 className="public-text max-w-5xl text-[clamp(2.4rem,5vw,5.25rem)] font-semibold leading-[0.95] tracking-tight">
             {article.title}
           </h1>
 
           {article.excerpt ? (
-            <p className="max-w-3xl text-base leading-7 text-white/68 md:text-lg">{article.excerpt}</p>
+            <p className="public-text-dim max-w-3xl text-base leading-7 md:text-lg">{article.excerpt}</p>
           ) : null}
         </section>
 
@@ -177,9 +178,9 @@ function KantanLikeArticle({
 
 
         <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4">
-            <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.sourceContext}</p>
-            <p className="mt-3 max-w-3xl text-sm leading-6 text-white/68">
+          <div className="public-panel rounded-[24px] border px-5 py-4">
+            <p className="public-text-faint text-xs font-medium uppercase tracking-[0.24em]">{copy.sourceContext}</p>
+            <p className="public-text-dim mt-3 max-w-3xl text-sm leading-6">
               This story was prepared for {article.siteName} with a compact, source-led editorial format designed for dense news feeds and faster scanning.
             </p>
           </div>
@@ -198,21 +199,21 @@ function KantanLikeArticle({
               <ArrowUpRight className="size-5" />
             </a>
           ) : (
-            <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4 text-sm text-white/58">{copy.sourceUnavailable}</div>
+            <div className="public-panel rounded-[24px] border px-5 py-4 text-sm public-text-dim">{copy.sourceUnavailable}</div>
           )}
         </section>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="grid gap-6">
-            <article className="min-w-0 rounded-[28px] border border-white/10 bg-[#0f0f10] px-6 py-7 md:px-8 md:py-8">
-              <ArticleBody body={article.body} color="#f3f4f6" />
+            <article className="public-panel min-w-0 rounded-[28px] border px-6 py-7 md:px-8 md:py-8">
+              <ArticleBody body={article.body} color="var(--site-foreground-current)" />
             </article>
 
             {relatedArticles.length > 0 ? (
-              <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5 md:p-6">
-                <div className="border-b border-white/10 pb-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.relatedStories}</p>
-                  <h2 className="mt-2 text-2xl font-semibold text-white">{copy.keepReading}</h2>
+              <section className="public-panel rounded-[28px] border p-5 md:p-6">
+                <div className="public-border border-b pb-4">
+                  <p className="public-text-faint text-xs font-medium uppercase tracking-[0.24em]">{copy.relatedStories}</p>
+                  <h2 className="public-text mt-2 text-2xl font-semibold">{copy.keepReading}</h2>
                 </div>
                 <div className="mt-5 grid gap-4 md:grid-cols-3">
                   {relatedArticles.map((relatedArticle) => {
@@ -224,23 +225,23 @@ function KantanLikeArticle({
                       <Link
                         key={relatedArticle.id}
                         href={relatedHref}
-                        className="group rounded-[24px] border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20"
+                        className="public-panel group rounded-[24px] border p-4 transition"
                       >
                         <img
                           src={relatedArticle.imageUrl ?? buildEditorialImageDataUri(relatedArticle)}
                           alt={relatedArticle.title}
                           className="mb-4 h-32 w-full rounded-[18px] object-cover"
                         />
-                        <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
+                        <p className="public-text-faint text-[11px] font-medium uppercase tracking-[0.24em]">
                           {formatFreshnessLabel(relatedArticle.publishedAt)}
                         </p>
-                        <h3 className="mt-3 text-lg font-semibold leading-6 text-white transition group-hover:text-white/88">
+                        <h3 className="public-text mt-3 text-lg font-semibold leading-6 transition">
                           {relatedArticle.title}
                         </h3>
-                        <p className="mt-3 text-sm leading-6 text-white/58">
+                        <p className="public-text-dim mt-3 text-sm leading-6">
                           {relatedArticle.excerpt ?? 'Open the story to continue through the editorial feed.'}
                         </p>
-                        <span className="mt-4 inline-flex items-center gap-2 text-sm text-white/72">
+                        <span className="public-text-dim mt-4 inline-flex items-center gap-2 text-sm">
                           {copy.readStory}
                           <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
                         </span>
@@ -265,9 +266,9 @@ function KantanLikeArticle({
           </div>
 
           <aside className="grid content-start gap-4">
-            <div className="rounded-[24px] border border-white/10 bg-[#0f0f10] p-5">
-              <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">{copy.storyInfo}</p>
-              <div className="mt-4 space-y-3 text-sm text-white/68">
+            <div className="public-panel rounded-[24px] border p-5">
+              <p className="public-text-faint text-xs font-medium uppercase tracking-[0.24em]">{copy.storyInfo}</p>
+              <div className="public-text-dim mt-4 space-y-3 text-sm">
                 <p>Site: {article.siteName}</p>
                 <p>Locale: {article.locale}</p>
                 <p>Published: {publishedLabel}</p>
@@ -278,7 +279,7 @@ function KantanLikeArticle({
 
             <Link
               href={homeHref}
-              className="inline-flex items-center gap-2 rounded-[24px] border border-white/10 bg-transparent px-5 py-4 text-sm font-medium text-white/74 transition hover:text-white"
+              className="public-border public-text-dim inline-flex items-center gap-2 rounded-[24px] border bg-transparent px-5 py-4 text-sm font-medium transition"
             >
               <ArrowLeft className="size-4" />
               {copy.backHome}
@@ -287,11 +288,11 @@ function KantanLikeArticle({
             {nextHref && nextArticle ? (
               <Link
                 href={nextHref}
-                className="rounded-[24px] border border-white/10 bg-[#0f0f10] px-5 py-4 transition hover:border-white/20"
+                className="public-panel rounded-[24px] border px-5 py-4 transition"
               >
-                <p className="text-xs font-medium uppercase tracking-[0.22em] text-white/45">{copy.nextStory}</p>
-                <p className="mt-3 text-base font-semibold leading-6 text-white">{nextArticle.title}</p>
-                <span className="mt-4 inline-flex items-center gap-2 text-sm text-white/72">
+                <p className="public-text-faint text-xs font-medium uppercase tracking-[0.22em]">{copy.nextStory}</p>
+                <p className="public-text mt-3 text-base font-semibold leading-6">{nextArticle.title}</p>
+                <span className="public-text-dim mt-4 inline-flex items-center gap-2 text-sm">
                   {copy.readNext}
                   <ArrowRight className="size-4" />
                 </span>
@@ -300,7 +301,7 @@ function KantanLikeArticle({
           </aside>
         </div>
       </div>
-    </main>
+    </PublicThemeShell>
   )
 }
 
@@ -339,7 +340,7 @@ function DefaultArticle({ article, theme }: PublicArticlePageProps) {
   }
 
   return (
-    <main className="min-h-screen px-4 py-8 md:px-6 md:py-10" style={pageStyle}>
+    <PublicThemeShell className="min-h-screen px-4 py-8 md:px-6 md:py-10" style={pageStyle}>
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
         <section
           className={`rounded-[32px] border px-6 py-7 md:px-8 ${theme.articleLayout === 'feature' ? 'md:py-10' : 'md:py-8'}`}
@@ -403,7 +404,7 @@ function DefaultArticle({ article, theme }: PublicArticlePageProps) {
           </div>
         </article>
       </div>
-    </main>
+    </PublicThemeShell>
   )
 }
 

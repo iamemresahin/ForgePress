@@ -11,6 +11,7 @@ import {
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
+import { PublicThemeShell } from '@/components/public/public-color-mode'
 import { PublicNewsAlert } from '@/components/public/public-news-alert'
 import { PublicSiteHeader } from '@/components/public/public-site-header'
 
@@ -113,9 +114,10 @@ function EditorialFeatureCard({
   return (
     <Link href={href} className="group">
       <article
-        className={`relative overflow-hidden rounded-[28px] border border-white/12 bg-[#080809] ${
+        className={`public-border relative overflow-hidden rounded-[28px] border ${
           size === 'large' ? 'min-h-[470px] md:min-h-[510px]' : 'min-h-[225px] md:min-h-[245px]'
         }`}
+        style={{ background: 'var(--site-panel-current)' }}
       >
         <img
           src={imageUrl}
@@ -151,11 +153,7 @@ function EditorialFeatureCard({
             {article.title}
           </h2>
           {size === 'large' && article.excerpt ? (
-            <p
-              className={`max-w-4xl text-white/82 ${
-                size === 'large' ? 'text-[0.95rem] leading-7 md:text-[1rem]' : 'hidden'
-              }`}
-            >
+            <p className={`max-w-4xl text-white/82 ${size === 'large' ? 'text-[0.95rem] leading-7 md:text-[1rem]' : 'hidden'}`}>
               {article.excerpt}
             </p>
           ) : null}
@@ -208,7 +206,10 @@ function EditorialStoryCard({
 
   return (
     <Link href={getArticleHref(site.slug, article.slug, useHostRouting)} className="group">
-      <article className="flex h-full min-h-[520px] flex-col overflow-hidden rounded-[28px] border border-white/10 bg-[#121214] transition duration-300 hover:-translate-y-0.5 hover:border-white/16">
+      <article
+        className="public-border flex h-full min-h-[520px] flex-col overflow-hidden rounded-[28px] border transition duration-300 hover:-translate-y-0.5"
+        style={{ background: 'var(--site-panel-current)' }}
+      >
         <ArticleImage
           imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
           title={article.title}
@@ -224,15 +225,15 @@ function EditorialStoryCard({
             topicLabelOverrides={site.topicLabelOverrides}
           />
           <div className="space-y-4">
-            <h3 className="line-clamp-3 min-h-[6.8rem] text-[clamp(1.48rem,1.58vw,1.9rem)] font-semibold leading-[1.08] tracking-tight text-white transition group-hover:text-white/90">
+            <h3 className="public-text line-clamp-3 min-h-[6.8rem] text-[clamp(1.48rem,1.58vw,1.9rem)] font-semibold leading-[1.08] tracking-tight transition">
               {article.title}
             </h3>
-            <p className="line-clamp-4 min-h-[8rem] text-[0.96rem] leading-8" style={{ color: theme.tokens.muted }}>
+            <p className="public-muted line-clamp-4 min-h-[8rem] text-[0.96rem] leading-8">
               {article.excerpt ?? 'Open the story to read the full article and source context.'}
             </p>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="inline-flex items-center gap-2 text-[1rem] font-semibold text-white">
+            <span className="public-text inline-flex items-center gap-2 text-[1rem] font-semibold">
               {copy.readStory}
               <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
             </span>
@@ -378,7 +379,7 @@ function KantanLikeHome({
   }))
 
   return (
-    <main className="min-h-screen bg-black text-white" style={theme.style}>
+    <PublicThemeShell className="min-h-screen" style={theme.style}>
       <PublicSiteHeader
         homeHref={homeHref}
         siteId={site.id}
@@ -397,10 +398,10 @@ function KantanLikeHome({
 
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
         {filteredArticles.length === 0 ? (
-          <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-8 md:p-10">
-            <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-white/50">{copy.liveSurface}</p>
-            <h1 className="text-[clamp(2.4rem,5vw,4.6rem)] font-semibold leading-[0.94] text-white">{site.name}</h1>
-            <p className="mt-4 max-w-2xl text-base leading-7" style={{ color: theme.tokens.muted }}>
+          <section className="public-panel rounded-[28px] border p-8 md:p-10">
+            <p className="public-text-faint mb-3 text-xs font-medium uppercase tracking-[0.28em]">{copy.liveSurface}</p>
+            <h1 className="public-text text-[clamp(2.4rem,5vw,4.6rem)] font-semibold leading-[0.94]">{site.name}</h1>
+            <p className="public-muted mt-4 max-w-2xl text-base leading-7">
               {copy.publishFirstStory}
             </p>
           </section>
@@ -445,12 +446,12 @@ function KantanLikeHome({
             ) : null}
 
             <section id="latest" className="space-y-5">
-              <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+              <div className="public-border flex items-center justify-between gap-4 border-b pb-4">
                 <div>
-                  <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">{copy.latestStories}</p>
-                  <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">{copy.latestStories}</h2>
+                  <p className="public-text-faint text-xs font-medium uppercase tracking-[0.28em]">{copy.latestStories}</p>
+                  <h2 className="public-text mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold">{copy.latestStories}</h2>
                 </div>
-                <span className="hidden text-sm text-white/50 md:inline-flex">{filteredArticles.length} {copy.publishedStories}</span>
+                <span className="public-text-dim hidden text-sm md:inline-flex">{filteredArticles.length} {copy.publishedStories}</span>
               </div>
 
               <EditorialGridBlock
@@ -501,7 +502,7 @@ function KantanLikeHome({
           </>
         )}
       </div>
-    </main>
+    </PublicThemeShell>
   )
 }
 
