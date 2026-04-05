@@ -105,7 +105,7 @@ function EditorialFeatureCard({
     <Link href={href} className="group">
       <article
         className={`relative overflow-hidden rounded-[28px] border border-white/12 bg-[#080809] ${
-          size === 'large' ? 'min-h-[500px] md:min-h-[700px]' : 'min-h-[205px] md:min-h-[228px]'
+          size === 'large' ? 'min-h-[470px] md:min-h-[510px]' : 'min-h-[225px] md:min-h-[245px]'
         }`}
       >
         <img
@@ -385,7 +385,7 @@ function KantanLikeHome({
         ) : (
           <>
             {heroArticle ? (
-              <section id="featured" className="relative grid gap-5 xl:grid-cols-[0.58fr_minmax(0,2.18fr)]">
+              <section id="featured" className="relative grid gap-5 xl:grid-cols-[0.62fr_minmax(0,1.98fr)]">
                 <div className="pointer-events-none absolute inset-x-0 top-0 z-20 hidden justify-center xl:flex">
                   <div className="pointer-events-auto -mt-6">
                     <PublicNewsAlert
