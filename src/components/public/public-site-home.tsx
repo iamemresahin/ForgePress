@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ArrowRight, ChevronRight, Search } from 'lucide-react'
+import { ArrowRight, ChevronRight } from 'lucide-react'
 
 import {
   buildEditorialImageDataUri,
@@ -7,7 +7,6 @@ import {
   deriveTopicForArticle,
   estimateReadTimeMinutes,
   formatFreshnessLabel,
-  getTrendingArticles,
   type PublicArticleSummary,
 } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
@@ -184,6 +183,54 @@ function EditorialMeta({
   )
 }
 
+function EditorialStoryCard({
+  article,
+  site,
+  theme,
+  useHostRouting,
+}: {
+  article: PublicArticleSummary
+  site: PublicSiteHomeProps['site']
+  theme: ResolvedSiteTheme
+  useHostRouting: boolean
+}) {
+  return (
+    <Link href={getArticleHref(site.slug, article.slug, useHostRouting)} className="group">
+      <article className="overflow-hidden rounded-[28px] border border-white/10 bg-[#121214] transition duration-300 hover:-translate-y-0.5 hover:border-white/16">
+        <ArticleImage
+          imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
+          title={article.title}
+          heightClassName="h-[260px] md:h-[290px]"
+          accent={theme.tokens.heroGlow}
+        />
+        <div className="space-y-5 px-6 py-6">
+          <EditorialMeta
+            article={article}
+            locale={site.defaultLocale}
+            muted={theme.tokens.muted}
+            siteNiche={site.niche}
+            topicLabelOverrides={site.topicLabelOverrides}
+          />
+          <div className="space-y-4">
+            <h3 className="text-[clamp(1.7rem,2vw,2.45rem)] font-semibold leading-[1.05] tracking-tight text-white transition group-hover:text-white/90">
+              {article.title}
+            </h3>
+            <p className="line-clamp-4 text-[1.02rem] leading-8" style={{ color: theme.tokens.muted }}>
+              {article.excerpt ?? 'Open the story to read the full article and source context.'}
+            </p>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="inline-flex items-center gap-2 text-[1rem] font-semibold text-white">
+              Devamını Oku
+              <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
+            </span>
+          </div>
+        </div>
+      </article>
+    </Link>
+  )
+}
+
 function resolveArticleVisual(
   article: PublicArticleSummary,
   siteNiche?: string | null,
@@ -222,17 +269,25 @@ function buildEditorialNavItems(
   ]
 }
 
+function chunkArticles(articles: PublicArticleSummary[], size: number) {
+  const chunks: PublicArticleSummary[][] = []
+
+  for (let index = 0; index < articles.length; index += size) {
+    chunks.push(articles.slice(index, index + size))
+  }
+
+  return chunks
+}
+
 function KantanLikeHome({
   site,
   theme,
   articles,
   useHostRouting,
 }: PublicSiteHomeProps) {
-  const featuredArticle = articles[0]
-  const railArticles = articles.slice(1, 3)
-  const feedArticles = articles.slice(3)
-  const quickScanArticles = articles.slice(0, 5)
-  const trendingArticles = getTrendingArticles(articles, site.niche, site.topicLabelOverrides, 4)
+  const topGridArticles = articles.slice(0, 6)
+  const spotlightArticles = articles.slice(6, 9)
+  const recurringChunks = chunkArticles(articles.slice(9), 6)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides).slice(0, 4)
   const navItems = buildEditorialNavItems(site, topics, useHostRouting ?? false)
 
@@ -256,45 +311,11 @@ function KantanLikeHome({
               </Link>
             ))}
           </div>
-          <div className="flex items-center gap-2">
-            <button className="hidden rounded-full border border-white/10 px-4 py-2 text-sm text-white/72 md:inline-flex">
-              Hide read
-            </button>
-            <button className="inline-flex items-center justify-center rounded-full border border-white/10 p-2 text-white/72">
-              <Search className="size-4" />
-            </button>
-          </div>
         </div>
       </header>
 
       <div className="mx-auto flex w-full max-w-[1320px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
-        {featuredArticle ? (
-          <section id="featured" className="grid gap-5 xl:grid-cols-[0.36fr_minmax(0,1fr)]">
-            <div className="grid gap-5">
-              {railArticles.map((article) => (
-                <EditorialFeatureCard
-                  key={article.id}
-                  href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
-                  article={article}
-                  locale={site.defaultLocale}
-                  siteNiche={site.niche}
-                  topicLabelOverrides={site.topicLabelOverrides}
-                  accent={theme.tokens.heroGlow}
-                />
-              ))}
-            </div>
-
-            <EditorialFeatureCard
-              href={getArticleHref(site.slug, featuredArticle.slug, useHostRouting ?? false)}
-              article={featuredArticle}
-              locale={site.defaultLocale}
-              siteNiche={site.niche}
-              topicLabelOverrides={site.topicLabelOverrides}
-              accent={theme.tokens.heroGlow}
-              size="large"
-            />
-          </section>
-        ) : (
+        {articles.length === 0 ? (
           <section className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-8 md:p-10">
             <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-white/50">Live Surface</p>
             <h1 className="text-[clamp(2.4rem,5vw,4.6rem)] font-semibold leading-[0.94] text-white">{site.name}</h1>
@@ -302,163 +323,73 @@ function KantanLikeHome({
               Publish the first story from the admin workspace and this editorial front page will populate automatically.
             </p>
           </section>
-        )}
-
-        <section id="latest" className="space-y-5">
-          <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
-            <div>
-              <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">Latest Stories</p>
-              <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">Latest Stories</h2>
-            </div>
-            <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} published stories</span>
-          </div>
-
-          <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-2">
-              {(feedArticles.length > 0 ? feedArticles : articles.slice(0, 6)).map((article) => (
-                <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
-                  <article className="grid gap-4">
-                    <ArticleImage
-                      imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
-                      title={article.title}
-                      heightClassName="h-56"
-                      accent={theme.tokens.heroGlow}
-                    />
-                    <div className="space-y-3">
-                      <EditorialMeta
-                        article={article}
-                        locale={site.defaultLocale}
-                        muted={theme.tokens.muted}
-                        siteNiche={site.niche}
-                        topicLabelOverrides={site.topicLabelOverrides}
-                      />
-                      <h3 className="text-[1.42rem] font-semibold leading-[1.08] text-white transition group-hover:text-white/88">
-                        {article.title}
-                      </h3>
-                      <p className="text-sm leading-6" style={{ color: theme.tokens.muted }}>
-                        {article.excerpt ?? 'Open the story to read the full article and source context.'}
-                      </p>
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="inline-flex items-center gap-2 text-sm font-medium text-white">
-                          Continue Reading
-                          <ChevronRight className="size-4 transition group-hover:translate-x-0.5" />
-                        </span>
-                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/58">
-                          Source-ready
-                        </span>
-                      </div>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-
-            <div className="grid gap-5">
-              <aside className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5">
-                <div className="border-b border-white/10 pb-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Quick Scan</p>
-                  <h3 className="mt-2 text-2xl font-semibold text-white">Editor&apos;s Picks</h3>
+        ) : (
+          <>
+            <section id="latest" className="space-y-5">
+              <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">Latest Stories</p>
+                  <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">Latest Stories</h2>
                 </div>
-                <div className="mt-4 grid gap-4">
-                  {quickScanArticles.map((article, index) => (
-                    <Link
+                <span className="hidden text-sm text-white/50 md:inline-flex">{articles.length} published stories</span>
+              </div>
+
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {topGridArticles.map((article) => (
+                  <EditorialStoryCard
+                    key={article.id}
+                    article={article}
+                    site={site}
+                    theme={theme}
+                    useHostRouting={useHostRouting ?? false}
+                  />
+                ))}
+              </div>
+            </section>
+
+            {spotlightArticles[0] ? (
+              <section id="featured" className="grid gap-5 xl:grid-cols-[minmax(0,1.75fr)_0.9fr]">
+                <EditorialFeatureCard
+                  href={getArticleHref(site.slug, spotlightArticles[0].slug, useHostRouting ?? false)}
+                  article={spotlightArticles[0]}
+                  locale={site.defaultLocale}
+                  siteNiche={site.niche}
+                  topicLabelOverrides={site.topicLabelOverrides}
+                  accent={theme.tokens.heroGlow}
+                  size="large"
+                />
+
+                <div className="grid gap-5">
+                  {spotlightArticles.slice(1, 3).map((article) => (
+                    <EditorialFeatureCard
                       key={article.id}
                       href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
-                      className="group border-b border-white/10 pb-4 last:border-b-0 last:pb-0"
-                    >
-                      <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
-                        {String(index + 1).padStart(2, '0')} · {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
-                      </p>
-                      <h4 className="mt-2 text-base font-semibold leading-6 text-white transition group-hover:text-white/88">
-                        {article.title}
-                      </h4>
-                      <p className="mt-2 text-sm leading-6 text-white/58">
-                        {formatPublishedDate(article.publishedAt, site.defaultLocale) ?? 'Live'} · {estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)} min read
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </aside>
-
-              <aside className="rounded-[28px] border border-white/10 bg-[#0f0f10] p-5">
-                <div className="border-b border-white/10 pb-4">
-                  <p className="text-xs font-medium uppercase tracking-[0.24em] text-white/45">Trending</p>
-                  <h3 className="mt-2 text-2xl font-semibold text-white">Now building momentum</h3>
-                </div>
-                <div className="mt-4 grid gap-4">
-                  {trendingArticles.map((article, index) => (
-                    <Link
-                      key={`${article.id}-trending`}
-                      href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)}
-                      className="group rounded-[22px] border border-white/10 bg-white/[0.03] p-4 transition hover:border-white/20"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className="text-[11px] font-medium uppercase tracking-[0.24em] text-white/40">
-                            #{String(index + 1).padStart(2, '0')} · {deriveTopicForArticle(article, site.niche, site.topicLabelOverrides).label}
-                          </p>
-                          <h4 className="mt-2 text-base font-semibold leading-6 text-white transition group-hover:text-white/88">
-                            {article.title}
-                          </h4>
-                        </div>
-                        <span className="rounded-full border border-white/10 px-2.5 py-1 text-[10px] font-medium uppercase tracking-[0.18em] text-white/58">
-                          Hot
-                        </span>
-                      </div>
-                      <p className="mt-3 text-sm leading-6 text-white/58">
-                        {formatFreshnessLabel(article.publishedAt)} · {estimateReadTimeMinutes(`${article.title} ${article.excerpt ?? ''}`)} min read
-                      </p>
-                    </Link>
-                  ))}
-                </div>
-              </aside>
-            </div>
-          </div>
-        </section>
-
-        {topics.map((topic) => (
-          <section key={topic.slug} id={`topic-${topic.slug}`} className="space-y-5">
-            <div className="flex items-center justify-between gap-4 border-b border-white/10 pb-4">
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.28em] text-white/45">Topic</p>
-                <h2 className="mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold text-white">{topic.label}</h2>
-              </div>
-              <span className="hidden text-sm text-white/50 md:inline-flex">
-                {topic.articles.length} stor{topic.articles.length === 1 ? 'y' : 'ies'}
-              </span>
-            </div>
-
-            <div className="grid gap-x-6 gap-y-10 md:grid-cols-2 xl:grid-cols-3">
-              {topic.articles.slice(0, 3).map((article) => (
-                <Link key={article.id} href={getArticleHref(site.slug, article.slug, useHostRouting ?? false)} className="group">
-                  <article className="grid gap-4">
-                    <ArticleImage
-                      imageUrl={resolveArticleVisual(article, site.niche, site.topicLabelOverrides)}
-                      title={article.title}
-                      heightClassName="h-56"
+                      article={article}
+                      locale={site.defaultLocale}
+                      siteNiche={site.niche}
+                      topicLabelOverrides={site.topicLabelOverrides}
                       accent={theme.tokens.heroGlow}
                     />
-                    <div className="space-y-3">
-                      <EditorialMeta
-                        article={article}
-                        locale={site.defaultLocale}
-                        muted={theme.tokens.muted}
-                        siteNiche={site.niche}
-                        topicLabelOverrides={site.topicLabelOverrides}
-                      />
-                      <h3 className="text-[1.35rem] font-semibold leading-[1.1] text-white transition group-hover:text-white/88">
-                        {article.title}
-                      </h3>
-                      <p className="text-sm leading-6" style={{ color: theme.tokens.muted }}>
-                        {article.excerpt ?? 'Open the story to read the full article and source context.'}
-                      </p>
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
-          </section>
-        ))}
+                  ))}
+                </div>
+              </section>
+            ) : null}
+
+            {recurringChunks.map((chunk, index) => (
+              <section key={`grid-block-${index}`} className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {chunk.map((article) => (
+                  <EditorialStoryCard
+                    key={article.id}
+                    article={article}
+                    site={site}
+                    theme={theme}
+                    useHostRouting={useHostRouting ?? false}
+                  />
+                ))}
+              </section>
+            ))}
+          </>
+        )}
       </div>
     </main>
   )
