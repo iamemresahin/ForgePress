@@ -42,6 +42,40 @@ type SiteFormValues = {
   themeBackground: string
 }
 
+const THEME_STARTERS: Array<{
+  key: SiteFormValues['themePreset']
+  homepageLayout: SiteFormValues['homepageLayout']
+  articleLayout: SiteFormValues['articleLayout']
+  primary: string
+  accent: string
+  background: string
+}> = [
+  {
+    key: 'forge_blue',
+    homepageLayout: 'spotlight',
+    articleLayout: 'editorial',
+    primary: '#1782f6',
+    accent: '#6ed6ff',
+    background: '#f7fbff',
+  },
+  {
+    key: 'kantan_editorial',
+    homepageLayout: 'spotlight',
+    articleLayout: 'feature',
+    primary: '#f97316',
+    accent: '#fdba74',
+    background: '#050505',
+  },
+  {
+    key: 'news_sand',
+    homepageLayout: 'digest',
+    articleLayout: 'editorial',
+    primary: '#7b5f2d',
+    accent: '#ccb57b',
+    background: '#fbf7ef',
+  },
+]
+
 export function SiteForm({
   action,
   submitLabel,
@@ -74,6 +108,18 @@ export function SiteForm({
   })
 
   const selectedPreset = THEME_PRESETS[themePreset]
+
+  function applyThemeStarter(starterKey: SiteFormValues['themePreset']) {
+    const starter = THEME_STARTERS.find((item) => item.key === starterKey)
+    if (!starter) return
+
+    setThemePreset(starter.key)
+    setHomepageLayout(starter.homepageLayout)
+    setArticleLayout(starter.articleLayout)
+    setThemePrimary(starter.primary)
+    setThemeAccent(starter.accent)
+    setThemeBackground(starter.background)
+  }
 
   return (
     <Card>
@@ -232,6 +278,50 @@ export function SiteForm({
                   ? 'Her site için görsel yön, anasayfa akışı ve makale tonu burada tanımlanır.'
                   : 'Define the visual direction, homepage flow, and article tone for each site here.'}
               </p>
+            </div>
+
+            <div className="space-y-3">
+              <Label>{tr ? 'Başlangıç teması' : 'Starter theme'}</Label>
+              <div className="grid gap-3 md:grid-cols-3">
+                {THEME_STARTERS.map((starter) => {
+                  const preset = THEME_PRESETS[starter.key]
+                  const isActive = themePreset === starter.key
+
+                  return (
+                    <button
+                      key={starter.key}
+                      type="button"
+                      onClick={() => applyThemeStarter(starter.key)}
+                      className={`rounded-[20px] border p-4 text-left transition ${
+                        isActive
+                          ? 'border-sky-300 bg-white shadow-[0_16px_36px_-24px_rgba(14,104,195,0.35)]'
+                          : 'border-sky-100 bg-white/80 hover:border-sky-200'
+                      }`}
+                    >
+                      <div className="mb-3 flex items-center gap-2">
+                        <span
+                          className="size-4 rounded-full border border-white/70 shadow-sm"
+                          style={{ backgroundColor: starter.primary }}
+                        />
+                        <span
+                          className="size-4 rounded-full border border-white/70 shadow-sm"
+                          style={{ backgroundColor: starter.accent }}
+                        />
+                        <span
+                          className="size-4 rounded-full border border-slate-200 shadow-sm"
+                          style={{ backgroundColor: starter.background }}
+                        />
+                      </div>
+                      <p className="text-sm font-semibold text-slate-950">
+                        {tr ? preset.label.tr : preset.label.en}
+                      </p>
+                      <p className="mt-1 text-xs leading-5 text-slate-600">
+                        {tr ? preset.description.tr : preset.description.en}
+                      </p>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             <div className="field">
