@@ -5,6 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import {
   IconArticle,
+  IconCheck,
   IconChevronDown,
   IconFolderPlus,
   IconHelp,
@@ -37,74 +38,26 @@ import {
   SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 
-type NavItem = { title: string; url: string; icon: React.ComponentType<{ className?: string }> }
 type SiteItem = { id: string; name: string; slug: string }
 
-const allPrimaryItems: NavItem[] = [
-  { title: "Dashboard", url: "/admin", icon: IconSparkles },
-  { title: "Articles", url: "/admin/articles", icon: IconArticle },
-  { title: "Sources", url: "/admin/sources", icon: IconNews },
-  { title: "Comments", url: "/admin/comments", icon: IconMessageCircle },
-]
-
-const allSystemItems: NavItem[] = [
+const allSystemItems = [
   { title: "Jobs", url: "/admin/jobs", icon: IconListDetails },
   { title: "Ops", url: "/admin/ops", icon: IconRadar2 },
 ]
 
-function getPrimaryItems(role: string): NavItem[] {
-  if (role === 'platform_admin') return allPrimaryItems
-  if (role === 'site_editor') return allPrimaryItems
-  return allPrimaryItems.filter((i) => i.title === 'Dashboard' || i.title === 'Articles')
-}
-
-function getSystemItems(role: string): NavItem[] {
-  if (role === 'platform_admin') return allSystemItems
-  if (role === 'site_editor') return allSystemItems.filter((i) => i.title === 'Jobs')
+function getSystemItems(role: string) {
+  if (role === "platform_admin") return allSystemItems
+  if (role === "site_editor") return allSystemItems.filter((i) => i.title === "Jobs")
   return []
 }
-
-const utilityItems = [
-  { title: "Overview", url: "/", icon: IconFolderPlus },
-  { title: "Support", url: "/admin/ops", icon: IconHelp },
-  { title: "Settings", url: "/admin/sites", icon: IconSettings },
-]
 
 function isActive(pathname: string, href: string) {
   return pathname === href || (href !== "/admin" && pathname.startsWith(`${href}/`))
 }
 
-function translatePrimaryItem(locale: InterfaceLocale, title: string) {
-  if (locale !== 'tr') return title
-
-  switch (title) {
-    case 'Dashboard': return 'Panel'
-    case 'Articles': return 'Makaleler'
-    case 'Sources': return 'Kaynaklar'
-    case 'Comments': return 'Yorumlar'
-    default: return title
-  }
-}
-
-function translateSystemItem(locale: InterfaceLocale, title: string) {
-  if (locale !== 'tr') return title
-
-  switch (title) {
-    case 'Jobs': return 'Görevler'
-    case 'Ops': return 'Operasyonlar'
-    default: return title
-  }
-}
-
-function translateUtilityItem(locale: InterfaceLocale, title: string) {
-  if (locale !== 'tr') return title
-
-  switch (title) {
-    case 'Overview': return 'Genel Bakış'
-    case 'Support': return 'Destek'
-    case 'Settings': return 'Ayarlar'
-    default: return title
-  }
+function extractActiveSiteId(pathname: string): string | null {
+  const match = pathname.match(/^\/admin\/sites\/([^/]+)/)
+  return match?.[1] ?? null
 }
 
 export function AppSidebar({
@@ -115,25 +68,32 @@ export function AppSidebar({
 }: React.ComponentProps<typeof Sidebar> & {
   locale: InterfaceLocale
   sites?: SiteItem[]
-  user?: {
-    name: string
-    email: string
-    role: string
-  }
+  user?: { name: string; email: string; role: string }
 }) {
   const pathname = usePathname()
+  const tr = locale === "tr"
+
+  const activeSiteId = extractActiveSiteId(pathname)
+  const activeSite = sites.find((s) => s.id === activeSiteId) ?? null
+
   const [sitesOpen, setSitesOpen] = useState(
-    pathname.startsWith('/admin/sites')
+    pathname.startsWith("/admin/sites")
   )
 
-  const resolvedUser = user ?? {
-    name: "ForgePress Admin",
-    email: "admin@example.com",
-    role: "platform_admin",
-  }
-  const primaryItems = getPrimaryItems(resolvedUser.role)
+  const resolvedUser = user ?? { name: "ForgePress Admin", email: "admin@example.com", role: "platform_admin" }
   const systemItems = getSystemItems(resolvedUser.role)
-  const showSites = resolvedUser.role === 'platform_admin'
+  const showSites = resolvedUser.role === "platform_admin"
+
+  // Site-scoped nav shown when a site is active
+  const siteNav = activeSite
+    ? [
+        { title: tr ? "Genel Bakış" : "Overview", url: `/admin/sites/${activeSite.id}`, icon: IconSparkles },
+        { title: tr ? "Makaleler" : "Articles", url: `/admin/sites/${activeSite.id}/articles`, icon: IconArticle },
+        { title: tr ? "Kaynaklar" : "Sources", url: `/admin/sites/${activeSite.id}/sources`, icon: IconNews },
+        { title: tr ? "Yorumlar" : "Comments", url: `/admin/sites/${activeSite.id}/comments`, icon: IconMessageCircle },
+        { title: tr ? "Ayarlar" : "Settings", url: `/admin/sites/${activeSite.id}`, icon: IconSettings },
+      ]
+    : null
 
   return (
     <Sidebar collapsible="offcanvas" variant="inset" {...props}>
@@ -154,89 +114,176 @@ export function AppSidebar({
       </SidebarHeader>
 
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupContent className="flex flex-col gap-2">
-            {resolvedUser.role !== 'reviewer' && (
+        {/* Site context nav — shown when a site is selected */}
+        {activeSite && siteNav ? (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel className="truncate text-xs font-semibold text-sidebar-foreground/70">
+                {activeSite.name}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {siteNav.map((item) => (
+                    <SidebarMenuItem key={item.title}>
+                      <SidebarMenuButton
+                        asChild
+                        isActive={pathname === item.url || (item.url !== `/admin/sites/${activeSite.id}` && pathname.startsWith(item.url))}
+                        tooltip={item.title}
+                      >
+                        <Link href={item.url}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+
+            {/* Site switcher in context mode */}
+            {showSites && (
+              <SidebarGroup>
+                <SidebarGroupLabel>{tr ? "Siteler" : "Sites"}</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {sites.map((site) => (
+                      <SidebarMenuItem key={site.id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={site.id === activeSiteId}
+                          tooltip={site.name}
+                        >
+                          <Link href={`/admin/sites/${site.id}`}>
+                            <span className="truncate">{site.name}</span>
+                            {site.id === activeSiteId && <IconCheck className="ml-auto size-3.5 shrink-0" />}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <Link href="/admin/sites" className="text-muted-foreground">
+                          <IconPlus className="size-3.5" />
+                          <span>{tr ? "Site ekle" : "Add site"}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+          </>
+        ) : (
+          /* Global nav — shown when no site is selected */
+          <SidebarGroup>
+            <SidebarGroupContent className="flex flex-col gap-2">
+              {resolvedUser.role !== "reviewer" && (
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      asChild
+                      className="bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
+                    >
+                      <Link href="/admin/articles">
+                        <IconFolderPlus />
+                        <span>{tr ? "Hızlı Taslak" : "Quick Draft"}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              )}
+
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     asChild
-                    className="bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
+                    isActive={pathname === "/admin"}
+                    tooltip={tr ? "Panel" : "Dashboard"}
                   >
-                    <Link href="/admin/articles">
-                      <IconFolderPlus />
-                      <span>{locale === 'tr' ? 'Hızlı Taslak' : 'Quick Draft'}</span>
+                    <Link href="/admin">
+                      <IconSparkles />
+                      <span>{tr ? "Panel" : "Dashboard"}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {showSites && (
+                  <SidebarMenuItem>
+                    <SidebarMenuButton
+                      onClick={() => setSitesOpen((o) => !o)}
+                      isActive={pathname.startsWith("/admin/sites")}
+                      tooltip={tr ? "Siteler" : "Sites"}
+                      className="cursor-pointer"
+                    >
+                      <IconTopologyStar3 />
+                      <span>{tr ? "Siteler" : "Sites"}</span>
+                      <IconChevronDown
+                        className={`ml-auto size-4 shrink-0 transition-transform duration-200 ${sitesOpen ? "rotate-180" : ""}`}
+                      />
+                    </SidebarMenuButton>
+
+                    {sitesOpen && (
+                      <SidebarMenuSub>
+                        {sites.map((site) => (
+                          <SidebarMenuSubItem key={site.id}>
+                            <SidebarMenuSubButton asChild>
+                              <Link href={`/admin/sites/${site.id}`}>
+                                <span className="truncate">{site.name}</span>
+                              </Link>
+                            </SidebarMenuSubButton>
+                          </SidebarMenuSubItem>
+                        ))}
+                        <SidebarMenuSubItem>
+                          <SidebarMenuSubButton asChild>
+                            <Link href="/admin/sites" className="text-muted-foreground">
+                              <IconPlus className="size-3.5" />
+                              <span>{tr ? "Site ekle" : "Add site"}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      </SidebarMenuSub>
+                    )}
+                  </SidebarMenuItem>
+                )}
+
+                {resolvedUser.role !== "reviewer" && (
+                  <>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive(pathname, "/admin/articles")} tooltip={tr ? "Tüm Makaleler" : "All Articles"}>
+                        <Link href="/admin/articles">
+                          <IconArticle />
+                          <span>{tr ? "Makaleler" : "Articles"}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild isActive={isActive(pathname, "/admin/sources")} tooltip={tr ? "Tüm Kaynaklar" : "All Sources"}>
+                        <Link href="/admin/sources">
+                          <IconNews />
+                          <span>{tr ? "Kaynaklar" : "Sources"}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </>
+                )}
+
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild isActive={isActive(pathname, "/admin/comments")} tooltip={tr ? "Tüm Yorumlar" : "All Comments"}>
+                    <Link href="/admin/comments">
+                      <IconMessageCircle />
+                      <span>{tr ? "Yorumlar" : "Comments"}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
-            )}
-
-            <SidebarMenu>
-              {/* Sites collapsible — platform_admin only */}
-              {showSites && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => setSitesOpen((o) => !o)}
-                    isActive={pathname.startsWith('/admin/sites')}
-                    tooltip={locale === 'tr' ? 'Siteler' : 'Sites'}
-                    className="cursor-pointer"
-                  >
-                    <IconTopologyStar3 />
-                    <span>{locale === 'tr' ? 'Siteler' : 'Sites'}</span>
-                    <IconChevronDown
-                      className={`ml-auto size-4 shrink-0 transition-transform duration-200 ${sitesOpen ? 'rotate-180' : ''}`}
-                    />
-                  </SidebarMenuButton>
-
-                  {sitesOpen && (
-                    <SidebarMenuSub>
-                      {sites.map((site) => (
-                        <SidebarMenuSubItem key={site.id}>
-                          <SidebarMenuSubButton
-                            asChild
-                            isActive={pathname === `/admin/sites/${site.id}` || pathname.startsWith(`/admin/sites/${site.id}/`)}
-                          >
-                            <Link href={`/admin/sites/${site.id}`}>
-                              <span className="truncate">{site.name}</span>
-                            </Link>
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                      <SidebarMenuSubItem>
-                        <SidebarMenuSubButton asChild>
-                          <Link href="/admin/sites" className="text-muted-foreground hover:text-foreground">
-                            <IconPlus className="size-3.5" />
-                            <span>{locale === 'tr' ? 'Site ekle' : 'Add site'}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    </SidebarMenuSub>
-                  )}
-                </SidebarMenuItem>
-              )}
-
-              {primaryItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton
-                    asChild
-                    isActive={isActive(pathname, item.url)}
-                    tooltip={translatePrimaryItem(locale, item.title)}
-                  >
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{translatePrimaryItem(locale, item.title)}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {systemItems.length > 0 && (
           <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-            <SidebarGroupLabel>{locale === 'tr' ? 'Sistem' : 'System'}</SidebarGroupLabel>
+            <SidebarGroupLabel>{tr ? "Sistem" : "System"}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {systemItems.map((item) => (
@@ -244,7 +291,7 @@ export function AppSidebar({
                     <SidebarMenuButton asChild isActive={isActive(pathname, item.url)}>
                       <Link href={item.url}>
                         <item.icon />
-                        <span>{translateSystemItem(locale, item.title)}</span>
+                        <span>{item.title === "Jobs" ? (tr ? "Görevler" : "Jobs") : (tr ? "Operasyonlar" : "Ops")}</span>
                       </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -253,24 +300,6 @@ export function AppSidebar({
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
-        <SidebarGroup className="mt-auto group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>{locale === 'tr' ? 'Araçlar' : 'Utility'}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {utilityItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{translateUtilityItem(locale, item.title)}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
       <SidebarFooter>
