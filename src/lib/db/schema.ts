@@ -115,6 +115,7 @@ export const sources = pgTable('sources', {
   locale: varchar('locale', { length: 16 }).notNull(),
   isActive: boolean('is_active').notNull().default(true),
   pollMinutes: integer('poll_minutes').notNull().default(60),
+  lastFetchedAt: timestamp('last_fetched_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 })
 
@@ -126,6 +127,7 @@ export const articles = pgTable('articles', {
   sourceId: uuid('source_id').references(() => sources.id, { onDelete: 'set null' }),
   canonicalTopic: varchar('canonical_topic', { length: 255 }).notNull(),
   sourceUrl: text('source_url'),
+  contentHash: varchar('content_hash', { length: 64 }),
   status: articleStatusEnum('status').notNull().default('draft'),
   riskFlags: jsonb('risk_flags').$type<string[]>().notNull().default([]),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),

@@ -1,3 +1,4 @@
+import { createHash } from 'crypto'
 import { Queue, Worker } from 'bullmq'
 import IORedis from 'ioredis'
 import pg from 'pg'
@@ -250,32 +251,39 @@ async function fetchSourceCandidates(source) {
   }))
 }
 
-async function articleExistsForSource(client, siteId, sourceUrl) {
+function computeContentHash(title, body) {
+  const normalized = `${(title || '').trim().toLowerCase()}||${(body || '').slice(0, 1000).trim().toLowerCase()}`
+  return createHash('sha256').update(normalized).digest('hex')
+}
+
+async function articleExistsForSource(client, siteId, sourceUrl, contentHash) {
   const result = await client.query(
     `
       select 1
       from articles
-      where site_id = $1 and source_url = $2
+      where site_id = $1 and (source_url = $2 or (content_hash = $3 and content_hash is not null))
       limit 1
     `,
-    [siteId, sourceUrl],
+    [siteId, sourceUrl, contentHash],
   )
 
   return result.rowCount > 0
 }
 
 async function createDraftArticleFromCandidate(client, source, candidate) {
-  if (await articleExistsForSource(client, source.site_id, candidate.url)) {
+  const contentHash = computeContentHash(candidate.title, candidate.body)
+
+  if (await articleExistsForSource(client, source.site_id, candidate.url, contentHash)) {
     return { created: false, reason: 'duplicate' }
   }
 
   const articleInsert = await client.query(
     `
-      insert into articles (site_id, source_id, canonical_topic, source_url, status)
-      values ($1, $2, $3, $4, 'review')
+      insert into articles (site_id, source_id, canonical_topic, source_url, content_hash, status)
+      values ($1, $2, $3, $4, $5, 'review')
       returning id
     `,
-    [source.site_id, source.id, source.label, candidate.url],
+    [source.site_id, source.id, source.label, candidate.url, contentHash],
   )
 
   const articleId = articleInsert.rows[0]?.id
@@ -840,7 +848,7 @@ async function runIngestion(client, queueJob) {
 
   const sourcesResult = await client.query(
     `
-      select id, site_id, label, type, url, locale
+      select id, site_id, label, type, url, locale, poll_minutes, last_fetched_at
       from sources
       where site_id = $1 and is_active = true
       order by created_at desc
@@ -861,7 +869,24 @@ async function runIngestion(client, queueJob) {
   let skippedArticles = 0
   const processedSources = []
 
+  const now = new Date()
+
   for (const source of sourcesResult.rows) {
+    // Per-source rate limiting: skip if not enough time has passed since last fetch
+    if (source.last_fetched_at) {
+      const minutesSinceFetch = (now.getTime() - new Date(source.last_fetched_at).getTime()) / 60_000
+      if (minutesSinceFetch < source.poll_minutes) {
+        processedSources.push({
+          sourceId: source.id,
+          label: source.label,
+          type: source.type,
+          skippedRateLimit: true,
+          nextFetchInMinutes: Math.ceil(source.poll_minutes - minutesSinceFetch),
+        })
+        continue
+      }
+    }
+
     try {
       const candidates = await fetchSourceCandidates(source)
       let sourceCreated = 0
@@ -877,6 +902,12 @@ async function runIngestion(client, queueJob) {
           sourceSkipped += 1
         }
       }
+
+      // Update last_fetched_at after successful fetch
+      await client.query(
+        `update sources set last_fetched_at = $1 where id = $2`,
+        [now.toISOString(), source.id],
+      )
 
       processedSources.push({
         sourceId: source.id,
