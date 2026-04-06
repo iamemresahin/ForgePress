@@ -12,8 +12,7 @@ import { translateRole } from '@/lib/interface-locale'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 import { getThemePreset } from '@/lib/site-theme'
 
-import { createSiteAction } from './actions'
-import { SiteForm } from './site-form'
+import { QuickSiteForm } from './quick-site-form'
 
 export default async function AdminSitesPage() {
   const session = await requireAdminSession()
@@ -83,47 +82,7 @@ export default async function AdminSitesPage() {
       </Card>
 
       <div className="hero-grid">
-        <SiteForm
-          action={createSiteAction}
-          locale={locale}
-          submitLabel={tr ? 'Site oluştur' : 'Create site'}
-          description={
-            tr
-              ? 'Bir siteyi editoryal ve gelir kurallarıyla birlikte oluşturun; gelecekteki taslaklar ilk günden doğru sınırları devralsın.'
-              : 'Create a site together with its editorial and monetization rule set, so future drafts inherit the right constraints from day one.'
-          }
-          initialValues={{
-            name: '',
-            slug: '',
-            defaultLocale: 'en',
-            supportedLocales: 'en',
-            niche: '',
-            toneGuide: '',
-            editorialGuidelines: '',
-            adsensePolicyNotes: '',
-            prohibitedTopics: '',
-            requiredSections: tr ? 'Özet, Bağlam, Dikkat edilmesi gerekenler' : 'Summary, Context, What to watch',
-            reviewChecklist: tr
-              ? 'kaynak atfını doğrula, başlık doğruluğunu onayla, AdSense uyumlu sayfa kalitesini kontrol et'
-              : 'verify source attribution, confirm headline accuracy, confirm AdSense-safe page quality',
-            topicLabelOverrides: '',
-            featuredNavLabel: '',
-            allNavLabel: '',
-            navTopicSlugs: '',
-            authBrandName: '',
-            googleClientId: '',
-            adsensePublisherId: '',
-            adsenseSlotId: '',
-            primaryHostname: '',
-            additionalHostnames: '',
-            themePreset: 'forge_blue',
-            homepageLayout: 'spotlight',
-            articleLayout: 'editorial',
-            themePrimary: '#1782f6',
-            themeAccent: '#6ed6ff',
-            themeBackground: '#f7fbff',
-          }}
-        />
+        <QuickSiteForm locale={locale} />
 
         <Card>
           <CardHeader className="space-y-2">

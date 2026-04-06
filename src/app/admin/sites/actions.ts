@@ -1,8 +1,11 @@
 'use server'
 
+import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
+
+import { env } from '@/lib/env'
 
 import { requireAdminSession, requirePlatformAdminRole } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -311,4 +314,151 @@ export async function updateSiteAction(
   revalidatePath(`/${parsed.data.slug}/topics`)
 
   return { error: undefined }
+}
+
+// ---------------------------------------------------------------------------
+// Quick site creation — only name + niche + locales, AI fills the rest
+// ---------------------------------------------------------------------------
+
+async function generateSiteConfig(name: string, niche: string, locales: string[]): Promise<{
+  slug: string
+  toneGuide: string
+  editorialGuidelines: string
+  adsensePolicyNotes: string
+  prohibitedTopics: string[]
+  requiredSections: string[]
+  reviewChecklist: string[]
+}> {
+  if (!env.OPENAI_API_KEY) {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    return {
+      slug,
+      toneGuide: 'Clear, factual, and reader-friendly.',
+      editorialGuidelines: 'Prioritize accuracy and source attribution.',
+      adsensePolicyNotes: 'Avoid clickbait, misleading claims, and sensitive topics without proper context.',
+      prohibitedTopics: ['misinformation', 'hate speech'],
+      requiredSections: ['Summary', 'Context', 'What to watch'],
+      reviewChecklist: ['verify source attribution', 'confirm headline accuracy', 'confirm AdSense-safe page quality'],
+    }
+  }
+
+  const response = await fetch('https://api.openai.com/v1/responses', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${env.OPENAI_API_KEY}` },
+    body: JSON.stringify({
+      model: env.OPENAI_TEXT_MODEL ?? 'gpt-4o-mini',
+      input: [
+        {
+          role: 'developer',
+          content: [{ type: 'input_text', text: 'You configure editorial publishing sites. Output only JSON matching the provided schema. Be concise and practical. All content must be in English.' }],
+        },
+        {
+          role: 'user',
+          content: [{ type: 'input_text', text: JSON.stringify({ siteName: name, niche, languages: locales }) }],
+        },
+      ],
+      text: {
+        format: {
+          type: 'json_schema',
+          name: 'site_config',
+          strict: true,
+          schema: {
+            type: 'object',
+            additionalProperties: false,
+            required: ['slug', 'toneGuide', 'editorialGuidelines', 'adsensePolicyNotes', 'prohibitedTopics', 'requiredSections', 'reviewChecklist'],
+            properties: {
+              slug: { type: 'string', description: 'URL-safe lowercase slug using only letters, numbers, hyphens' },
+              toneGuide: { type: 'string', description: '1-2 sentence tone description' },
+              editorialGuidelines: { type: 'string', description: '2-4 sentence editorial guidelines' },
+              adsensePolicyNotes: { type: 'string', description: '1-3 sentence AdSense compliance notes' },
+              prohibitedTopics: { type: 'array', items: { type: 'string' } },
+              requiredSections: { type: 'array', items: { type: 'string' } },
+              reviewChecklist: { type: 'array', items: { type: 'string' } },
+            },
+          },
+        },
+      },
+    }),
+  })
+
+  if (!response.ok) {
+    throw new Error(`OpenAI config generation failed: ${response.status}`)
+  }
+
+  const json = await response.json() as Record<string, unknown>
+  const output = Array.isArray(json.output) ? json.output : []
+  let text = ''
+  for (const item of output) {
+    for (const part of (item as { content?: Array<{ text?: string }> }).content ?? []) {
+      if (part.text) text += part.text
+    }
+  }
+
+  return JSON.parse(text)
+}
+
+export async function quickCreateSiteAction(_: { error?: string } | undefined, formData: FormData) {
+  const session = await requireAdminSession()
+  requirePlatformAdminRole(session)
+
+  const name = (formData.get('name') as string | null)?.trim() ?? ''
+  const niche = (formData.get('niche') as string | null)?.trim() ?? ''
+  const localesRaw = (formData.get('supportedLocales') as string | null) ?? 'en'
+  const defaultLocale = (formData.get('defaultLocale') as string | null)?.trim() ?? 'en'
+
+  if (!name || name.length < 2) return { error: 'Site adı en az 2 karakter olmalı.' }
+
+  const supportedLocales = Array.from(new Set(
+    localesRaw.split(',').map((l) => l.trim()).filter(Boolean)
+  ))
+  if (!supportedLocales.includes(defaultLocale)) supportedLocales.unshift(defaultLocale)
+
+  let config: Awaited<ReturnType<typeof generateSiteConfig>>
+  try {
+    config = await generateSiteConfig(name, niche, supportedLocales)
+  } catch {
+    const slug = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+    config = {
+      slug,
+      toneGuide: '',
+      editorialGuidelines: '',
+      adsensePolicyNotes: '',
+      prohibitedTopics: [],
+      requiredSections: ['Summary', 'Context', 'What to watch'],
+      reviewChecklist: ['verify source attribution', 'confirm headline accuracy'],
+    }
+  }
+
+  let siteId: string
+  try {
+    const [site] = await db
+      .insert(sites)
+      .values({
+        name,
+        slug: config.slug,
+        defaultLocale,
+        supportedLocales,
+        niche: niche || null,
+        toneGuide: config.toneGuide,
+        editorialGuidelines: config.editorialGuidelines,
+        adsensePolicyNotes: config.adsensePolicyNotes,
+        prohibitedTopics: config.prohibitedTopics,
+        requiredSections: config.requiredSections,
+        reviewChecklist: config.reviewChecklist,
+        createdByAdminId: session.id,
+      })
+      .returning({ id: sites.id })
+
+    siteId = site.id
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Failed to create site.'
+    if (message.includes('sites_slug_idx')) return { error: 'Bu slug zaten kullanımda, site adını biraz değiştirin.' }
+    return { error: message }
+  }
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/sites')
+  revalidatePath('/')
+
+  redirect(`/admin/sites/${siteId}`)
 }

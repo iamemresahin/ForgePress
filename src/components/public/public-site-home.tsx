@@ -36,6 +36,7 @@ type PublicSiteHomeProps = {
   articles: PublicArticleSummary[]
   useHostRouting?: boolean
   activeTopicSlug?: string | null
+  activeLocale?: string | null
   currentReader?: { id: string; email: string; displayName: string } | null
 }
 
@@ -354,13 +355,15 @@ function KantanLikeHome({
   articles,
   useHostRouting,
   activeTopicSlug,
+  activeLocale,
   currentReader,
 }: PublicSiteHomeProps) {
   const copy = getPublicCopy(site.defaultLocale)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides, site.defaultLocale)
+  const localeFiltered = activeLocale ? articles.filter((a) => a.locale === activeLocale) : articles
   const filteredArticles = activeTopicSlug
-    ? articles.filter((article) => deriveTopicForArticle(article, site.niche, site.topicLabelOverrides, site.defaultLocale).slug === activeTopicSlug)
-    : articles
+    ? localeFiltered.filter((article) => deriveTopicForArticle(article, site.niche, site.topicLabelOverrides, site.defaultLocale).slug === activeTopicSlug)
+    : localeFiltered
   const heroArticle = filteredArticles[0]
   const heroRailArticles = filteredArticles.slice(1, 3)
   const firstGridArticles = filteredArticles.slice(3, 9)
@@ -393,6 +396,7 @@ function KantanLikeHome({
         currentReader={currentReader}
         authBrandName={site.authBrandName}
         googleClientId={site.googleClientId}
+        supportedLocales={site.supportedLocales}
       />
 
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
@@ -510,9 +514,11 @@ function DefaultHome({
   theme,
   articles,
   useHostRouting = false,
+  activeLocale,
 }: PublicSiteHomeProps) {
-  const featuredArticle = articles[0]
-  const secondaryArticles = articles.slice(1, 7)
+  const localeFiltered = activeLocale ? articles.filter((a) => a.locale === activeLocale) : articles
+  const featuredArticle = localeFiltered[0]
+  const secondaryArticles = localeFiltered.slice(1, 7)
 
   const cardStyle = {
     background: theme.tokens.panel,

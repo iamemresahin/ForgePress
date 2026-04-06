@@ -1,7 +1,8 @@
 'use client'
 
 import Link from 'next/link'
-import { CarFront, FlaskConical, Gamepad2, Monitor, Moon, Plus, Sun } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
+import { CarFront, FlaskConical, Gamepad2, Globe, Monitor, Moon, Plus, Sun } from 'lucide-react'
 
 import { usePublicColorMode } from '@/components/public/public-color-mode'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
@@ -29,6 +30,12 @@ const iconMap = {
   car: CarFront,
 } as const
 
+const LOCALE_LABELS: Record<string, string> = {
+  en: 'English', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
+  es: 'Español', it: 'Italiano', pt: 'Português', ar: 'العربية',
+  ja: '日本語', zh: '中文',
+}
+
 export function PublicSiteHeader({
   homeHref,
   siteName,
@@ -42,6 +49,7 @@ export function PublicSiteHeader({
   currentReader,
   authBrandName,
   googleClientId,
+  supportedLocales,
 }: {
   homeHref: string
   siteId: string
@@ -55,8 +63,11 @@ export function PublicSiteHeader({
   currentReader?: { id: string; displayName: string; email: string } | null
   authBrandName?: string | null
   googleClientId?: string | null
+  supportedLocales?: string[]
 }) {
   const tr = locale.toLowerCase().startsWith('tr')
+  const searchParams = useSearchParams()
+  const activeLang = searchParams.get('lang')
   const { mode, toggleMode } = usePublicColorMode()
   const headerClassName =
     mode === 'light'
@@ -128,6 +139,54 @@ export function PublicSiteHeader({
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
+          {supportedLocales && supportedLocales.length > 1 && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button className={utilityButtonClassName}>
+                  <Globe className="size-4" />
+                  {LOCALE_LABELS[activeLang ?? locale] ?? (activeLang ?? locale).toUpperCase()}
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className={`w-48 rounded-2xl p-2 ${
+                  mode === 'light'
+                    ? 'border-slate-200 bg-white text-slate-950'
+                    : 'border-white/10 bg-[#111112] text-white'
+                }`}
+              >
+                <DropdownMenuLabel className={`px-3 py-2 text-xs font-medium uppercase tracking-[0.22em] ${mode === 'light' ? 'text-slate-400' : 'text-white/45'}`}>
+                  {tr ? 'Dil' : 'Language'}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className={mode === 'light' ? 'bg-slate-200' : 'bg-white/10'} />
+                {supportedLocales.map((loc) => {
+                  const params = new URLSearchParams(searchParams.toString())
+                  if (loc === locale) {
+                    params.delete('lang')
+                  } else {
+                    params.set('lang', loc)
+                  }
+                  const isActive = (activeLang ?? locale) === loc
+                  return (
+                    <DropdownMenuItem
+                      key={loc}
+                      asChild
+                      className={`cursor-pointer rounded-xl px-3 py-3 ${
+                        mode === 'light'
+                          ? isActive ? 'bg-slate-100 text-slate-950' : 'text-slate-700 focus:bg-slate-100 focus:text-slate-950'
+                          : isActive ? 'bg-white/8 text-white' : 'text-white/84 focus:bg-white/8 focus:text-white'
+                      }`}
+                    >
+                      <Link href={`${homeHref}?${params.toString()}`}>
+                        {LOCALE_LABELS[loc] ?? loc.toUpperCase()}
+                      </Link>
+                    </DropdownMenuItem>
+                  )
+                })}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className={utilityButtonClassName}>

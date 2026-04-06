@@ -77,10 +77,13 @@ export async function generateMetadata({
 
 export default async function PublicSitePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ siteSlug: string }>
+  searchParams: Promise<{ lang?: string }>
 }) {
   const { siteSlug } = await params
+  const { lang } = await searchParams
   const headerStore = await headers()
   const hostname = normalizeHostname(headerStore.get('host') ?? '')
 
@@ -130,5 +133,5 @@ export default async function PublicSitePage({
   const articles = await getPublishedArticlesForSite(site.id)
   const currentReader = await getPublicReaderSession(site.id)
 
-  return <PublicSiteHome site={site} theme={theme} articles={articles} currentReader={currentReader} />
+  return <PublicSiteHome site={site} theme={theme} articles={articles} currentReader={currentReader} activeLocale={lang ?? null} />
 }
