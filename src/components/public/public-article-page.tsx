@@ -13,6 +13,7 @@ import { type ResolvedSiteTheme } from '@/lib/site-theme'
 import { PublicThemeShell } from '@/components/public/public-color-mode'
 import { PublicCommentsPanel } from '@/components/public/public-comments-panel'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
+import { AdUnit } from '@/components/public/ad-unit'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
@@ -42,34 +43,69 @@ function formatPublishedDate(date: Date | null, locale: string) {
   }
 }
 
-function ArticleBody({ body, color }: { body: string; color: string }) {
+function ArticleBody({
+  body,
+  color,
+  adsensePublisherId,
+  adsenseSlotId,
+}: {
+  body: string
+  color: string
+  adsensePublisherId?: string | null
+  adsenseSlotId?: string | null
+}) {
   const sections = splitBody(body)
+  const midPoint = Math.floor(sections.length / 2)
+  const showAds = Boolean(adsensePublisherId && adsenseSlotId)
 
   return (
     <div className="article-body" style={{ color }}>
       {sections.map((section, index) => {
-        if (section.startsWith('## ')) {
-          return (
-            <h2 key={`${index}-${section}`} className="text-[clamp(1.6rem,3vw,2.1rem)]">
-              {section.replace(/^##\s+/, '')}
-            </h2>
-          )
-        }
+        const el = (() => {
+          if (section.startsWith('## ')) {
+            return (
+              <h2 key={`${index}-${section}`} className="text-[clamp(1.6rem,3vw,2.1rem)]">
+                {section.replace(/^##\s+/, '')}
+              </h2>
+            )
+          }
 
-        if (section.startsWith('# ')) {
+          if (section.startsWith('# ')) {
+            return (
+              <h2 key={`${index}-${section}`} className="text-[clamp(1.9rem,3vw,2.4rem)]">
+                {section.replace(/^#\s+/, '')}
+              </h2>
+            )
+          }
+
           return (
-            <h2 key={`${index}-${section}`} className="text-[clamp(1.9rem,3vw,2.4rem)]">
-              {section.replace(/^#\s+/, '')}
-            </h2>
+            <p key={`${index}-${section}`} style={{ color }}>
+              {section.replace(/^\*\s+/, '')}
+            </p>
           )
-        }
+        })()
 
         return (
-          <p key={`${index}-${section}`} style={{ color }}>
-            {section.replace(/^\*\s+/, '')}
-          </p>
+          <>
+            {el}
+            {showAds && index === midPoint && (
+              <AdUnit
+                key="ad-mid"
+                publisherId={adsensePublisherId!}
+                slotId={adsenseSlotId!}
+                className="my-6"
+              />
+            )}
+          </>
         )
       })}
+      {showAds && (
+        <AdUnit
+          publisherId={adsensePublisherId!}
+          slotId={adsenseSlotId!}
+          className="mt-6"
+        />
+      )}
     </div>
   )
 }
@@ -206,7 +242,12 @@ function KantanLikeArticle({
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
           <div className="grid gap-6">
             <article className="public-panel min-w-0 rounded-[28px] border px-6 py-7 md:px-8 md:py-8">
-              <ArticleBody body={article.body} color="var(--site-foreground-current)" />
+              <ArticleBody
+                body={article.body}
+                color="var(--site-foreground-current)"
+                adsensePublisherId={article.adsensePublisherId}
+                adsenseSlotId={article.adsenseSlotId}
+              />
             </article>
 
             {relatedArticles.length > 0 ? (
@@ -306,7 +347,6 @@ function KantanLikeArticle({
 }
 
 function DefaultArticle({ article, theme }: PublicArticlePageProps) {
-  const sections = splitBody(article.body)
   const publishedLabel = article.publishedAt
     ? article.publishedAt.toLocaleDateString(article.locale)
     : 'Ready'
@@ -377,31 +417,12 @@ function DefaultArticle({ article, theme }: PublicArticlePageProps) {
         </section>
 
         <article className="rounded-[28px] border p-6 md:p-8" style={bodyStyle}>
-          <div className="article-body" style={{ color: theme.tokens.foreground }}>
-            {sections.map((section, index) => {
-              if (section.startsWith('## ')) {
-                return (
-                  <h2 key={`${index}-${section}`} className="text-[clamp(1.6rem,3vw,2.1rem)]">
-                    {section.replace(/^##\s+/, '')}
-                  </h2>
-                )
-              }
-
-              if (section.startsWith('# ')) {
-                return (
-                  <h2 key={`${index}-${section}`} className="text-[clamp(1.9rem,3vw,2.4rem)]">
-                    {section.replace(/^#\s+/, '')}
-                  </h2>
-                )
-              }
-
-              return (
-                <p key={`${index}-${section}`} style={{ color: theme.tokens.foreground }}>
-                  {section.replace(/^\*\s+/, '')}
-                </p>
-              )
-            })}
-          </div>
+          <ArticleBody
+            body={article.body}
+            color={theme.tokens.foreground}
+            adsensePublisherId={article.adsensePublisherId}
+            adsenseSlotId={article.adsenseSlotId}
+          />
         </article>
       </div>
     </PublicThemeShell>

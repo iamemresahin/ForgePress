@@ -34,6 +34,7 @@ type SiteFormValues = {
   authBrandName: string
   googleClientId: string
   adsensePublisherId: string
+  adsenseSlotId: string
   primaryHostname: string
   additionalHostnames: string
   themePreset:
@@ -385,6 +386,16 @@ export function SiteForm({
                   type="text"
                   defaultValue={initialValues.adsensePublisherId}
                   placeholder="ca-pub-0000000000000000"
+                />
+              </div>
+              <div className="field">
+                <Label htmlFor="adsenseSlotId">{tr ? 'AdSense slot kimliği' : 'AdSense slot ID'}</Label>
+                <Input
+                  id="adsenseSlotId"
+                  name="adsenseSlotId"
+                  type="text"
+                  defaultValue={initialValues.adsenseSlotId}
+                  placeholder="1234567890"
                 />
               </div>
             </div>

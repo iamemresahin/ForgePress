@@ -113,6 +113,7 @@ export default async function AdminSitesPage() {
             authBrandName: '',
             googleClientId: '',
             adsensePublisherId: '',
+            adsenseSlotId: '',
             primaryHostname: '',
             additionalHostnames: '',
             themePreset: 'forge_blue',
