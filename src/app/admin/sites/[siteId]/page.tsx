@@ -158,6 +158,7 @@ export default async function EditSitePage({
           navTopicSlugs: (site.navTopicSlugs ?? []).join(', '),
           authBrandName: site.authBrandName ?? '',
           googleClientId: site.googleClientId ?? '',
+          adsensePublisherId: site.adsensePublisherId ?? '',
           primaryHostname: primaryDomain,
           additionalHostnames: additionalDomains,
           themePreset: site.themePreset,

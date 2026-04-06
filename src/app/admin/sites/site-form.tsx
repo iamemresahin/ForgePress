@@ -33,6 +33,7 @@ type SiteFormValues = {
   navTopicSlugs: string
   authBrandName: string
   googleClientId: string
+  adsensePublisherId: string
   primaryHostname: string
   additionalHostnames: string
   themePreset:
@@ -374,6 +375,16 @@ export function SiteForm({
                   type="text"
                   defaultValue={initialValues.googleClientId}
                   placeholder="1234567890-abcdef.apps.googleusercontent.com"
+                />
+              </div>
+              <div className="field">
+                <Label htmlFor="adsensePublisherId">{tr ? 'AdSense yayıncı kimliği' : 'AdSense publisher ID'}</Label>
+                <Input
+                  id="adsensePublisherId"
+                  name="adsensePublisherId"
+                  type="text"
+                  defaultValue={initialValues.adsensePublisherId}
+                  placeholder="ca-pub-0000000000000000"
                 />
               </div>
             </div>

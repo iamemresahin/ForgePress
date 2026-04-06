@@ -31,6 +31,7 @@ export default async function AdminSitesPage() {
       themePreset: sites.themePreset,
       authBrandName: sites.authBrandName,
       googleClientId: sites.googleClientId,
+      adsensePublisherId: sites.adsensePublisherId,
       primaryDomain: siteDomains.hostname,
     })
     .from(sites)
@@ -111,6 +112,7 @@ export default async function AdminSitesPage() {
             navTopicSlugs: '',
             authBrandName: '',
             googleClientId: '',
+            adsensePublisherId: '',
             primaryHostname: '',
             additionalHostnames: '',
             themePreset: 'forge_blue',

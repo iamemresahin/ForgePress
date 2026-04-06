@@ -159,6 +159,13 @@ export default async function PublicArticleRoute({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
       />
+      {article.adsensePublisherId && (
+        <script
+          async
+          src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${article.adsensePublisherId}`}
+          crossOrigin="anonymous"
+        />
+      )}
       <PublicArticleSurface
         article={article}
         theme={resolveSiteTheme(article)}

@@ -73,6 +73,7 @@ export const sites = pgTable(
     navTopicSlugs: jsonb('nav_topic_slugs').$type<string[]>().notNull().default([]),
     authBrandName: varchar('auth_brand_name', { length: 160 }),
     googleClientId: text('google_client_id'),
+    adsensePublisherId: varchar('adsense_publisher_id', { length: 64 }),
     themePrimary: varchar('theme_primary', { length: 16 }),
     themeAccent: varchar('theme_accent', { length: 16 }),
     themeBackground: varchar('theme_background', { length: 16 }),
