@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { LogOut, Plus } from 'lucide-react'
+import { desc } from 'drizzle-orm'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import { AdminRouteHeader } from '@/components/admin/admin-route-header'
@@ -7,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { requireAdminSession } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { sites } from '@/lib/db/schema'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
 import { logoutAction, setAdminLocaleAction } from './actions'
@@ -19,6 +22,11 @@ export default async function AdminLayout({
   const session = await requireAdminSession()
   const locale = await getInterfaceLocale()
 
+  const siteList = await db
+    .select({ id: sites.id, name: sites.name, slug: sites.slug })
+    .from(sites)
+    .orderBy(desc(sites.createdAt))
+
   return (
     <SidebarProvider
       style={
@@ -30,6 +38,7 @@ export default async function AdminLayout({
     >
       <AppSidebar
         locale={locale}
+        sites={siteList}
         user={{
           name: session.displayName,
           email: session.email,
