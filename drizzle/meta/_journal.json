@@ -15,6 +15,13 @@
       "when": 1775316708750,
       "tag": "0001_large_amphibian",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1775503209162,
+      "tag": "0008_quality_and_adsense",
+      "breakpoints": true
     }
   ]
 }
