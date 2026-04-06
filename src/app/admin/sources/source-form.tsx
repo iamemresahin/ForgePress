@@ -81,8 +81,19 @@ export function SourceForm({
             </div>
 
             <div className="field">
-              <Label htmlFor="pollMinutes">{tr ? 'Tarama dakikası' : 'Poll minutes'}</Label>
-              <Input id="pollMinutes" name="pollMinutes" type="number" min={1} defaultValue={initialValues.pollMinutes} />
+              <Label htmlFor="pollMinutes">{tr ? 'Tarama sıklığı' : 'Polling interval'}</Label>
+              <select id="pollMinutes" name="pollMinutes" defaultValue={String(initialValues.pollMinutes)}>
+                <option value="15">{tr ? 'Her 15 dakikada bir' : 'Every 15 minutes'}</option>
+                <option value="30">{tr ? 'Her 30 dakikada bir' : 'Every 30 minutes'}</option>
+                <option value="60">{tr ? 'Her saatte bir' : 'Every hour'}</option>
+                <option value="120">{tr ? 'Her 2 saatte bir' : 'Every 2 hours'}</option>
+                <option value="240">{tr ? 'Her 4 saatte bir' : 'Every 4 hours'}</option>
+                <option value="360">{tr ? 'Her 6 saatte bir' : 'Every 6 hours'}</option>
+                <option value="720">{tr ? 'Her 12 saatte bir' : 'Every 12 hours'}</option>
+                <option value="1440">{tr ? 'Günde bir kez' : 'Once a day'}</option>
+                <option value="4320">{tr ? 'Her 3 günde bir' : 'Every 3 days'}</option>
+                <option value="10080">{tr ? 'Haftada bir kez' : 'Once a week'}</option>
+              </select>
             </div>
           </div>
 

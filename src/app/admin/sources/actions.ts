@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { requireAdminSession } from '@/lib/auth'
+import { requireAdminSession, requireEditorOrAbove } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { sources } from '@/lib/db/schema'
 
@@ -31,7 +31,8 @@ function normalizeSourceInput(formData: FormData) {
 }
 
 export async function createSourceAction(_: { error?: string } | undefined, formData: FormData) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = normalizeSourceInput(formData)
   if (!parsed.success) {
@@ -57,7 +58,8 @@ export async function updateSourceAction(
   _: { error?: string } | undefined,
   formData: FormData,
 ) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = normalizeSourceInput(formData)
   if (!parsed.success) {
@@ -83,7 +85,8 @@ export async function updateSourceAction(
 }
 
 export async function deleteSourceAction(sourceId: string) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   await db.delete(sources).where(eq(sources.id, sourceId))
 

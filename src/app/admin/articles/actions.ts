@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation'
 import { z } from 'zod'
 import { eq } from 'drizzle-orm'
 
-import { requireAdminSession } from '@/lib/auth'
+import { requireAdminSession, requireEditorOrAbove } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { articleLocalizations, articles, sites } from '@/lib/db/schema'
 import { generateArticleDraft } from '@/lib/openai'
@@ -87,7 +87,8 @@ function revalidatePublicListingSurfaces(siteSlug: string) {
 }
 
 export async function createArticleAction(_: { error?: string } | undefined, formData: FormData) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = normalizeArticleInput(formData)
   if (!parsed.success) {
@@ -137,7 +138,8 @@ export async function updateArticleAction(
   _: { error?: string } | undefined,
   formData: FormData,
 ) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = normalizeArticleInput(formData)
   if (!parsed.success) {
@@ -188,7 +190,8 @@ export async function createAssistedDraftAction(
   _: { error?: string } | undefined,
   formData: FormData,
 ) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = assistedDraftSchema.safeParse({
     siteId: formData.get('siteId'),
@@ -259,7 +262,8 @@ export async function createAssistedDraftAction(
 }
 
 export async function publishArticleAction(articleId: string) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const published = await publishArticle(articleId)
 
@@ -270,7 +274,8 @@ export async function publishArticleAction(articleId: string) {
 }
 
 export async function deleteArticleAction(articleId: string) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const [article] = await db
     .select({

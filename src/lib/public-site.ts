@@ -457,6 +457,43 @@ export type PublicArticleDetail = NonNullable<
   Awaited<ReturnType<typeof getPublishedArticleBySiteAndSlug>>
 >
 
+export async function getArticleLocalizations(articleId: string) {
+  const rows = await db
+    .select({
+      locale: articleLocalizations.locale,
+      slug: articleLocalizations.slug,
+      siteId: articles.siteId,
+      siteSlug: sites.slug,
+    })
+    .from(articleLocalizations)
+    .innerJoin(articles, eq(articles.id, articleLocalizations.articleId))
+    .innerJoin(sites, eq(sites.id, articles.siteId))
+    .where(eq(articleLocalizations.articleId, articleId))
+
+  return rows
+}
+
+export async function getPublishedArticlesForRssFeed(siteId: string, limit = 20) {
+  const rows = await db
+    .select({
+      id: articles.id,
+      title: articleLocalizations.title,
+      slug: articleLocalizations.slug,
+      excerpt: articleLocalizations.excerpt,
+      body: articleLocalizations.body,
+      locale: articleLocalizations.locale,
+      publishedAt: articles.publishedAt,
+      updatedAt: articles.updatedAt,
+    })
+    .from(articles)
+    .innerJoin(articleLocalizations, eq(articleLocalizations.articleId, articles.id))
+    .where(and(eq(articles.siteId, siteId), eq(articles.status, 'published'), isNotNull(articles.publishedAt)))
+    .orderBy(desc(articles.publishedAt))
+    .limit(limit)
+
+  return rows.filter((r) => r.publishedAt)
+}
+
 export async function getCommentsForArticle(articleId: string, locale: string) {
   const comments = await db
     .select({

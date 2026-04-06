@@ -4,6 +4,7 @@ import { headers } from 'next/headers'
 import { PublicArticlePage as PublicArticleSurface } from '@/components/public/public-article-page'
 import { getPublicReaderSession } from '@/lib/auth'
 import {
+  getArticleLocalizations,
   getCommentsForArticle,
   getRelatedArticles,
   getNextPublishedArticleForSite,
@@ -36,18 +37,59 @@ export async function generateMetadata({
   const article = await getPublishedArticleBySiteAndSlug(site.id, articleSlug)
   if (!article) return {}
 
+  const origin = await getPublicOriginForSite({ id: site.id, slug: site.slug })
+  const canonicalUrl = `${origin}/${articleSlug}`
+
+  // Build hreflang alternates from all localizations of this article
+  const localizations = await getArticleLocalizations(article.id)
+  const languageAlternates: Record<string, string> = {}
+  for (const loc of localizations) {
+    const locOrigin = await getPublicOriginForSite({ id: loc.siteId, slug: loc.siteSlug })
+    languageAlternates[loc.locale] = `${locOrigin}/${loc.slug}`
+  }
+  if (localizations.length > 1) {
+    languageAlternates['x-default'] = canonicalUrl
+  }
+
+  // JSON-LD NewsArticle schema
+  const schemaOrg = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.seoTitle ?? article.title,
+    description: article.seoDescription ?? article.excerpt ?? '',
+    url: canonicalUrl,
+    datePublished: article.publishedAt?.toISOString() ?? new Date().toISOString(),
+    dateModified: article.publishedAt?.toISOString() ?? new Date().toISOString(),
+    inLanguage: article.locale,
+    image: article.imageUrl
+      ? [{ '@type': 'ImageObject', url: article.imageUrl }]
+      : undefined,
+    publisher: {
+      '@type': 'NewsMediaOrganization',
+      name: site.name,
+      url: origin,
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': canonicalUrl,
+    },
+  }
+
   return {
     title: article.seoTitle ?? article.title,
     description: article.seoDescription ?? `${article.title} on ${site.name}`,
     alternates: {
-      canonical: `${await getPublicOriginForSite({ id: site.id, slug: site.slug })}/${articleSlug}`,
+      canonical: canonicalUrl,
+      ...(Object.keys(languageAlternates).length > 0 && { languages: languageAlternates }),
     },
     openGraph: {
       title: article.seoTitle ?? article.title,
       description: article.seoDescription ?? `${article.title} on ${site.name}`,
-      url: `${await getPublicOriginForSite({ id: site.id, slug: site.slug })}/${articleSlug}`,
+      url: canonicalUrl,
       siteName: site.name,
       type: 'article',
+      publishedTime: article.publishedAt?.toISOString(),
+      ...(article.imageUrl && { images: [{ url: article.imageUrl }] }),
     },
   }
 }
@@ -87,14 +129,44 @@ export default async function PublicArticleRoute({
     site.defaultLocale,
   )
 
+  const origin = await getPublicOriginForSite({ id: site.id, slug: site.slug })
+  const canonicalUrl = `${origin}/${articleSlug}`
+
+  const schemaOrg = {
+    '@context': 'https://schema.org',
+    '@type': 'NewsArticle',
+    headline: article.seoTitle ?? article.title,
+    description: article.seoDescription ?? article.excerpt ?? '',
+    url: canonicalUrl,
+    datePublished: article.publishedAt?.toISOString() ?? new Date().toISOString(),
+    dateModified: article.publishedAt?.toISOString() ?? new Date().toISOString(),
+    inLanguage: article.locale,
+    ...(article.imageUrl && { image: [{ '@type': 'ImageObject', url: article.imageUrl }] }),
+    publisher: {
+      '@type': 'NewsMediaOrganization',
+      name: site.name,
+      url: origin,
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': canonicalUrl,
+    },
+  }
+
   return (
-    <PublicArticleSurface
-      article={article}
-      theme={resolveSiteTheme(article)}
-      nextArticle={nextArticle}
-      relatedArticles={relatedArticles}
-      currentReader={currentReader}
-      comments={comments}
-    />
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrg) }}
+      />
+      <PublicArticleSurface
+        article={article}
+        theme={resolveSiteTheme(article)}
+        nextArticle={nextArticle}
+        relatedArticles={relatedArticles}
+        currentReader={currentReader}
+        comments={comments}
+      />
+    </>
   )
 }

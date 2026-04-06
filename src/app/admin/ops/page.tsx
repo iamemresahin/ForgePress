@@ -1,4 +1,4 @@
-import { requireAdminSession } from '@/lib/auth'
+import { requirePlatformAdminSession } from '@/lib/auth'
 import { getOperationalChecks } from '@/lib/ops'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 import { Badge } from '@/components/ui/badge'
@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Activity, Cloud, Database, KeyRound, ShieldCheck, Workflow } from 'lucide-react'
 
 export default async function AdminOpsPage() {
-  await requireAdminSession()
+  await requirePlatformAdminSession()
   const locale = await getInterfaceLocale()
   const tr = locale === 'tr'
   const ops = await getOperationalChecks()

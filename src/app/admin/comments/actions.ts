@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { requireAdminSession } from '@/lib/auth'
+import { requireAdminSession, requireEditorOrAbove } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { articleComments } from '@/lib/db/schema'
 
@@ -29,7 +29,8 @@ async function revalidateCommentSurfaces(publicPath?: string, hostPath?: string)
 }
 
 export async function setCommentApprovalAction(formData: FormData) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = moderationSchema.safeParse({
     commentId: formData.get('commentId'),
@@ -55,7 +56,8 @@ export async function setCommentApprovalAction(formData: FormData) {
 }
 
 export async function deleteCommentAction(formData: FormData) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = deleteSchema.safeParse({
     commentId: formData.get('commentId'),

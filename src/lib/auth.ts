@@ -302,3 +302,18 @@ export function requirePlatformAdminRole(session: AdminSession) {
     throw new Error('Only platform admins can perform this action.')
   }
 }
+
+export function requireEditorOrAbove(session: AdminSession) {
+  if (session.role !== 'platform_admin' && session.role !== 'site_editor') {
+    throw new Error('Only site editors and platform admins can perform this action.')
+  }
+}
+
+export async function requirePlatformAdminSession() {
+  const session = await getAdminSession()
+  if (!session) {
+    redirect('/login')
+  }
+  requirePlatformAdminRole(session)
+  return session
+}

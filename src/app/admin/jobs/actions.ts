@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
-import { requireAdminSession } from '@/lib/auth'
+import { requireAdminSession, requireEditorOrAbove } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { jobs } from '@/lib/db/schema'
 import { getQueue } from '@/lib/queue'
@@ -15,7 +15,8 @@ const createJobSchema = z.object({
 })
 
 export async function createJobAction(_: { error?: string } | undefined, formData: FormData) {
-  await requireAdminSession()
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
 
   const parsed = createJobSchema.safeParse({
     siteId: formData.get('siteId'),

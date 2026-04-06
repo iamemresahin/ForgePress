@@ -31,7 +31,9 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const primaryItems = [
+type NavItem = { title: string; url: string; icon: React.ComponentType<{ className?: string }> }
+
+const allPrimaryItems: NavItem[] = [
   { title: "Dashboard", url: "/admin", icon: IconSparkles },
   { title: "Sites", url: "/admin/sites", icon: IconTopologyStar3 },
   { title: "Articles", url: "/admin/articles", icon: IconArticle },
@@ -39,10 +41,23 @@ const primaryItems = [
   { title: "Comments", url: "/admin/comments", icon: IconMessageCircle },
 ]
 
-const systemItems = [
+const allSystemItems: NavItem[] = [
   { title: "Jobs", url: "/admin/jobs", icon: IconListDetails },
   { title: "Ops", url: "/admin/ops", icon: IconRadar2 },
 ]
+
+function getPrimaryItems(role: string): NavItem[] {
+  if (role === 'platform_admin') return allPrimaryItems
+  if (role === 'site_editor') return allPrimaryItems.filter((i) => i.title !== 'Sites')
+  // reviewer: dashboard + articles only
+  return allPrimaryItems.filter((i) => i.title === 'Dashboard' || i.title === 'Articles')
+}
+
+function getSystemItems(role: string): NavItem[] {
+  if (role === 'platform_admin') return allSystemItems
+  if (role === 'site_editor') return allSystemItems.filter((i) => i.title === 'Jobs')
+  return []
+}
 
 const utilityItems = [
   { title: "Overview", url: "/", icon: IconFolderPlus },
@@ -119,6 +134,8 @@ export function AppSidebar({
     email: "admin@example.com",
     role: "platform_admin",
   }
+  const primaryItems = getPrimaryItems(resolvedUser.role)
+  const systemItems = getSystemItems(resolvedUser.role)
 
   return (
     <Sidebar collapsible="offcanvas" variant="inset" {...props}>
@@ -141,19 +158,21 @@ export function AppSidebar({
       <SidebarContent>
         <SidebarGroup>
           <SidebarGroupContent className="flex flex-col gap-2">
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  asChild
-                  className="bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
-                >
-                  <Link href="/admin/articles">
-                    <IconFolderPlus />
-                    <span>{locale === 'tr' ? 'Hızlı Taslak' : 'Quick Draft'}</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
+            {resolvedUser.role !== 'reviewer' && (
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    asChild
+                    className="bg-sidebar-primary text-sidebar-primary-foreground shadow-sm hover:bg-sidebar-primary/90 hover:text-sidebar-primary-foreground"
+                  >
+                    <Link href="/admin/articles">
+                      <IconFolderPlus />
+                      <span>{locale === 'tr' ? 'Hızlı Taslak' : 'Quick Draft'}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            )}
 
             <SidebarMenu>
               {primaryItems.map((item) => (
@@ -174,23 +193,25 @@ export function AppSidebar({
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>{locale === 'tr' ? 'Sistem' : 'System'}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {systemItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild isActive={isActive(pathname, item.url)}>
-                    <Link href={item.url}>
-                      <item.icon />
-                      <span>{translateSystemItem(locale, item.title)}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {systemItems.length > 0 && (
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel>{locale === 'tr' ? 'Sistem' : 'System'}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {systemItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton asChild isActive={isActive(pathname, item.url)}>
+                      <Link href={item.url}>
+                        <item.icon />
+                        <span>{translateSystemItem(locale, item.title)}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         <SidebarGroup className="mt-auto group-data-[collapsible=icon]:hidden">
           <SidebarGroupLabel>{locale === 'tr' ? 'Araçlar' : 'Utility'}</SidebarGroupLabel>
