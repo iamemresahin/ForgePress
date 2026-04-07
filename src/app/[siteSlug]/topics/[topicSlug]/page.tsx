@@ -38,10 +38,13 @@ export async function generateMetadata({
 
 export default async function SiteTopicPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ siteSlug: string; topicSlug: string }>
+  searchParams: Promise<{ lang?: string }>
 }) {
   const { siteSlug, topicSlug } = await params
+  const { lang } = await searchParams
   const site = await getSiteBySlug(siteSlug)
 
   if (!site) {
@@ -64,6 +67,7 @@ export default async function SiteTopicPage({
       theme={resolveSiteTheme(site)}
       articles={articles}
       activeTopicSlug={topic.slug}
+      activeLocale={lang ?? null}
       currentReader={currentReader}
     />
   )

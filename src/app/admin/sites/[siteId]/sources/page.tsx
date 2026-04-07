@@ -52,7 +52,7 @@ export default async function SiteSourcesPage({
               : `${sourceRows.length} sources for ${site.name}`}
           </CardDescription>
           <Button asChild className="rounded-xl w-fit">
-            <Link href="/admin/sources">{tr ? 'Yeni kaynak' : 'New source'}</Link>
+            <Link href={`/admin/sources?siteId=${siteId}`}>{tr ? 'Yeni kaynak' : 'New source'}</Link>
           </Button>
         </CardHeader>
       </Card>

@@ -270,7 +270,7 @@ async function articleExistsForSource(client, siteId, sourceUrl, contentHash) {
   return result.rowCount > 0
 }
 
-async function createDraftArticleFromCandidate(client, source, candidate) {
+async function createDraftArticleFromCandidate(client, source, candidate, supportedLocales = []) {
   const contentHash = computeContentHash(candidate.title, candidate.body)
 
   if (await articleExistsForSource(client, source.site_id, candidate.url, contentHash)) {
@@ -290,6 +290,7 @@ async function createDraftArticleFromCandidate(client, source, candidate) {
   const baseSlug = slugify(candidate.title || source.label || 'imported-story') || `imported-${Date.now()}`
   const slug = `${baseSlug}-${String(Date.now()).slice(-6)}`
 
+  // Primary localization in the source's locale
   await client.query(
     `
       insert into article_localizations (article_id, locale, title, slug, excerpt, body)
@@ -304,6 +305,27 @@ async function createDraftArticleFromCandidate(client, source, candidate) {
       candidate.body,
     ],
   )
+
+  // Stub localizations for other supported locales so the localization worker can translate them
+  const otherLocales = supportedLocales.filter((l) => l !== source.locale)
+  for (const locale of otherLocales) {
+    const stubSlug = `${baseSlug}-${locale}-${String(Date.now()).slice(-6)}`
+    await client.query(
+      `
+        insert into article_localizations (article_id, locale, title, slug, excerpt, body)
+        values ($1, $2, $3, $4, $5, $6)
+        on conflict (article_id, locale) do nothing
+      `,
+      [
+        articleId,
+        locale,
+        candidate.title || source.label,
+        stubSlug,
+        candidate.excerpt?.slice(0, 500) || null,
+        candidate.body,
+      ],
+    )
+  }
 
   return { created: true, articleId, slug }
 }
@@ -846,6 +868,14 @@ async function runIngestion(client, queueJob) {
     throw new Error('Ingestion job is missing siteId.')
   }
 
+  const siteResult = await client.query(
+    `select supported_locales from sites where id = $1`,
+    [siteId],
+  )
+  const supportedLocales = Array.isArray(siteResult.rows[0]?.supported_locales)
+    ? siteResult.rows[0].supported_locales
+    : []
+
   const sourcesResult = await client.query(
     `
       select id, site_id, label, type, url, locale, poll_minutes, last_fetched_at
@@ -893,7 +923,7 @@ async function runIngestion(client, queueJob) {
       let sourceSkipped = 0
 
       for (const candidate of candidates) {
-        const result = await createDraftArticleFromCandidate(client, source, candidate)
+        const result = await createDraftArticleFromCandidate(client, source, candidate, supportedLocales)
         if (result.created) {
           createdArticles += 1
           sourceCreated += 1

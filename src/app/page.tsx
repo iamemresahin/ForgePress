@@ -42,7 +42,11 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default async function HomePage() {
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ lang?: string }>
+}) {
   const headerStore = await headers()
   const hostname = normalizeHostname(headerStore.get('host') ?? '')
 
@@ -50,10 +54,11 @@ export default async function HomePage() {
     const site = await findSiteByHostname(hostname)
 
     if (site) {
+      const { lang } = await searchParams
       const theme = resolveSiteTheme(site)
       const articles = await getPublishedArticlesForSite(site.id)
       const currentReader = await getPublicReaderSession(site.id)
-      return <PublicSiteHome site={site} theme={theme} articles={articles} useHostRouting currentReader={currentReader} />
+      return <PublicSiteHome site={site} theme={theme} articles={articles} useHostRouting currentReader={currentReader} activeLocale={lang ?? null} />
     }
   }
 

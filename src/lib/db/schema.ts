@@ -137,23 +137,27 @@ export const articles = pgTable('articles', {
   publishedAt: timestamp('published_at', { withTimezone: true }),
 })
 
-export const articleLocalizations = pgTable('article_localizations', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  articleId: uuid('article_id')
-    .references(() => articles.id, { onDelete: 'cascade' })
-    .notNull(),
-  locale: varchar('locale', { length: 16 }).notNull(),
-  title: varchar('title', { length: 255 }).notNull(),
-  slug: varchar('slug', { length: 255 }).notNull(),
-  excerpt: text('excerpt'),
-  body: text('body').notNull(),
-  seoTitle: varchar('seo_title', { length: 255 }),
-  seoDescription: text('seo_description'),
-  imageUrl: text('image_url'),
-  schemaJson: jsonb('schema_json').$type<Record<string, unknown> | null>().default(null),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+export const articleLocalizations = pgTable(
+  'article_localizations',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    articleId: uuid('article_id')
+      .references(() => articles.id, { onDelete: 'cascade' })
+      .notNull(),
+    locale: varchar('locale', { length: 16 }).notNull(),
+    title: varchar('title', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull(),
+    excerpt: text('excerpt'),
+    body: text('body').notNull(),
+    seoTitle: varchar('seo_title', { length: 255 }),
+    seoDescription: text('seo_description'),
+    imageUrl: text('image_url'),
+    schemaJson: jsonb('schema_json').$type<Record<string, unknown> | null>().default(null),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [uniqueIndex('article_localizations_article_id_locale_unique').on(t.articleId, t.locale)],
+)
 
 export const jobs = pgTable('jobs', {
   id: uuid('id').defaultRandom().primaryKey(),

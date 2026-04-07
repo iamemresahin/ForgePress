@@ -44,10 +44,13 @@ export async function generateMetadata({
 
 export default async function HostTopicPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ topicSlug: string }>
+  searchParams: Promise<{ lang?: string }>
 }) {
   const { topicSlug } = await params
+  const { lang } = await searchParams
   const headerStore = await headers()
   const hostname = normalizeHostname(headerStore.get('host') ?? '')
 
@@ -76,6 +79,7 @@ export default async function HostTopicPage({
       articles={articles}
       useHostRouting
       activeTopicSlug={topic.slug}
+      activeLocale={lang ?? null}
       currentReader={currentReader}
     />
   )

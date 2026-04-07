@@ -91,7 +91,7 @@ export function AppSidebar({
         { title: tr ? "Makaleler" : "Articles", url: `/admin/sites/${activeSite.id}/articles`, icon: IconArticle },
         { title: tr ? "Kaynaklar" : "Sources", url: `/admin/sites/${activeSite.id}/sources`, icon: IconNews },
         { title: tr ? "Yorumlar" : "Comments", url: `/admin/sites/${activeSite.id}/comments`, icon: IconMessageCircle },
-        { title: tr ? "Ayarlar" : "Settings", url: `/admin/sites/${activeSite.id}`, icon: IconSettings },
+        { title: tr ? "Ayarlar" : "Settings", url: `/admin/sites/${activeSite.id}/settings`, icon: IconSettings },
       ]
     : null
 

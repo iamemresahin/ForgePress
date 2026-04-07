@@ -358,7 +358,8 @@ function KantanLikeHome({
   activeLocale,
   currentReader,
 }: PublicSiteHomeProps) {
-  const copy = getPublicCopy(site.defaultLocale)
+  const effectiveLocale = activeLocale ?? site.defaultLocale
+  const copy = getPublicCopy(effectiveLocale)
   const topics = buildDerivedTopics(articles, site.niche, site.topicLabelOverrides, site.defaultLocale)
   const localeFiltered = activeLocale ? articles.filter((a) => a.locale === activeLocale) : articles
   const filteredArticles = activeTopicSlug
@@ -387,7 +388,7 @@ function KantanLikeHome({
         homeHref={homeHref}
         siteId={site.id}
         siteName={site.name}
-        locale={site.defaultLocale}
+        locale={effectiveLocale}
         redirectPath={activeTopicSlug ? getTopicHref(site.slug, activeTopicSlug, useHostRouting ?? false) : homeHref}
         navItems={resolvedNavItems}
         extraItems={extraItems}
@@ -516,6 +517,7 @@ function DefaultHome({
   useHostRouting = false,
   activeLocale,
 }: PublicSiteHomeProps) {
+  const effectiveLocale = activeLocale ?? site.defaultLocale
   const localeFiltered = activeLocale ? articles.filter((a) => a.locale === activeLocale) : articles
   const featuredArticle = localeFiltered[0]
   const secondaryArticles = localeFiltered.slice(1, 7)

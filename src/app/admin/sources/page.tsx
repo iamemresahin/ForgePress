@@ -14,10 +14,15 @@ import { getInterfaceLocale } from '@/lib/interface-locale.server'
 import { createSourceAction } from './actions'
 import { SourceForm } from './source-form'
 
-export default async function AdminSourcesPage() {
+export default async function AdminSourcesPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ siteId?: string }>
+}) {
   await requireAdminSession()
   const locale = await getInterfaceLocale()
   const tr = locale === 'tr'
+  const { siteId: preselectedSiteId } = await searchParams
 
   const siteOptions = await db
     .select({
@@ -66,7 +71,7 @@ export default async function AdminSourcesPage() {
     )
   }
 
-  const primarySite = siteOptions[0]
+  const primarySite = siteOptions.find((s) => s.id === preselectedSiteId) ?? siteOptions[0]
 
   return (
     <section className="space-y-6">
