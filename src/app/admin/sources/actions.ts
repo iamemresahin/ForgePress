@@ -92,3 +92,53 @@ export async function deleteSourceAction(sourceId: string) {
 
   revalidatePath('/admin/sources')
 }
+
+type BulkSourceRow = {
+  label: string
+  url: string
+  type: 'rss' | 'sitemap' | 'manual_url' | 'custom_feed'
+  locale: string
+  pollMinutes: number
+}
+
+export async function bulkCreateSourcesAction(
+  siteId: string,
+  rows: BulkSourceRow[],
+): Promise<{ imported: number; skipped: number; error?: string }> {
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
+
+  if (!siteId) return { imported: 0, skipped: 0, error: 'Site seçilmedi.' }
+  if (!rows.length) return { imported: 0, skipped: 0, error: 'İçe aktarılacak satır yok.' }
+
+  let imported = 0
+  let skipped = 0
+
+  for (const row of rows) {
+    if (!row.label || !row.url) { skipped++; continue }
+    try {
+      new URL(row.url)
+    } catch {
+      skipped++
+      continue
+    }
+
+    try {
+      await db.insert(sources).values({
+        siteId,
+        label: row.label.slice(0, 160),
+        type: row.type,
+        url: row.url,
+        locale: row.locale,
+        pollMinutes: row.pollMinutes,
+        isActive: true,
+      })
+      imported++
+    } catch {
+      skipped++
+    }
+  }
+
+  revalidatePath('/admin/sources')
+  return { imported, skipped }
+}

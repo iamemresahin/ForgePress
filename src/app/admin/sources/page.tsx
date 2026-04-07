@@ -13,6 +13,7 @@ import { getActiveSiteId } from '@/lib/active-site.server'
 
 import { createSourceAction } from './actions'
 import { SourceForm } from './source-form'
+import { SourceImportPanel } from './source-import'
 
 export default async function AdminSourcesPage({
   searchParams,
@@ -81,6 +82,10 @@ export default async function AdminSourcesPage({
         <span className="text-sm text-muted-foreground">
           {tr ? `${sourceRows.length} kaynak tanımlı` : `${sourceRows.length} sources configured`}
         </span>
+      </div>
+
+      <div className="space-y-6">
+        <SourceImportPanel siteOptions={siteOptions} locale={locale} />
       </div>
 
       <div className="hero-grid">
