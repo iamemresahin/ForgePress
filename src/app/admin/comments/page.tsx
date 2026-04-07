@@ -54,40 +54,15 @@ export default async function AdminCommentsPage() {
 
   return (
     <section className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="space-y-2">
-            <Badge className="w-fit rounded-full bg-primary/12 px-3 py-1 text-primary shadow-none">
-              {tr ? 'Toplam yorum' : 'Total comments'}
-            </Badge>
-            <CardTitle className="text-2xl">{uniqueRows.length}</CardTitle>
-            <CardDescription>
-              {tr ? 'Yayın yüzeylerinde oluşan tüm okuyucu yorumları.' : 'All reader comments arriving across publication surfaces.'}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="space-y-2">
-            <Badge variant="outline" className="w-fit rounded-full px-3 py-1">
-              {tr ? 'Yayında' : 'Visible'}
-            </Badge>
-            <CardTitle className="text-2xl">{approvedCount}</CardTitle>
-            <CardDescription>
-              {tr ? 'Şu anda public tarafta görünen yorumlar.' : 'Comments currently visible on public article pages.'}
-            </CardDescription>
-          </CardHeader>
-        </Card>
-        <Card>
-          <CardHeader className="space-y-2">
-            <Badge variant="outline" className="w-fit rounded-full px-3 py-1">
-              {tr ? 'Gizlenen' : 'Hidden'}
-            </Badge>
-            <CardTitle className="text-2xl">{hiddenCount}</CardTitle>
-            <CardDescription>
-              {tr ? 'Moderasyon nedeniyle public akıştan kaldırılan yorumlar.' : 'Comments removed from the public discussion by moderation.'}
-            </CardDescription>
-          </CardHeader>
-        </Card>
+      <div className="flex flex-wrap items-center gap-4 rounded-2xl border border-border/60 bg-card px-5 py-3 text-sm">
+        <span className="font-semibold text-foreground">{uniqueRows.length}</span>
+        <span className="text-muted-foreground">{tr ? 'toplam yorum' : 'total comments'}</span>
+        <span className="text-border/80">·</span>
+        <span className="font-semibold text-foreground">{approvedCount}</span>
+        <span className="text-muted-foreground">{tr ? 'yayında' : 'visible'}</span>
+        <span className="text-border/80">·</span>
+        <span className="font-semibold text-foreground">{hiddenCount}</span>
+        <span className="text-muted-foreground">{tr ? 'gizli' : 'hidden'}</span>
       </div>
 
       <Card>

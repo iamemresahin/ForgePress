@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { desc, eq } from 'drizzle-orm'
-import { FileText, PenSquare, Sparkles, Wand2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -67,49 +66,25 @@ export default async function AdminArticlesPage() {
   const primarySite = siteOptions.find((s) => s.id === cookieActiveSiteId) ?? siteOptions[0]
 
   return (
-    <section className="space-y-6">
-      <Card>
-        <CardHeader className="space-y-2">
-          <div className="space-y-2">
-            <span className="eyebrow">{tr ? 'Makaleler' : 'Articles'}</span>
-            <CardTitle className="text-2xl font-bold">
-              {tr ? 'Manuel taslak artık kontrol panelinin bir parçası.' : 'Manual drafting is now part of the control plane.'}
-            </CardTitle>
-            <CardDescription className="max-w-3xl text-sm leading-6">
-              {tr
-                ? 'Bu, editör öncelikli ilk içerik yüzeyi. Ekip, içe aktarma ve yeniden yazım otomasyonları devreye girmeden önce makaleleri oluşturabilir, inceleyebilir ve iyileştirebilir.'
-                : 'This is the first editor-first content surface. It lets the team create, review, and refine articles before automation is turned loose on ingestion and rewrite flows.'}
-            </CardDescription>
-          </div>
-          <div className="stats-grid">
-            <article>
-              <FileText className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Toplam taslak' : 'Total drafts'}</span>
-              <strong>{articleRows.length}</strong>
-            </article>
-            <article>
-              <PenSquare className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Birincil dil' : 'Primary locale'}</span>
-              <strong>{primarySite.defaultLocale}</strong>
-            </article>
-            <article>
-              <Wand2 className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Destekli taslak' : 'Assisted drafting'}</span>
-              <strong>{tr ? 'Açık' : 'Enabled'}</strong>
-            </article>
-            <article>
-              <Sparkles className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Yayın modu' : 'Publishing mode'}</span>
-              <strong>{tr ? 'Önce inceleme' : 'Review first'}</strong>
-            </article>
-          </div>
-        </CardHeader>
-      </Card>
+    <section className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="eyebrow">{tr ? 'Yeni Taslak' : 'New Draft'}</p>
+          <h1 className="mt-0.5 text-xl font-semibold text-foreground">
+            {tr ? 'Makale oluştur' : 'Create article'}
+          </h1>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+          <span>{tr ? `${articleRows.length} taslak` : `${articleRows.length} drafts`}</span>
+          <span>·</span>
+          <span>{primarySite.name}</span>
+        </div>
+      </div>
 
       <div className="hero-grid">
         <ArticleForm
           locale={locale}
-          submitLabel={tr ? 'Makale taslagi olustur' : 'Create article draft'}
+          submitLabel={tr ? 'Makale taslağı oluştur' : 'Create article draft'}
           description={
             tr
               ? 'İlk taslağı manuel yazın, sonra bu akışı destekli yeniden yazım ve yerelleştirmeye taşıyın.'
@@ -139,13 +114,8 @@ export default async function AdminArticlesPage() {
             <CardHeader className="space-y-2">
               <span className="eyebrow">{tr ? 'Son taslaklar' : 'Recent drafts'}</span>
               <CardTitle className="text-lg">
-                {tr ? 'Editoryal kuyruk burada baslar' : 'Editorial queue starts here'}
+                {tr ? 'Son taslaklar' : 'Recent drafts'}
               </CardTitle>
-              <CardDescription className="text-sm leading-6">
-                {tr
-                  ? 'Taslaklar manuel ya da OpenAI destekli üretilerek başlayabilir, sonra inceleme ve yayına ilerler.'
-                  : 'Drafts can start manually or from OpenAI-assisted generation, then move into review and publish.'}
-              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               {articleRows.length === 0 ? (

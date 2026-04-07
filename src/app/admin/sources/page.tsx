@@ -1,6 +1,5 @@
 import Link from 'next/link'
 import { desc, eq } from 'drizzle-orm'
-import { Globe2, RadioTower, Rss, Sparkles } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -10,6 +9,7 @@ import { db } from '@/lib/db'
 import { sites, sources } from '@/lib/db/schema'
 import { translateSourceType } from '@/lib/interface-locale'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
+import { getActiveSiteId } from '@/lib/active-site.server'
 
 import { createSourceAction } from './actions'
 import { SourceForm } from './source-form'
@@ -24,14 +24,10 @@ export default async function AdminSourcesPage({
   const tr = locale === 'tr'
   const { siteId: preselectedSiteId } = await searchParams
 
-  const siteOptions = await db
-    .select({
-      id: sites.id,
-      name: sites.name,
-      defaultLocale: sites.defaultLocale,
-    })
-    .from(sites)
-    .orderBy(desc(sites.createdAt))
+  const [siteOptions, cookieActiveSiteId] = await Promise.all([
+    db.select({ id: sites.id, name: sites.name, defaultLocale: sites.defaultLocale }).from(sites).orderBy(desc(sites.createdAt)),
+    getActiveSiteId(),
+  ])
 
   const sourceRows = await db
     .select({
@@ -71,47 +67,21 @@ export default async function AdminSourcesPage({
     )
   }
 
-  const primarySite = siteOptions.find((s) => s.id === preselectedSiteId) ?? siteOptions[0]
+  const primarySite = siteOptions.find((s) => s.id === (preselectedSiteId ?? cookieActiveSiteId)) ?? siteOptions[0]
 
   return (
     <section className="space-y-6">
-      <Card>
-        <CardHeader className="space-y-2">
-          <div className="space-y-2">
-            <span className="eyebrow">{tr ? 'Kaynaklar' : 'Sources'}</span>
-            <CardTitle className="text-2xl font-bold">
-              {tr ? 'İçe aktarma kaynakları artık admin panelinden düzenlenebilir.' : 'Ingestion sources are now editable from the admin plane.'}
-            </CardTitle>
-            <CardDescription className="max-w-3xl text-sm leading-6">
-              {tr
-                ? 'Site bazında RSS feedleri, sitemap taramaları ve manuel URL kuyrukları ekleyin. Bu, gelecekteki içe aktarma görevlerinin çalışacağı kontrol yüzeyini oluşturur.'
-                : 'Add RSS feeds, sitemap crawls, and manual URL queues per site. This creates the control surface the future ingestion jobs will operate against.'}
-            </CardDescription>
-          </div>
-          <div className="stats-grid">
-            <article>
-              <RadioTower className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Toplam kaynak' : 'Total sources'}</span>
-              <strong>{sourceRows.length}</strong>
-            </article>
-            <article>
-              <Globe2 className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Tanımlı siteler' : 'Configured sites'}</span>
-              <strong>{siteOptions.length}</strong>
-            </article>
-            <article>
-              <Rss className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Birincil kaynak türü' : 'Primary source type'}</span>
-              <strong>RSS</strong>
-            </article>
-            <article>
-              <Sparkles className="mb-3 size-5 text-primary" />
-              <span>{tr ? 'Mod' : 'Mode'}</span>
-              <strong>{tr ? 'Operatör yönetimli' : 'Operator managed'}</strong>
-            </article>
-          </div>
-        </CardHeader>
-      </Card>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="eyebrow">{tr ? 'Yeni Kaynak' : 'New Source'}</p>
+          <h1 className="mt-0.5 text-xl font-semibold text-foreground">
+            {tr ? 'Kaynak ekle' : 'Add source'}
+          </h1>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          {tr ? `${sourceRows.length} kaynak tanımlı` : `${sourceRows.length} sources configured`}
+        </span>
+      </div>
 
       <div className="hero-grid">
         <SourceForm
@@ -139,13 +109,8 @@ export default async function AdminSourcesPage({
           <CardHeader className="space-y-2">
             <span className="eyebrow">{tr ? 'Tanımlı kaynaklar' : 'Configured sources'}</span>
             <CardTitle className="text-lg">
-              {tr ? 'İçe aktarılmayı bekleyen sinyaller' : 'Signals waiting to be ingested'}
+              {tr ? 'Tanımlı kaynaklar' : 'Configured sources'}
             </CardTitle>
-            <CardDescription className="text-sm leading-6">
-              {tr
-                ? 'Kaynak tanımları gelecekteki içe aktarma görevleri ve zamanlamaları için tetikleme yüzeyi olur.'
-                : 'Source definitions become the trigger surface for future ingestion jobs and schedules.'}
-            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {sourceRows.length === 0 ? (

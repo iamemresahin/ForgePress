@@ -234,9 +234,13 @@ export function SiteForm({
 
   function handleGenerate() {
     setGenerateError(null)
+    const name = nameRef.current?.value ?? initialValues.name
+    const niche = nicheRef.current?.value ?? initialValues.niche
+    if (!niche || niche.trim().length < 3) {
+      setGenerateError(tr ? 'AI kuralları oluşturmak için önce "Niş alan" doldurun.' : 'Fill in the "Niche" field before generating AI rules.')
+      return
+    }
     startGenerate(async () => {
-      const name = nameRef.current?.value ?? initialValues.name
-      const niche = nicheRef.current?.value ?? initialValues.niche
       const locales = initialValues.supportedLocales
         ? initialValues.supportedLocales.split(',').map(s => s.trim()).filter(Boolean)
         : ['en']
