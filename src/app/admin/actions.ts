@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm'
 import { clearAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { platformSettings } from '@/lib/db/schema'
+import { ACTIVE_SITE_COOKIE } from '@/lib/active-site.server'
 import { INTERFACE_LOCALE_COOKIE, type InterfaceLocale } from '@/lib/interface-locale'
 
 export async function logoutAction() {
@@ -25,6 +26,16 @@ export async function toggleAutopilotAction() {
     .insert(platformSettings)
     .values({ key: 'autopilot', value: !current })
     .onConflictDoUpdate({ target: platformSettings.key, set: { value: !current, updatedAt: new Date() } })
+}
+
+export async function setActiveSiteAction(siteId: string) {
+  const cookieStore = await cookies()
+  cookieStore.set(ACTIVE_SITE_COOKIE, siteId, {
+    httpOnly: false,
+    sameSite: 'lax',
+    path: '/',
+    maxAge: 60 * 60 * 24 * 30,
+  })
 }
 
 export async function setAdminLocaleAction(formData: FormData) {

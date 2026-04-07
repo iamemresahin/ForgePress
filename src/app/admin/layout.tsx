@@ -10,6 +10,7 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { platformSettings, sites } from '@/lib/db/schema'
+import { getActiveSiteId } from '@/lib/active-site.server'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
 import { logoutAction, setAdminLocaleAction, toggleAutopilotAction } from './actions'
@@ -22,9 +23,10 @@ export default async function AdminLayout({
   const session = await requireAdminSession()
   const locale = await getInterfaceLocale()
 
-  const [siteList, autopilotRow] = await Promise.all([
+  const [siteList, autopilotRow, cookieActiveSiteId] = await Promise.all([
     db.select({ id: sites.id, name: sites.name, slug: sites.slug }).from(sites).orderBy(desc(sites.createdAt)),
     db.select({ value: platformSettings.value }).from(platformSettings).where(eq(platformSettings.key, 'autopilot')).then((rows) => rows[0]),
+    getActiveSiteId(),
   ])
   const autopilotOn = autopilotRow?.value === true
 
@@ -40,6 +42,7 @@ export default async function AdminLayout({
       <AppSidebar
         locale={locale}
         sites={siteList}
+        cookieActiveSiteId={cookieActiveSiteId}
         user={{
           name: session.displayName,
           email: session.email,
