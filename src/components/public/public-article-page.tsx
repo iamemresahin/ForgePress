@@ -278,7 +278,7 @@ function KantanLikeArticle({
           />
 
           {/* Bottom navigation */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="public-border flex flex-wrap items-center justify-between gap-3 border-t pt-6">
             <Link
               href={homeHref}
               className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
@@ -287,7 +287,7 @@ function KantanLikeArticle({
               {copy.backHome}
             </Link>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {article.sourceUrl && (
                 <a
                   href={article.sourceUrl}
@@ -313,6 +313,19 @@ function KantanLikeArticle({
           </div>
         </div>
       </div>
+
+      <footer className="public-border border-t">
+        <div className="mx-auto flex w-full max-w-[1120px] items-center justify-center px-4 py-6 md:px-6">
+          <a
+            href="https://forgepress.app"
+            target="_blank"
+            rel="noreferrer"
+            className="public-text-faint text-xs font-medium transition hover:opacity-70"
+          >
+            Powered by ForgePress
+          </a>
+        </div>
+      </footer>
     </PublicThemeShell>
   )
 }

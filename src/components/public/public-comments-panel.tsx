@@ -138,11 +138,6 @@ export function PublicCommentsPanel({
           {tr ? 'Yorumlar' : 'Comments'}
         </p>
         <h2 className="public-text mt-2 text-2xl font-semibold">{siteName}</h2>
-        <p className="public-text-dim mt-2 text-sm leading-7">
-          {tr
-            ? 'Yorumlar bu siteye özel okuyucu hesabıyla çalışır. ForgePress görünmez; okuyucu doğrudan yayın markasına giriş yapar.'
-            : 'Comments run on reader accounts scoped to this publication. Readers sign into the site brand, not ForgePress.'}
-        </p>
       </div>
 
       {currentReader ? (
