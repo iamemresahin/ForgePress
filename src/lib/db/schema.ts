@@ -172,6 +172,12 @@ export const jobs = pgTable('jobs', {
   finishedAt: timestamp('finished_at', { withTimezone: true }),
 })
 
+export const platformSettings = pgTable('platform_settings', {
+  key: varchar('key', { length: 120 }).primaryKey(),
+  value: jsonb('value').$type<unknown>().notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
+
 export const siteMembers = pgTable(
   'site_members',
   {

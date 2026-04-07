@@ -1062,12 +1062,22 @@ async function maybeQueueJob(client, siteId, kind, now) {
   return true
 }
 
-async function schedulerTick() {
+async function isAutopilotEnabled(client) {
+  try {
+    const result = await client.query(
+      `select value from platform_settings where key = 'autopilot' limit 1`,
+    )
+    return result.rows[0]?.value === true
+  } catch {
+    return false
+  }
+}
+
+// ── Ingestion tick (every 60s): respects per-source poll cadence ─────────────
+async function ingestionTick() {
   try {
     await withClient(async (client) => {
       const now = new Date()
-
-      // All active sites
       const sitesResult = await client.query(
         `select s.id as site_id, min(so.poll_minutes) as poll_minutes
          from sites s
@@ -1080,14 +1090,13 @@ async function schedulerTick() {
         const siteId = row.site_id
         const pollMinutes = Number(row.poll_minutes)
 
-        // ── Ingestion: respect source poll cadence ──────────────────────────
-        const lastIngestionResult = await client.query(
+        const lastResult = await client.query(
           `select finished_at from jobs
            where site_id = $1 and kind = 'ingestion' and status = 'completed'
            order by finished_at desc limit 1`,
           [siteId],
         )
-        const lastFinishedAt = lastIngestionResult.rows[0]?.finished_at
+        const lastFinishedAt = lastResult.rows[0]?.finished_at
         const minutesSinceLast = lastFinishedAt
           ? (now.getTime() - new Date(lastFinishedAt).getTime()) / 60_000
           : Infinity
@@ -1095,8 +1104,30 @@ async function schedulerTick() {
         if (minutesSinceLast >= pollMinutes) {
           await maybeQueueJob(client, siteId, 'ingestion', now)
         }
+      }
+    })
+  } catch (error) {
+    console.error('[ingestion-tick] error:', error instanceof Error ? error.message : error)
+  }
+}
 
-        // ── Rewrite: queue if articles are sitting in 'review' ──────────────
+// ── Pipeline tick (every 5 min): rewrite → localize → image → publish ────────
+// Only runs when autopilot is enabled.
+async function pipelineTick() {
+  try {
+    await withClient(async (client) => {
+      const autopilot = await isAutopilotEnabled(client)
+      if (!autopilot) return
+
+      const now = new Date()
+      const sitesResult = await client.query(
+        `select id as site_id from sites where status = 'active'`,
+      )
+
+      for (const row of sitesResult.rows) {
+        const siteId = row.site_id
+
+        // Rewrite: articles in 'review'
         const reviewResult = await client.query(
           `select 1 from articles where site_id = $1 and status = 'review' limit 1`,
           [siteId],
@@ -1105,7 +1136,7 @@ async function schedulerTick() {
           await maybeQueueJob(client, siteId, 'rewrite', now)
         }
 
-        // ── Localization: queue if draft/published articles lack locale stubs ─
+        // Localization: draft/published articles missing a locale variant
         const missingLocaleResult = await client.query(
           `select 1
            from articles a
@@ -1114,8 +1145,7 @@ async function schedulerTick() {
              and a.status in ('draft', 'published')
              and jsonb_array_length(s.supported_locales) > 1
              and exists (
-               select 1
-               from jsonb_array_elements_text(s.supported_locales) as loc
+               select 1 from jsonb_array_elements_text(s.supported_locales) as loc
                where not exists (
                  select 1 from article_localizations al
                  where al.article_id = a.id and al.locale = loc
@@ -1128,7 +1158,7 @@ async function schedulerTick() {
           await maybeQueueJob(client, siteId, 'localization', now)
         }
 
-        // ── Image: queue if any article localizations are missing images ─────
+        // Image: article localizations missing images
         const missingImageResult = await client.query(
           `select 1
            from article_localizations al
@@ -1143,7 +1173,7 @@ async function schedulerTick() {
           await maybeQueueJob(client, siteId, 'image', now)
         }
 
-        // ── Publish: queue if any articles are in 'scheduled' status ─────────
+        // Publish: articles in 'scheduled'
         const scheduledResult = await client.query(
           `select 1 from articles where site_id = $1 and status = 'scheduled' limit 1`,
           [siteId],
@@ -1154,13 +1184,18 @@ async function schedulerTick() {
       }
     })
   } catch (error) {
-    console.error('[scheduler] tick error:', error instanceof Error ? error.message : error)
+    console.error('[pipeline-tick] error:', error instanceof Error ? error.message : error)
   }
 }
 
-// Run an initial tick soon after startup, then repeat every minute
-setTimeout(() => { void schedulerTick() }, 10_000)
-const schedulerInterval = setInterval(() => { void schedulerTick() }, 60_000)
+const INGESTION_INTERVAL_MS  = 60_000        //  1 minute  — checks cadence, usually skips
+const PIPELINE_INTERVAL_MS   = 5 * 60_000    //  5 minutes — rewrite/loc/image/publish
+
+setTimeout(() => { void ingestionTick() },  10_000)
+setTimeout(() => { void pipelineTick() },   15_000)
+
+const ingestionInterval = setInterval(() => { void ingestionTick() },  INGESTION_INTERVAL_MS)
+const pipelineInterval  = setInterval(() => { void pipelineTick() },   PIPELINE_INTERVAL_MS)
 
 // ---------------------------------------------------------------------------
 // Shutdown
