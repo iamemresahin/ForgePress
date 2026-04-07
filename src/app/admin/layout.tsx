@@ -115,9 +115,19 @@ export default async function AdminLayout({
                   <form action={toggleAutopilotAction}>
                     <Button
                       type="submit"
-                      variant={autopilotOn ? 'default' : 'outline'}
-                      className="rounded-2xl"
+                      variant="outline"
+                      className={`rounded-2xl gap-2 font-semibold transition-all ${
+                        autopilotOn
+                          ? 'border-emerald-400 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 hover:border-emerald-500'
+                          : 'border-border text-muted-foreground hover:text-foreground'
+                      }`}
                     >
+                      <span className="relative flex size-2 shrink-0">
+                        {autopilotOn && (
+                          <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                        )}
+                        <span className={`relative inline-flex size-2 rounded-full ${autopilotOn ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                      </span>
                       <Bot className="size-4" />
                       {autopilotOn
                         ? locale === 'tr' ? 'Autopilot açık' : 'Autopilot on'
