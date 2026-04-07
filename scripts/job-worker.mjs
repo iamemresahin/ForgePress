@@ -1024,86 +1024,133 @@ worker.on('failed', (job, error) => {
 })
 
 // ---------------------------------------------------------------------------
-// Auto-scheduler: periodically queues ingestion jobs based on pollMinutes
+// Auto-scheduler: full pipeline automation
+//
+// Every tick (60s) we check each active site and queue whichever job is
+// appropriate based on the current article states:
+//
+//   ingestion  → runs on source poll cadence, creates "review" articles
+//   rewrite    → runs when review articles exist (no pending rewrite)
+//   localization → runs when draft/published articles are missing locale variants
+//   image      → runs when articles are missing images
+//   publish    → runs when articles are in "scheduled" status
+//
+// Each job kind is skipped if one is already queued/running for the site.
 // ---------------------------------------------------------------------------
+
+async function maybeQueueJob(client, siteId, kind, now) {
+  const pendingResult = await client.query(
+    `select 1 from jobs
+     where site_id = $1 and kind = $2 and status in ('queued', 'running')
+     limit 1`,
+    [siteId, kind],
+  )
+  if (pendingResult.rowCount > 0) return false
+
+  const payload = { siteId, requestedAt: now.toISOString(), trigger: 'auto_scheduler' }
+  const insertResult = await client.query(
+    `insert into jobs (site_id, kind, status, payload)
+     values ($1, $2, 'queued', $3)
+     returning id`,
+    [siteId, kind, JSON.stringify(payload)],
+  )
+  const jobId = insertResult.rows[0]?.id
+  if (!jobId) return false
+
+  await queue.add(kind, { id: jobId, ...payload })
+  console.log(`[scheduler] queued ${kind} for site ${siteId}`)
+  return true
+}
 
 async function schedulerTick() {
   try {
     await withClient(async (client) => {
-      // Find all sites that have at least one active source.
-      // For each site, use the minimum poll_minutes across its sources as the
-      // effective schedule (most frequently updating source drives the cadence).
+      const now = new Date()
+
+      // All active sites
       const sitesResult = await client.query(
-        `
-          select s.id as site_id, min(so.poll_minutes) as poll_minutes
-          from sites s
-          inner join sources so on so.site_id = s.id and so.is_active = true
-          where s.status = 'active'
-          group by s.id
-        `,
+        `select s.id as site_id, min(so.poll_minutes) as poll_minutes
+         from sites s
+         inner join sources so on so.site_id = s.id and so.is_active = true
+         where s.status = 'active'
+         group by s.id`,
       )
 
       for (const row of sitesResult.rows) {
         const siteId = row.site_id
         const pollMinutes = Number(row.poll_minutes)
 
-        // Determine when the last ingestion job completed for this site
-        const lastJobResult = await client.query(
-          `
-            select finished_at
-            from jobs
-            where site_id = $1 and kind = 'ingestion' and status = 'completed'
-            order by finished_at desc
-            limit 1
-          `,
+        // ── Ingestion: respect source poll cadence ──────────────────────────
+        const lastIngestionResult = await client.query(
+          `select finished_at from jobs
+           where site_id = $1 and kind = 'ingestion' and status = 'completed'
+           order by finished_at desc limit 1`,
           [siteId],
         )
-
-        const lastFinishedAt = lastJobResult.rows[0]?.finished_at
-        const now = new Date()
+        const lastFinishedAt = lastIngestionResult.rows[0]?.finished_at
         const minutesSinceLast = lastFinishedAt
           ? (now.getTime() - new Date(lastFinishedAt).getTime()) / 60_000
           : Infinity
 
-        if (minutesSinceLast < pollMinutes) {
-          continue
+        if (minutesSinceLast >= pollMinutes) {
+          await maybeQueueJob(client, siteId, 'ingestion', now)
         }
 
-        // Skip if a job is already queued or running for this site
-        const pendingResult = await client.query(
-          `
-            select 1 from jobs
-            where site_id = $1 and kind = 'ingestion' and status in ('queued', 'running')
-            limit 1
-          `,
+        // ── Rewrite: queue if articles are sitting in 'review' ──────────────
+        const reviewResult = await client.query(
+          `select 1 from articles where site_id = $1 and status = 'review' limit 1`,
           [siteId],
         )
-
-        if (pendingResult.rowCount > 0) {
-          continue
+        if (reviewResult.rowCount > 0) {
+          await maybeQueueJob(client, siteId, 'rewrite', now)
         }
 
-        // Create persistent job record then enqueue
-        const payload = {
-          siteId,
-          requestedAt: now.toISOString(),
-          trigger: 'auto_scheduler',
-        }
-
-        const insertResult = await client.query(
-          `
-            insert into jobs (site_id, kind, status, payload)
-            values ($1, 'ingestion', 'queued', $2)
-            returning id
-          `,
-          [siteId, JSON.stringify(payload)],
+        // ── Localization: queue if draft/published articles lack locale stubs ─
+        const missingLocaleResult = await client.query(
+          `select 1
+           from articles a
+           join sites s on s.id = a.site_id
+           where a.site_id = $1
+             and a.status in ('draft', 'published')
+             and jsonb_array_length(s.supported_locales) > 1
+             and exists (
+               select 1
+               from jsonb_array_elements_text(s.supported_locales) as loc
+               where not exists (
+                 select 1 from article_localizations al
+                 where al.article_id = a.id and al.locale = loc
+               )
+             )
+           limit 1`,
+          [siteId],
         )
+        if (missingLocaleResult.rowCount > 0) {
+          await maybeQueueJob(client, siteId, 'localization', now)
+        }
 
-        const jobId = insertResult.rows[0]?.id
-        if (!jobId) continue
+        // ── Image: queue if any article localizations are missing images ─────
+        const missingImageResult = await client.query(
+          `select 1
+           from article_localizations al
+           join articles a on a.id = al.article_id
+           where a.site_id = $1
+             and a.status in ('draft', 'review', 'scheduled')
+             and (al.image_url is null or al.image_url = '')
+           limit 1`,
+          [siteId],
+        )
+        if (missingImageResult.rowCount > 0) {
+          await maybeQueueJob(client, siteId, 'image', now)
+        }
 
-        await queue.add('ingestion', { id: jobId, ...payload })
-        console.log(`[scheduler] queued ingestion for site ${siteId} (poll every ${pollMinutes} min)`)
+        // ── Publish: queue if any articles are in 'scheduled' status ─────────
+        const scheduledResult = await client.query(
+          `select 1 from articles where site_id = $1 and status = 'scheduled' limit 1`,
+          [siteId],
+        )
+        if (scheduledResult.rowCount > 0) {
+          await maybeQueueJob(client, siteId, 'publish', now)
+        }
       }
     })
   } catch (error) {
@@ -1137,4 +1184,4 @@ process.on('SIGTERM', () => {
 })
 
 console.log(`[worker] listening on queue ${QUEUE_NAME}`)
-console.log('[scheduler] auto-polling active — checking source schedules every 60s')
+console.log('[scheduler] full pipeline automation active — ingestion → rewrite → localization → image → publish (60s tick)')
