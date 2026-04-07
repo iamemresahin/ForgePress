@@ -194,7 +194,6 @@ function KantanLikeArticle({
             </span>
             <span className="public-text-faint">{readTime} min read</span>
             <span className="public-text-faint">{freshness}</span>
-            <span className="public-text-faint">AI-assisted</span>
           </div>
 
           <h1 className="public-text max-w-5xl text-[clamp(2.4rem,5vw,5.25rem)] font-semibold leading-[0.95] tracking-tight">
@@ -213,133 +212,105 @@ function KantanLikeArticle({
         />
 
 
-        <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="public-panel rounded-[24px] border px-5 py-4">
-            <p className="public-text-faint text-xs font-medium uppercase tracking-[0.24em]">{copy.sourceContext}</p>
-            <p className="public-text-dim mt-3 max-w-3xl text-sm leading-6">
-              This story was prepared for {article.siteName} with a compact, source-led editorial format designed for dense news feeds and faster scanning.
-            </p>
-          </div>
-
-          {article.sourceUrl ? (
-            <a
-              href={article.sourceUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex min-h-[112px] items-center justify-between rounded-[24px] border border-white/10 bg-white px-5 py-4 text-sm font-semibold text-black transition hover:bg-white/92"
-            >
-              <div>
-                <p className="text-xs font-medium uppercase tracking-[0.22em] text-black/45">{copy.source}</p>
-                <p className="mt-2 text-base">{copy.openOriginalCoverage}</p>
-              </div>
-              <ArrowUpRight className="size-5" />
-            </a>
-          ) : (
-            <div className="public-panel rounded-[24px] border px-5 py-4 text-sm public-text-dim">{copy.sourceUnavailable}</div>
-          )}
-        </section>
-
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
-          <div className="grid gap-6">
-            <article className="public-panel min-w-0 rounded-[28px] border px-6 py-7 md:px-8 md:py-8">
-              <ArticleBody
-                body={article.body}
-                color="var(--site-foreground-current)"
-                adsensePublisherId={article.adsensePublisherId}
-                adsenseSlotId={article.adsenseSlotId}
-              />
-            </article>
-
-            {relatedArticles.length > 0 ? (
-              <section className="public-panel rounded-[28px] border p-5 md:p-6">
-                <div className="public-border border-b pb-4">
-                  <p className="public-text-faint text-xs font-medium uppercase tracking-[0.24em]">{copy.relatedStories}</p>
-                  <h2 className="public-text mt-2 text-2xl font-semibold">{copy.keepReading}</h2>
-                </div>
-                <div className="mt-5 grid gap-4 md:grid-cols-3">
-                  {relatedArticles.map((relatedArticle) => {
-                    const relatedHref = useHostRouting
-                      ? `/${relatedArticle.slug}`
-                      : `/${article.siteSlug}/${relatedArticle.slug}`
-
-                    return (
-                      <Link
-                        key={relatedArticle.id}
-                        href={relatedHref}
-                        className="public-panel group rounded-[24px] border p-4 transition"
-                      >
-                        <img
-                          src={relatedArticle.imageUrl ?? buildEditorialImageDataUri(relatedArticle)}
-                          alt={relatedArticle.title}
-                          className="mb-4 h-32 w-full rounded-[18px] object-cover"
-                        />
-                        <p className="public-text-faint text-[11px] font-medium uppercase tracking-[0.24em]">
-                          {formatFreshnessLabel(relatedArticle.publishedAt)}
-                        </p>
-                        <h3 className="public-text mt-3 text-lg font-semibold leading-6 transition">
-                          {relatedArticle.title}
-                        </h3>
-                        <p className="public-text-dim mt-3 text-sm leading-6">
-                          {relatedArticle.excerpt ?? 'Open the story to continue through the editorial feed.'}
-                        </p>
-                        <span className="public-text-dim mt-4 inline-flex items-center gap-2 text-sm">
-                          {copy.readStory}
-                          <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
-                        </span>
-                      </Link>
-                    )
-                  })}
-                </div>
-              </section>
-            ) : null}
-
-            <PublicCommentsPanel
-              siteId={article.siteId}
-              siteName={article.siteName}
-              articleId={article.id}
-              redirectPath={redirectPath}
-              locale={article.locale}
-              currentReader={currentReader}
-              authBrandName={article.authBrandName}
-              googleClientId={article.googleClientId}
-              comments={comments}
+        <div className="grid gap-6">
+          <article className="public-panel min-w-0 rounded-[28px] border px-6 py-7 md:px-10 md:py-10">
+            <ArticleBody
+              body={article.body}
+              color="var(--site-foreground-current)"
+              adsensePublisherId={article.adsensePublisherId}
+              adsenseSlotId={article.adsenseSlotId}
             />
-          </div>
+          </article>
 
-          <aside className="grid content-start gap-4">
-            <div className="public-panel rounded-[24px] border p-5">
-              <p className="public-text-faint text-xs font-medium uppercase tracking-[0.24em]">{copy.storyInfo}</p>
-              <div className="public-text-dim mt-4 space-y-3 text-sm">
-                <p>Site: {article.siteName}</p>
-                <p>Locale: {article.locale}</p>
-                <p>Published: {publishedLabel}</p>
-                <p>Read time: {readTime} min</p>
-                <p>Freshness: {freshness}</p>
+          {relatedArticles.length > 0 ? (
+            <section className="public-panel rounded-[28px] border p-5 md:p-6">
+              <div className="public-border border-b pb-4">
+                <p className="public-text-faint text-xs font-medium uppercase tracking-[0.24em]">{copy.relatedStories}</p>
+                <h2 className="public-text mt-2 text-2xl font-semibold">{copy.keepReading}</h2>
               </div>
-            </div>
+              <div className="mt-5 grid gap-4 md:grid-cols-3">
+                {relatedArticles.map((relatedArticle) => {
+                  const relatedHref = useHostRouting
+                    ? `/${relatedArticle.slug}`
+                    : `/${article.siteSlug}/${relatedArticle.slug}`
 
+                  return (
+                    <Link
+                      key={relatedArticle.id}
+                      href={relatedHref}
+                      className="public-panel group rounded-[24px] border p-4 transition"
+                    >
+                      <img
+                        src={relatedArticle.imageUrl ?? buildEditorialImageDataUri(relatedArticle)}
+                        alt={relatedArticle.title}
+                        className="mb-4 h-32 w-full rounded-[18px] object-cover"
+                      />
+                      <p className="public-text-faint text-[11px] font-medium uppercase tracking-[0.24em]">
+                        {formatFreshnessLabel(relatedArticle.publishedAt)}
+                      </p>
+                      <h3 className="public-text mt-3 text-lg font-semibold leading-6 transition">
+                        {relatedArticle.title}
+                      </h3>
+                      <p className="public-text-dim mt-3 text-sm leading-6">
+                        {relatedArticle.excerpt ?? ''}
+                      </p>
+                      <span className="public-text-dim mt-4 inline-flex items-center gap-2 text-sm">
+                        {copy.readStory}
+                        <ArrowRight className="size-4 transition group-hover:translate-x-0.5" />
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
+            </section>
+          ) : null}
+
+          <PublicCommentsPanel
+            siteId={article.siteId}
+            siteName={article.siteName}
+            articleId={article.id}
+            redirectPath={redirectPath}
+            locale={article.locale}
+            currentReader={currentReader}
+            authBrandName={article.authBrandName}
+            googleClientId={article.googleClientId}
+            comments={comments}
+          />
+
+          {/* Bottom navigation */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <Link
               href={homeHref}
-              className="public-border public-text-dim inline-flex items-center gap-2 rounded-[24px] border bg-transparent px-5 py-4 text-sm font-medium transition"
+              className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
             >
               <ArrowLeft className="size-4" />
               {copy.backHome}
             </Link>
 
-            {nextHref && nextArticle ? (
-              <Link
-                href={nextHref}
-                className="public-panel rounded-[24px] border px-5 py-4 transition"
-              >
-                <p className="public-text-faint text-xs font-medium uppercase tracking-[0.22em]">{copy.nextStory}</p>
-                <p className="public-text mt-3 text-base font-semibold leading-6">{nextArticle.title}</p>
-                <span className="public-text-dim mt-4 inline-flex items-center gap-2 text-sm">
-                  {copy.readNext}
+            <div className="flex items-center gap-3">
+              {article.sourceUrl && (
+                <a
+                  href={article.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
+                >
+                  {copy.openOriginalCoverage}
+                  <ArrowUpRight className="size-4" />
+                </a>
+              )}
+
+              {nextHref && nextArticle && (
+                <Link
+                  href={nextHref}
+                  className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
+                >
+                  {copy.nextStory}
                   <ArrowRight className="size-4" />
-                </span>
-              </Link>
-            ) : null}
-          </aside>
+                </Link>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </PublicThemeShell>
