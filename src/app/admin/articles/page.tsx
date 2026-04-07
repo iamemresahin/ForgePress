@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { articleLocalizations, articles, sites } from '@/lib/db/schema'
+import { getActiveSiteId } from '@/lib/active-site.server'
 import { translateArticleStatus } from '@/lib/interface-locale'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
@@ -20,14 +21,10 @@ export default async function AdminArticlesPage() {
   const locale = await getInterfaceLocale()
   const tr = locale === 'tr'
 
-  const siteOptions = await db
-    .select({
-      id: sites.id,
-      name: sites.name,
-      defaultLocale: sites.defaultLocale,
-    })
-    .from(sites)
-    .orderBy(desc(sites.createdAt))
+  const [siteOptions, cookieActiveSiteId] = await Promise.all([
+    db.select({ id: sites.id, name: sites.name, defaultLocale: sites.defaultLocale }).from(sites).orderBy(desc(sites.createdAt)),
+    getActiveSiteId(),
+  ])
 
   const articleRows = await db
     .select({
@@ -67,7 +64,7 @@ export default async function AdminArticlesPage() {
     )
   }
 
-  const primarySite = siteOptions[0]
+  const primarySite = siteOptions.find((s) => s.id === cookieActiveSiteId) ?? siteOptions[0]
 
   return (
     <section className="space-y-6">

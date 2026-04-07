@@ -643,7 +643,15 @@ async function runLocalization(client, queueJob) {
 
         await client.query(
           `insert into article_localizations (article_id, locale, title, slug, excerpt, body, seo_title, seo_description)
-           values ($1, $2, $3, $4, $5, $6, $7, $8)`,
+           values ($1, $2, $3, $4, $5, $6, $7, $8)
+           on conflict (article_id, locale) do update
+             set title = excluded.title,
+                 slug = excluded.slug,
+                 excerpt = excluded.excerpt,
+                 body = excluded.body,
+                 seo_title = excluded.seo_title,
+                 seo_description = excluded.seo_description,
+                 updated_at = now()`,
           [articleId, targetLocale, parsed.title, finalSlug, parsed.excerpt, parsed.body, parsed.seoTitle, parsed.seoDescription],
         )
 

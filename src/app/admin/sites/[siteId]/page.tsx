@@ -1,10 +1,8 @@
-import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { asc, eq } from 'drizzle-orm'
 
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
 import { siteDomains, sites } from '@/lib/db/schema'
@@ -31,112 +29,79 @@ export default async function EditSitePage({
     .where(eq(siteDomains.siteId, siteId))
     .orderBy(asc(siteDomains.createdAt))
 
-  if (!site) {
-    notFound()
-  }
+  if (!site) notFound()
 
-  const primaryDomain = domains.find((domain) => domain.isPrimary)?.hostname ?? domains[0]?.hostname ?? ''
-  const additionalDomains = domains
-    .filter((domain) => domain.hostname !== primaryDomain)
-    .map((domain) => domain.hostname)
-    .join(', ')
+  const primaryDomain = domains.find((d) => d.isPrimary)?.hostname ?? domains[0]?.hostname ?? ''
+  const additionalDomains = domains.filter((d) => d.hostname !== primaryDomain).map((d) => d.hostname).join(', ')
   const authBrandName = site.authBrandName?.trim() ?? ''
   const googleClientId = site.googleClientId?.trim() ?? ''
   const authReady = Boolean(authBrandName && googleClientId)
-  const allowedOrigins = domains.map((domain) => `https://${domain.hostname}`)
+  const allowedOrigins = domains.map((d) => `https://${d.hostname}`)
 
   return (
-    <section className="space-y-6">
-      <Card>
-        <CardHeader className="space-y-4">
-          <div className="space-y-2">
-            <span className="eyebrow">{tr ? 'Site kurallarını düzenle' : 'Edit site rules'}</span>
-            <CardTitle className="text-2xl font-bold">{site.name}</CardTitle>
-            <CardDescription className="max-w-3xl text-sm leading-6">
-              {tr
-                ? 'Her site için editoryal davranışı, yasaklı konuları, zorunlu yapıyı ve AdSense güvenliğini sıkılaştırın.'
-                : 'Tighten editorial behavior, prohibited topics, required structure, and AdSense safety per site.'}
-            </CardDescription>
-          </div>
-          <Button asChild variant="outline" className="w-fit rounded-xl">
-            <Link href="/admin/sites">{tr ? 'Sitelere dön' : 'Back to sites'}</Link>
-          </Button>
-        </CardHeader>
-      </Card>
+    <section className="space-y-5">
+      {/* Page header */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="eyebrow">{tr ? 'Site Kuralları' : 'Site Rules'}</p>
+          <h1 className="mt-0.5 text-xl font-semibold text-foreground">{site.name}</h1>
+        </div>
+        <Badge variant={authReady ? 'success' : 'outline'} className="rounded-full px-3 py-1">
+          {tr ? (authReady ? 'Auth hazır' : 'Auth eksik') : authReady ? 'Auth ready' : 'Auth incomplete'}
+        </Badge>
+      </div>
 
+      {/* Auth status — compact info row */}
       <Card>
-        <CardHeader className="space-y-2">
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="eyebrow">{tr ? 'Okuyucu girişi hazırlığı' : 'Reader auth readiness'}</span>
-            <Badge variant={authReady ? 'success' : 'outline'} className="rounded-full px-3 py-1">
-              {authReady
-                ? tr
-                  ? 'Hazır'
-                  : 'Ready'
-                : tr
-                  ? 'Eksik'
-                  : 'Incomplete'}
-            </Badge>
-          </div>
-          <CardTitle className="text-[clamp(1.6rem,2.8vw,2.2rem)]">
-            {tr
-              ? 'Bu sitenin girişi diğer yayınlardan bağımsız kalmalı.'
-              : 'This site should keep its reader auth isolated from other publications.'}
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+            {tr ? 'Okuyucu girişi' : 'Reader auth'}
           </CardTitle>
-          <CardDescription className="max-w-3xl text-sm leading-6">
-            {tr
-              ? 'Birbiriyle ilgisiz markalarda aynı Google OAuth uygulamasını paylaşmayın. Bu site için ayrı client id kullanın ve sadece bu alan adlarını Google Console tarafına tanımlayın.'
-              : 'Do not share the same Google OAuth application across unrelated brands. Use a dedicated client id for this site and only register these domains in Google Console.'}
-          </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-5 md:grid-cols-2">
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-slate-500">
-              {tr ? 'Mevcut durum' : 'Current status'}
-            </p>
-            <div className="mt-4 space-y-3 text-sm text-slate-700">
-              <p>
-                <span className="font-semibold text-slate-950">{tr ? 'Auth marka adı:' : 'Auth brand:'}</span>{' '}
-                {authBrandName || (tr ? 'Henüz girilmedi' : 'Not set yet')}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-950">{tr ? 'Google client id:' : 'Google client id:'}</span>{' '}
-                {googleClientId ? `${googleClientId.slice(0, 24)}...` : tr ? 'Henüz girilmedi' : 'Not set yet'}
-              </p>
-              <p>
-                <span className="font-semibold text-slate-950">{tr ? 'Birincil domain:' : 'Primary domain:'}</span>{' '}
-                {primaryDomain || (tr ? 'Henüz bağlanmadı' : 'Not connected yet')}
-              </p>
+        <CardContent className="grid gap-4 pt-0 md:grid-cols-2">
+          <div className="space-y-2 text-sm">
+            <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
+              <span className="text-muted-foreground">{tr ? 'Marka adı' : 'Brand name'}</span>
+              <span className="font-medium">{authBrandName || <span className="text-muted-foreground/60">{tr ? 'Girilmedi' : 'Not set'}</span>}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2 border-b border-border/50 pb-2">
+              <span className="text-muted-foreground">Google Client ID</span>
+              <span className="font-mono text-xs">{googleClientId ? `${googleClientId.slice(0, 20)}…` : <span className="text-muted-foreground/60">{tr ? 'Girilmedi' : 'Not set'}</span>}</span>
+            </div>
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-muted-foreground">{tr ? 'Birincil domain' : 'Primary domain'}</span>
+              <span className="font-medium">{primaryDomain || <span className="text-muted-foreground/60">{tr ? 'Bağlanmadı' : 'Not connected'}</span>}</span>
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-5">
-            <p className="text-xs font-medium uppercase tracking-[0.22em] text-slate-500">
+          <div>
+            <p className="mb-2 text-xs font-medium uppercase tracking-widest text-muted-foreground">
               {tr ? 'Google Console originleri' : 'Google Console origins'}
             </p>
-            <div className="mt-4 space-y-2 text-sm text-slate-700">
-              {allowedOrigins.length > 0 ? (
-                allowedOrigins.map((origin) => (
-                  <div key={origin} className="rounded-xl border border-slate-200 bg-white px-3 py-2 font-mono text-xs text-slate-700">
+            {allowedOrigins.length > 0 ? (
+              <div className="space-y-1.5">
+                {allowedOrigins.map((origin) => (
+                  <div key={origin} className="rounded-lg border border-border/60 bg-muted/40 px-3 py-1.5 font-mono text-xs">
                     {origin}
                   </div>
-                ))
-              ) : (
-                <p>{tr ? 'Önce siteye en az bir domain bağlayın.' : 'Connect at least one domain to this site first.'}</p>
-              )}
-            </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-xs text-muted-foreground">{tr ? 'Önce bir domain bağlayın.' : 'Connect a domain first.'}</p>
+            )}
           </div>
         </CardContent>
       </Card>
 
+      {/* Settings form */}
       <SiteForm
         locale={locale}
         action={updateSiteAction.bind(null, site.id)}
-        submitLabel={tr ? 'Site kurallarını kaydet' : 'Save site rules'}
+        submitLabel={tr ? 'Kaydet' : 'Save'}
         description={
           tr
-            ? 'Bu kurallar gelecekteki OpenAI destekli taslaklar ve editoryal inceleme için siteye özel kontrol katmanı olarak kullanılacak.'
-            : 'These rules will be used as the site-specific control layer for future OpenAI-assisted drafts and editorial review.'
+            ? 'Bu kurallar OpenAI destekli taslaklar ve editoryal inceleme için siteye özel kontrol katmanı olarak kullanılır.'
+            : 'These rules serve as the site-specific control layer for OpenAI-assisted drafts and editorial review.'
         }
         initialValues={{
           name: site.name,

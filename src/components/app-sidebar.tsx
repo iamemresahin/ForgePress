@@ -386,7 +386,7 @@ export function AppSidebar({
                   >
                     <Link href="/admin/sites">
                       <IconTopologyStar3 />
-                      <span>{tr ? "Tüm Siteler" : "All Sites"}  </span>
+                      <span>{tr ? "Tüm Siteler" : "All Sites"}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>

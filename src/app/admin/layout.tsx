@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Bot, LogOut, Plus } from 'lucide-react'
+import { Bot, LogOut } from 'lucide-react'
 import { desc, eq } from 'drizzle-orm'
 
 import { AppSidebar } from '@/components/app-sidebar'
@@ -124,18 +124,6 @@ export default async function AdminLayout({
                         : locale === 'tr' ? 'Autopilot kapalı' : 'Autopilot off'}
                     </Button>
                   </form>
-                  <Button asChild variant="outline" className="rounded-2xl lg:hidden">
-                    <Link href="/admin/sites">{locale === 'tr' ? 'Siteler' : 'Sites'}</Link>
-                  </Button>
-                  <Button asChild variant="outline" className="rounded-2xl lg:hidden">
-                    <Link href="/admin/articles">{locale === 'tr' ? 'Makaleler' : 'Articles'}</Link>
-                  </Button>
-                  <Button asChild className="rounded-2xl">
-                    <Link href="/admin/articles">
-                      <Plus className="size-4" />
-                      {locale === 'tr' ? 'Yeni taslak' : 'New draft'}
-                    </Link>
-                  </Button>
                   <form action={logoutAction}>
                     <Button variant="outline" className="rounded-2xl">
                       <LogOut className="size-4" />
