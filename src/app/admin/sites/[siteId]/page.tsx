@@ -178,6 +178,7 @@ export default async function EditSitePage({
           googleClientId: site.googleClientId ?? '',
           adsensePublisherId: site.adsensePublisherId ?? '',
           adsenseSlotId: site.adsenseSlotId ?? '',
+          gtagId: site.gtagId ?? '',
           primaryHostname: primaryDomain,
           additionalHostnames: additionalDomains,
           themePreset: site.themePreset,

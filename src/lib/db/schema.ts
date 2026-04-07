@@ -75,6 +75,7 @@ export const sites = pgTable(
     googleClientId: text('google_client_id'),
     adsensePublisherId: varchar('adsense_publisher_id', { length: 64 }),
     adsenseSlotId: varchar('adsense_slot_id', { length: 32 }),
+    gtagId: varchar('gtag_id', { length: 32 }),
     themePrimary: varchar('theme_primary', { length: 16 }),
     themeAccent: varchar('theme_accent', { length: 16 }),
     themeBackground: varchar('theme_background', { length: 16 }),

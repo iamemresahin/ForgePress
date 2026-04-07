@@ -14,6 +14,7 @@ import { type ResolvedSiteTheme } from '@/lib/site-theme'
 import { PublicThemeShell } from '@/components/public/public-color-mode'
 import { PublicNewsAlert } from '@/components/public/public-news-alert'
 import { PublicSiteHeader } from '@/components/public/public-site-header'
+import { GoogleAnalytics } from '@/components/public/google-analytics'
 
 type PublicSiteHomeProps = {
   site: {
@@ -30,6 +31,7 @@ type PublicSiteHomeProps = {
     navTopicSlugs?: string[]
     authBrandName?: string | null
     googleClientId?: string | null
+    gtagId?: string | null
     homepageLayout: 'spotlight' | 'digest'
   }
   theme: ResolvedSiteTheme
@@ -696,9 +698,11 @@ function DefaultHome({
 }
 
 export function PublicSiteHome(props: PublicSiteHomeProps) {
+  const ga = <GoogleAnalytics gtagId={props.site.gtagId} />
+
   if (props.theme.preset === 'kantan_editorial') {
-    return <KantanLikeHome {...props} />
+    return <>{ga}<KantanLikeHome {...props} /></>
   }
 
-  return <DefaultHome {...props} />
+  return <>{ga}<DefaultHome {...props} /></>
 }

@@ -15,6 +15,7 @@ import { PublicCommentsPanel } from '@/components/public/public-comments-panel'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 import { AdUnit } from '@/components/public/ad-unit'
 import { PublicArticleActions, YouTubeEmbed } from '@/components/public/public-article-actions'
+import { GoogleAnalytics } from '@/components/public/google-analytics'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
@@ -453,9 +454,11 @@ function DefaultArticle({ article, theme }: PublicArticlePageProps) {
 }
 
 export function PublicArticlePage(props: PublicArticlePageProps) {
+  const ga = <GoogleAnalytics gtagId={props.article.gtagId} />
+
   if (props.theme.preset === 'kantan_editorial') {
-    return <KantanLikeArticle {...props} />
+    return <>{ga}<KantanLikeArticle {...props} /></>
   }
 
-  return <DefaultArticle {...props} />
+  return <>{ga}<DefaultArticle {...props} /></>
 }

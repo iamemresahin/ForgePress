@@ -3,6 +3,7 @@ import { ChevronRight } from 'lucide-react'
 
 import { type DerivedTopic, type PublicArticleSummary } from '@/lib/public-site'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
+import { GoogleAnalytics } from '@/components/public/google-analytics'
 
 type PublicTopicPageProps = {
   site: {
@@ -11,6 +12,7 @@ type PublicTopicPageProps = {
     defaultLocale: string
     niche: string | null
     topicLabelOverrides?: Record<string, string>
+    gtagId?: string | null
   }
   topic: DerivedTopic
   allTopics: DerivedTopic[]
@@ -77,6 +79,8 @@ export function PublicTopicPage({
   useHostRouting = false,
 }: PublicTopicPageProps) {
   return (
+    <>
+    <GoogleAnalytics gtagId={site.gtagId} />
     <main className="min-h-screen bg-black text-white" style={theme.style}>
       <header className="sticky top-0 z-40 border-b border-white/10 bg-black/90 backdrop-blur-xl">
         <div className="mx-auto flex w-full max-w-[1320px] items-center justify-between gap-4 px-4 py-4 md:px-6">
@@ -141,5 +145,6 @@ export function PublicTopicPage({
         </section>
       </div>
     </main>
+    </>
   )
 }

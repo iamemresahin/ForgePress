@@ -37,6 +37,7 @@ type SiteFormValues = {
   googleClientId: string
   adsensePublisherId: string
   adsenseSlotId: string
+  gtagId: string
   primaryHostname: string
   additionalHostnames: string
   themePreset:
@@ -540,6 +541,19 @@ export function SiteForm({
                   defaultValue={initialValues.adsenseSlotId}
                   placeholder="1234567890"
                 />
+              </div>
+              <div className="field">
+                <Label htmlFor="gtagId">{tr ? 'Google Analytics ölçüm kimliği' : 'Google Analytics measurement ID'}</Label>
+                <Input
+                  id="gtagId"
+                  name="gtagId"
+                  type="text"
+                  defaultValue={initialValues.gtagId}
+                  placeholder="G-XXXXXXXXXX"
+                />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {tr ? 'Google etiketinden ölçüm kimliği (G-...). Her site için farklı olabilir.' : 'Measurement ID from your Google tag (G-...). Can differ per site.'}
+                </p>
               </div>
             </div>
           </div>
