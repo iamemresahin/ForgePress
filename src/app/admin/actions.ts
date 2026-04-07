@@ -1,6 +1,7 @@
 'use server'
 
 import { redirect } from 'next/navigation'
+import { revalidatePath } from 'next/cache'
 import { cookies, headers } from 'next/headers'
 import { eq } from 'drizzle-orm'
 
@@ -26,6 +27,8 @@ export async function toggleAutopilotAction() {
     .insert(platformSettings)
     .values({ key: 'autopilot', value: !current })
     .onConflictDoUpdate({ target: platformSettings.key, set: { value: !current, updatedAt: new Date() } })
+
+  revalidatePath('/admin', 'layout')
 }
 
 export async function setActiveSiteAction(siteId: string) {

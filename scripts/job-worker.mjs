@@ -566,40 +566,68 @@ async function runLocalization(client, queueJob) {
     return { workerNote: 'Site has only one locale configured. Nothing to localize.', localizedArticles: 0 }
   }
 
-  // Find published or draft articles that are missing localizations
+  // Find the primary (most-content) localization for each draft/published article
+  // that still needs real translation — either locale rows are missing, OR the row
+  // is a stub (body identical to another locale, copied verbatim during ingestion).
   const articlesResult = await client.query(
-    `select a.id as article_id, a.canonical_topic, a.source_url,
+    `select distinct on (a.id)
+            a.id as article_id, a.canonical_topic, a.source_url,
             al.locale as base_locale, al.title, al.slug, al.excerpt, al.body,
             al.seo_title, al.seo_description
      from articles a
      inner join article_localizations al on al.article_id = a.id
-     where a.site_id = $1 and a.status in ('draft', 'published')
-     order by a.created_at asc
+     inner join sites s on s.id = a.site_id
+     where a.site_id = $1
+       and a.status in ('draft', 'published')
+       and jsonb_array_length(s.supported_locales) > 1
+       and (
+         -- Completely missing a locale
+         exists (
+           select 1 from jsonb_array_elements_text(s.supported_locales) as loc
+           where not exists (
+             select 1 from article_localizations al2
+             where al2.article_id = a.id and al2.locale = loc
+           )
+         )
+         OR
+         -- Or has at least one stub (body identical to this row's body in a different locale)
+         exists (
+           select 1 from article_localizations al_stub
+           where al_stub.article_id = a.id
+             and al_stub.locale != al.locale
+             and al_stub.body = al.body
+         )
+       )
+     order by a.id, length(al.body) desc
      limit 10`,
     [siteId],
   )
 
   if (articlesResult.rowCount === 0) {
-    return { workerNote: 'No articles available for localization.', localizedArticles: 0 }
-  }
-
-  // Group localizations per article
-  const articleMap = new Map()
-  for (const row of articlesResult.rows) {
-    if (!articleMap.has(row.article_id)) {
-      articleMap.set(row.article_id, { ...row, existingLocales: [] })
-    }
-    articleMap.get(row.article_id).existingLocales.push(row.base_locale)
+    return { workerNote: 'No articles need localization.', localizedArticles: 0 }
   }
 
   let localizedCount = 0
   const results = []
 
-  for (const [articleId, article] of articleMap) {
-    const missingLocales = supportedLocales.filter((l) => !article.existingLocales.includes(l))
-    if (missingLocales.length === 0) continue
+  for (const article of articlesResult.rows) {
+    const articleId = article.article_id
 
-    for (const targetLocale of missingLocales) {
+    // Determine which locales need real translation:
+    // - locales completely missing, OR
+    // - locales that are stubs (body == primary body)
+    const existingResult = await client.query(
+      `select locale, body from article_localizations where article_id = $1`,
+      [articleId],
+    )
+    const targetLocales = supportedLocales.filter((l) => {
+      if (l === article.base_locale) return false
+      const existing = existingResult.rows.find((r) => r.locale === l)
+      return !existing || existing.body === article.body
+    })
+    if (targetLocales.length === 0) continue
+
+    for (const targetLocale of targetLocales) {
       try {
         const responseText = await callOpenAiText(
           'You are a professional editorial translator for a multi-site publishing platform. ' +
@@ -1144,8 +1172,11 @@ async function pipelineTick() {
           await maybeQueueJob(client, siteId, 'rewrite', now)
         }
 
-        // Localization: draft/published articles missing a locale variant
-        const missingLocaleResult = await client.query(
+        // Localization: draft/published articles that have stub localizations
+        // (stubs are rows where the body is identical to another locale's body for
+        //  the same article — created during ingestion as placeholders).
+        // Also catches cases where locale rows are completely absent.
+        const needsLocalizationResult = await client.query(
           `select 1
            from articles a
            join sites s on s.id = a.site_id
@@ -1153,17 +1184,63 @@ async function pipelineTick() {
              and a.status in ('draft', 'published')
              and jsonb_array_length(s.supported_locales) > 1
              and exists (
+               select 1
+               from jsonb_array_elements_text(s.supported_locales) target_loc
+               left join article_localizations al_target
+                 on al_target.article_id = a.id and al_target.locale = target_loc
+               left join article_localizations al_primary
+                 on al_primary.article_id = a.id and al_primary.locale != target_loc
+               where al_target.id is null
+                  or (al_primary.id is not null and al_target.body = al_primary.body)
+             )
+           limit 1`,
+          [siteId],
+        )
+        if (needsLocalizationResult.rowCount > 0) {
+          await maybeQueueJob(client, siteId, 'localization', now)
+        }
+
+        // Auto-schedule: draft articles where all supported locales have
+        // distinct translated content and at least one image exists.
+        // Move them to 'scheduled' so the publish worker can pick them up.
+        const autoScheduleResult = await client.query(
+          `select a.id
+           from articles a
+           join sites s on s.id = a.site_id
+           where a.site_id = $1
+             and a.status = 'draft'
+             -- All supported locales have a real localization row
+             and not exists (
                select 1 from jsonb_array_elements_text(s.supported_locales) as loc
                where not exists (
                  select 1 from article_localizations al
                  where al.article_id = a.id and al.locale = loc
                )
              )
-           limit 1`,
+             -- No locale is still a stub (body identical to another locale)
+             and not exists (
+               select 1
+               from article_localizations al1
+               join article_localizations al2
+                 on al2.article_id = al1.article_id and al2.locale != al1.locale
+               where al1.article_id = a.id and al1.body = al2.body
+             )
+             -- At least one localization has an image
+             and exists (
+               select 1 from article_localizations al
+               where al.article_id = a.id
+                 and al.image_url is not null and al.image_url != ''
+             )`,
           [siteId],
         )
-        if (missingLocaleResult.rowCount > 0) {
-          await maybeQueueJob(client, siteId, 'localization', now)
+        if (autoScheduleResult.rowCount > 0) {
+          const ids = autoScheduleResult.rows.map((r) => r.id)
+          await client.query(
+            `update articles set status = 'scheduled', updated_at = now()
+             where id = any($1::uuid[])`,
+            [ids],
+          )
+          console.log(`[scheduler] auto-scheduled ${ids.length} article(s) for site ${siteId}`)
         }
 
         // Image: article localizations missing images
@@ -1211,7 +1288,8 @@ const pipelineInterval  = setInterval(() => { void pipelineTick() },   PIPELINE_
 
 async function shutdown(signal) {
   console.log(`[worker] shutting down on ${signal}`)
-  clearInterval(schedulerInterval)
+  clearInterval(ingestionInterval)
+  clearInterval(pipelineInterval)
   await worker.close()
   await queue.close()
   await redis.quit()
