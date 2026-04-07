@@ -152,6 +152,7 @@ export const articleLocalizations = pgTable(
     seoTitle: varchar('seo_title', { length: 255 }),
     seoDescription: text('seo_description'),
     imageUrl: text('image_url'),
+    videoUrl: text('video_url'),
     schemaJson: jsonb('schema_json').$type<Record<string, unknown> | null>().default(null),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),

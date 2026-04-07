@@ -47,6 +47,7 @@ export default async function EditArticlePage({
       body: articleLocalizations.body,
       seoTitle: articleLocalizations.seoTitle,
       seoDescription: articleLocalizations.seoDescription,
+      videoUrl: articleLocalizations.videoUrl,
       siteName: sites.name,
       siteSlug: sites.slug,
     })
@@ -123,6 +124,7 @@ export default async function EditArticlePage({
           title: article.title,
           slug: article.slug,
           sourceUrl: article.sourceUrl ?? '',
+          videoUrl: article.videoUrl ?? '',
           excerpt: article.excerpt ?? '',
           body: article.body,
           seoTitle: article.seoTitle ?? '',

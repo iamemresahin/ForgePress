@@ -375,6 +375,7 @@ export async function getPublishedArticleBySiteAndSlug(siteId: string, articleSl
       excerpt: articleLocalizations.excerpt,
       body: articleLocalizations.body,
       imageUrl: articleLocalizations.imageUrl,
+      videoUrl: articleLocalizations.videoUrl,
       locale: articleLocalizations.locale,
       slug: articleLocalizations.slug,
       siteName: sites.name,

@@ -16,6 +16,7 @@ type ArticleValues = {
   title: string
   slug: string
   sourceUrl: string
+  videoUrl: string
   excerpt: string
   body: string
   seoTitle: string

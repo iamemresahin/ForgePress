@@ -22,6 +22,7 @@ type ArticleFormValues = {
   title: string
   slug: string
   sourceUrl: string
+  videoUrl: string
   excerpt: string
   body: string
   seoTitle: string
@@ -90,6 +91,11 @@ export function ArticleForm({ submitLabel, description, siteOptions, initialValu
           <div className="field">
             <Label htmlFor="sourceUrl">{tr ? 'Kaynak URL' : 'Source URL'}</Label>
             <Input id="sourceUrl" name="sourceUrl" type="url" defaultValue={initialValues.sourceUrl} />
+          </div>
+
+          <div className="field">
+            <Label htmlFor="videoUrl">{tr ? 'Video URL (YouTube)' : 'Video URL (YouTube)'}</Label>
+            <Input id="videoUrl" name="videoUrl" type="url" defaultValue={initialValues.videoUrl} placeholder="https://youtube.com/watch?v=..." />
           </div>
 
           <div className="field">

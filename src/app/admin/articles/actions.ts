@@ -22,6 +22,7 @@ const articleSchema = z.object({
     .max(255)
     .regex(/^[a-z0-9-]+$/, 'Slug must use lowercase letters, numbers, and hyphens only.'),
   sourceUrl: z.string().url().optional(),
+  videoUrl: z.string().url().optional(),
   excerpt: z.string().max(500).optional(),
   body: z.string().min(40),
   seoTitle: z.string().max(255).optional(),
@@ -45,6 +46,7 @@ function normalizeArticleInput(formData: FormData) {
     title: formData.get('title'),
     slug: formData.get('slug'),
     sourceUrl: formData.get('sourceUrl') || undefined,
+    videoUrl: formData.get('videoUrl') || undefined,
     excerpt: formData.get('excerpt') || undefined,
     body: formData.get('body'),
     seoTitle: formData.get('seoTitle') || undefined,
@@ -115,6 +117,7 @@ export async function createArticleAction(_: { error?: string } | undefined, for
     slug: article.slug,
     excerpt: article.excerpt,
     body: article.body,
+    videoUrl: article.videoUrl,
     seoTitle: article.seoTitle,
     seoDescription: article.seoDescription,
   })
@@ -168,6 +171,7 @@ export async function updateArticleAction(
       slug: article.slug,
       excerpt: article.excerpt,
       body: article.body,
+      videoUrl: article.videoUrl,
       seoTitle: article.seoTitle,
       seoDescription: article.seoDescription,
       updatedAt: new Date(),

@@ -14,6 +14,7 @@ import { PublicThemeShell } from '@/components/public/public-color-mode'
 import { PublicCommentsPanel } from '@/components/public/public-comments-panel'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
 import { AdUnit } from '@/components/public/ad-unit'
+import { PublicArticleActions, YouTubeEmbed } from '@/components/public/public-article-actions'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
@@ -43,6 +44,8 @@ function formatPublishedDate(date: Date | null, locale: string) {
   }
 }
 
+const AD_INTERVAL = 5 // show an ad after every N paragraphs
+
 function ArticleBody({
   body,
   color,
@@ -55,57 +58,52 @@ function ArticleBody({
   adsenseSlotId?: string | null
 }) {
   const sections = splitBody(body)
-  const midPoint = Math.floor(sections.length / 2)
   const showAds = Boolean(adsensePublisherId && adsenseSlotId)
+  let paragraphCount = 0
 
   return (
     <div className="article-body" style={{ color }}>
       {sections.map((section, index) => {
+        const isHeading = section.startsWith('#')
+        if (!isHeading) paragraphCount++
+
         const el = (() => {
           if (section.startsWith('## ')) {
             return (
-              <h2 key={`${index}-${section}`} className="text-[clamp(1.6rem,3vw,2.1rem)]">
+              <h2 key={`${index}-h2`} className="text-[clamp(1.6rem,3vw,2.1rem)]">
                 {section.replace(/^##\s+/, '')}
               </h2>
             )
           }
-
           if (section.startsWith('# ')) {
             return (
-              <h2 key={`${index}-${section}`} className="text-[clamp(1.9rem,3vw,2.4rem)]">
+              <h2 key={`${index}-h1`} className="text-[clamp(1.9rem,3vw,2.4rem)]">
                 {section.replace(/^#\s+/, '')}
               </h2>
             )
           }
-
           return (
-            <p key={`${index}-${section}`} style={{ color }}>
+            <p key={`${index}-p`} style={{ color }}>
               {section.replace(/^\*\s+/, '')}
             </p>
           )
         })()
 
+        const showAdAfter = showAds && !isHeading && paragraphCount % AD_INTERVAL === 0
+
         return (
-          <>
+          <div key={index}>
             {el}
-            {showAds && index === midPoint && (
+            {showAdAfter && (
               <AdUnit
-                key="ad-mid"
                 publisherId={adsensePublisherId!}
                 slotId={adsenseSlotId!}
-                className="my-6"
+                className="my-8 overflow-hidden rounded-[18px]"
               />
             )}
-          </>
+          </div>
         )
       })}
-      {showAds && (
-        <AdUnit
-          publisherId={adsensePublisherId!}
-          slotId={adsenseSlotId!}
-          className="mt-6"
-        />
-      )}
     </div>
   )
 }
@@ -185,6 +183,7 @@ function KantanLikeArticle({
       </header>
 
       <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
+        {/* Hero metadata + title */}
         <section className="space-y-5">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-medium uppercase tracking-[0.24em]">
             <span style={{ color: '#fb923c' }}>{article.locale}</span>
@@ -205,14 +204,20 @@ function KantanLikeArticle({
           ) : null}
         </section>
 
+        {/* Hero image */}
         <EditorialImage
           imageUrl={article.imageUrl ?? buildEditorialImageDataUri(article)}
           title={article.title}
           accent={theme.tokens.heroGlow}
         />
 
+        {/* Video embed (if available) */}
+        {article.videoUrl ? (
+          <YouTubeEmbed url={article.videoUrl} />
+        ) : null}
 
         <div className="grid gap-6">
+          {/* Article body */}
           <article className="public-panel min-w-0 rounded-[28px] border px-6 py-7 md:px-10 md:py-10">
             <ArticleBody
               body={article.body}
@@ -220,8 +225,31 @@ function KantanLikeArticle({
               adsensePublisherId={article.adsensePublisherId}
               adsenseSlotId={article.adsenseSlotId}
             />
+
+            {/* Source link at article end */}
+            {article.sourceUrl ? (
+              <div className="public-border mt-8 border-t pt-6">
+                <a
+                  href={article.sourceUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
+                >
+                  {copy.openOriginalCoverage}
+                  <ArrowUpRight className="size-4" />
+                </a>
+              </div>
+            ) : null}
           </article>
 
+          {/* Social actions */}
+          <PublicArticleActions
+            articleId={article.id}
+            title={article.title}
+            locale={article.locale}
+          />
+
+          {/* Related articles */}
           {relatedArticles.length > 0 ? (
             <section className="public-panel rounded-[28px] border p-5 md:p-6">
               <div className="public-border border-b pb-4">
@@ -265,6 +293,7 @@ function KantanLikeArticle({
             </section>
           ) : null}
 
+          {/* Comments */}
           <PublicCommentsPanel
             siteId={article.siteId}
             siteName={article.siteName}
@@ -287,29 +316,15 @@ function KantanLikeArticle({
               {copy.backHome}
             </Link>
 
-            <div className="flex flex-wrap items-center gap-3">
-              {article.sourceUrl && (
-                <a
-                  href={article.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
-                >
-                  {copy.openOriginalCoverage}
-                  <ArrowUpRight className="size-4" />
-                </a>
-              )}
-
-              {nextHref && nextArticle && (
-                <Link
-                  href={nextHref}
-                  className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
-                >
-                  {copy.nextStory}
-                  <ArrowRight className="size-4" />
-                </Link>
-              )}
-            </div>
+            {nextHref && nextArticle && (
+              <Link
+                href={nextHref}
+                className="public-border public-text-dim inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
+              >
+                {copy.nextStory}
+                <ArrowRight className="size-4" />
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -400,6 +415,10 @@ function DefaultArticle({ article, theme }: PublicArticlePageProps) {
           </div>
         </section>
 
+        {article.videoUrl ? (
+          <YouTubeEmbed url={article.videoUrl} />
+        ) : null}
+
         <article className="rounded-[28px] border p-6 md:p-8" style={bodyStyle}>
           <ArticleBody
             body={article.body}
@@ -407,7 +426,27 @@ function DefaultArticle({ article, theme }: PublicArticlePageProps) {
             adsensePublisherId={article.adsensePublisherId}
             adsenseSlotId={article.adsenseSlotId}
           />
+          {article.sourceUrl ? (
+            <div className="mt-8 border-t pt-6" style={{ borderColor: theme.tokens.border }}>
+              <a
+                href={article.sourceUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition hover:opacity-80"
+                style={{ borderColor: theme.tokens.border, color: theme.tokens.muted }}
+              >
+                Kaynak Habere Git
+                <ArrowUpRight className="size-4" />
+              </a>
+            </div>
+          ) : null}
         </article>
+
+        <PublicArticleActions
+          articleId={article.id}
+          title={article.title}
+          locale={article.locale}
+        />
       </div>
     </PublicThemeShell>
   )

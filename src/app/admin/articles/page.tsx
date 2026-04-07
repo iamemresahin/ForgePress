@@ -98,6 +98,7 @@ export default async function AdminArticlesPage() {
             title: '',
             slug: '',
             sourceUrl: '',
+            videoUrl: '',
             excerpt: '',
             body: '',
             seoTitle: '',
