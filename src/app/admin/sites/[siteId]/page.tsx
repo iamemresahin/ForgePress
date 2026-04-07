@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { asc, eq } from 'drizzle-orm'
 
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { requireAdminSession } from '@/lib/auth'
 import { db } from '@/lib/db'
@@ -9,7 +10,7 @@ import { siteDomains, sites } from '@/lib/db/schema'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 import { getThemePreset } from '@/lib/site-theme'
 
-import { updateSiteAction } from '../actions'
+import { setSiteStatusAction, updateSiteAction } from '../actions'
 import { SiteForm } from '../site-form'
 
 export default async function EditSitePage({
@@ -38,6 +39,9 @@ export default async function EditSitePage({
   const authReady = Boolean(authBrandName && googleClientId)
   const allowedOrigins = domains.map((d) => `https://${d.hostname}`)
 
+  const isActive = site.status === 'active'
+  const isPaused = site.status === 'paused'
+
   return (
     <section className="space-y-5">
       {/* Page header */}
@@ -46,10 +50,59 @@ export default async function EditSitePage({
           <p className="eyebrow">{tr ? 'Site Kuralları' : 'Site Rules'}</p>
           <h1 className="mt-0.5 text-xl font-semibold text-foreground">{site.name}</h1>
         </div>
-        <Badge variant={authReady ? 'success' : 'outline'} className="rounded-full px-3 py-1">
-          {tr ? (authReady ? 'Auth hazır' : 'Auth eksik') : authReady ? 'Auth ready' : 'Auth incomplete'}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Badge
+            variant={isActive ? 'success' : isPaused ? 'secondary' : 'outline'}
+            className="rounded-full px-3 py-1"
+          >
+            {isActive
+              ? tr ? '🟢 Aktif' : '🟢 Active'
+              : isPaused
+                ? tr ? '⏸ Durduruldu' : '⏸ Paused'
+                : tr ? '⚪ Taslak' : '⚪ Draft'}
+          </Badge>
+          <Badge variant={authReady ? 'success' : 'outline'} className="rounded-full px-3 py-1">
+            {tr ? (authReady ? 'Auth hazır' : 'Auth eksik') : authReady ? 'Auth ready' : 'Auth incomplete'}
+          </Badge>
+        </div>
       </div>
+
+      {/* Site status control */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-semibold text-muted-foreground uppercase tracking-widest">
+            {tr ? 'Site durumu' : 'Site status'}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex flex-wrap items-center gap-3 pt-0">
+          {!isActive && (
+            <form action={setSiteStatusAction.bind(null, site.id, 'active')}>
+              <Button type="submit" className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white">
+                {tr ? '🟢 Siteyi aktive et' : '🟢 Activate site'}
+              </Button>
+            </form>
+          )}
+          {isActive && (
+            <form action={setSiteStatusAction.bind(null, site.id, 'paused')}>
+              <Button type="submit" variant="outline" className="rounded-xl">
+                {tr ? '⏸ Duraklat' : '⏸ Pause'}
+              </Button>
+            </form>
+          )}
+          {(isActive || isPaused) && (
+            <form action={setSiteStatusAction.bind(null, site.id, 'draft')}>
+              <Button type="submit" variant="outline" className="rounded-xl text-muted-foreground">
+                {tr ? 'Taslağa al' : 'Set to draft'}
+              </Button>
+            </form>
+          )}
+          <p className="text-sm text-muted-foreground">
+            {isActive
+              ? tr ? 'Autopilot bu siteyi işliyor. Ingestion ve pipeline aktif.' : 'Autopilot is processing this site. Ingestion and pipeline are active.'
+              : tr ? 'Site aktif değil — autopilot bu siteyi atlar.' : 'Site is not active — autopilot skips this site.'}
+          </p>
+        </CardContent>
+      </Card>
 
       {/* Auth status — compact info row */}
       <Card>

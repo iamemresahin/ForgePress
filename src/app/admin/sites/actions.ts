@@ -463,6 +463,24 @@ export async function quickCreateSiteAction(_: { error?: string } | undefined, f
   redirect(`/admin/sites/${siteId}`)
 }
 
+export async function setSiteStatusAction(siteId: string, status: 'active' | 'paused' | 'draft') {
+  const session = await requireAdminSession()
+  requirePlatformAdminRole(session)
+
+  const [site] = await db
+    .update(sites)
+    .set({ status, updatedAt: new Date() })
+    .where(eq(sites.id, siteId))
+    .returning({ slug: sites.slug })
+
+  if (!site) return
+
+  revalidatePath('/admin')
+  revalidatePath('/admin/sites')
+  revalidatePath(`/admin/sites/${siteId}`)
+  revalidatePath(`/${site.slug}`)
+}
+
 export async function generateSiteRulesAction(
   name: string,
   niche: string,
