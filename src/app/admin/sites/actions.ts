@@ -462,3 +462,35 @@ export async function quickCreateSiteAction(_: { error?: string } | undefined, f
 
   redirect(`/admin/sites/${siteId}`)
 }
+
+export async function generateSiteRulesAction(
+  name: string,
+  niche: string,
+  locales: string[],
+): Promise<{
+  error?: string
+  toneGuide?: string
+  editorialGuidelines?: string
+  adsensePolicyNotes?: string
+  prohibitedTopics?: string[]
+  requiredSections?: string[]
+  reviewChecklist?: string[]
+}> {
+  await requireAdminSession()
+
+  if (!name || name.length < 2) return { error: 'Site name is required.' }
+
+  try {
+    const config = await generateSiteConfig(name, niche || name, locales.length > 0 ? locales : ['en'])
+    return {
+      toneGuide: config.toneGuide,
+      editorialGuidelines: config.editorialGuidelines,
+      adsensePolicyNotes: config.adsensePolicyNotes,
+      prohibitedTopics: config.prohibitedTopics,
+      requiredSections: config.requiredSections,
+      reviewChecklist: config.reviewChecklist,
+    }
+  } catch {
+    return { error: 'AI rule generation failed. Check your OpenAI key and try again.' }
+  }
+}

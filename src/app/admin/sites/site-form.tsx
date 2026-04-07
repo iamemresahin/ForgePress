@@ -1,7 +1,8 @@
 'use client'
 
-import { useActionState, useState } from 'react'
+import { useActionState, useRef, useTransition, useState } from 'react'
 
+import { Sparkles, X, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -14,6 +15,7 @@ import {
   THEME_PRESETS,
   resolveThemePreview,
 } from '@/lib/site-theme'
+import { generateSiteRulesAction } from './actions'
 
 type SiteFormValues = {
   name: string
@@ -84,6 +86,86 @@ const THEME_STARTERS: Array<{
   },
 ]
 
+function CheckableTagList({
+  items,
+  onChange,
+  placeholder,
+}: {
+  items: string[]
+  onChange: (items: string[]) => void
+  placeholder: string
+}) {
+  const [draft, setDraft] = useState('')
+
+  function remove(index: number) {
+    onChange(items.filter((_, i) => i !== index))
+  }
+
+  function add() {
+    const trimmed = draft.trim()
+    if (!trimmed || items.includes(trimmed)) return
+    onChange([...items, trimmed])
+    setDraft('')
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="space-y-1.5">
+        {items.map((item, i) => (
+          <label
+            key={i}
+            className="flex cursor-pointer items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm transition hover:border-slate-300"
+          >
+            <input
+              type="checkbox"
+              defaultChecked
+              className="accent-primary"
+              onChange={(e) => {
+                if (!e.target.checked) remove(i)
+              }}
+            />
+            <span className="flex-1 text-slate-800">{item}</span>
+            <button
+              type="button"
+              className="ml-auto rounded-md p-0.5 text-slate-400 hover:text-slate-700"
+              onClick={() => remove(i)}
+            >
+              <X className="size-3.5" />
+            </button>
+          </label>
+        ))}
+        {items.length === 0 && (
+          <p className="rounded-xl border border-dashed border-slate-200 px-3 py-4 text-center text-xs text-slate-400">
+            {placeholder}
+          </p>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="text"
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault()
+              add()
+            }
+          }}
+          placeholder={placeholder}
+          className="flex h-9 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"
+        />
+        <button
+          type="button"
+          onClick={add}
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-primary hover:text-primary"
+        >
+          <Plus className="size-4" />
+        </button>
+      </div>
+    </div>
+  )
+}
+
 export function SiteForm({
   action,
   submitLabel,
@@ -105,6 +187,27 @@ export function SiteForm({
   const [themePrimary, setThemePrimary] = useState(initialValues.themePrimary)
   const [themeAccent, setThemeAccent] = useState(initialValues.themeAccent)
   const [themeBackground, setThemeBackground] = useState(initialValues.themeBackground)
+
+  const nameRef = useRef<HTMLInputElement>(null)
+  const nicheRef = useRef<HTMLInputElement>(null)
+  const [generating, startGenerate] = useTransition()
+
+  // Rule text fields - controlled so AI can update them
+  const [toneGuide, setToneGuide] = useState(initialValues.toneGuide)
+  const [editorialGuidelines, setEditorialGuidelines] = useState(initialValues.editorialGuidelines)
+  const [adsensePolicyNotes, setAdsensePolicyNotes] = useState(initialValues.adsensePolicyNotes)
+
+  // List fields - controlled as string arrays
+  const [prohibitedTopics, setProhibitedTopics] = useState<string[]>(
+    initialValues.prohibitedTopics ? initialValues.prohibitedTopics.split(',').map(s => s.trim()).filter(Boolean) : []
+  )
+  const [requiredSections, setRequiredSections] = useState<string[]>(
+    initialValues.requiredSections ? initialValues.requiredSections.split(',').map(s => s.trim()).filter(Boolean) : []
+  )
+  const [reviewChecklist, setReviewChecklist] = useState<string[]>(
+    initialValues.reviewChecklist ? initialValues.reviewChecklist.split(',').map(s => s.trim()).filter(Boolean) : []
+  )
+  const [generateError, setGenerateError] = useState<string | null>(null)
 
   const themePreview = resolveThemePreview({
     themePreset,
@@ -129,6 +232,28 @@ export function SiteForm({
     setThemeBackground(starter.background)
   }
 
+  function handleGenerate() {
+    setGenerateError(null)
+    startGenerate(async () => {
+      const name = nameRef.current?.value ?? initialValues.name
+      const niche = nicheRef.current?.value ?? initialValues.niche
+      const locales = initialValues.supportedLocales
+        ? initialValues.supportedLocales.split(',').map(s => s.trim()).filter(Boolean)
+        : ['en']
+      const result = await generateSiteRulesAction(name, niche, locales)
+      if (result.error) {
+        setGenerateError(result.error)
+        return
+      }
+      if (result.toneGuide) setToneGuide(result.toneGuide)
+      if (result.editorialGuidelines) setEditorialGuidelines(result.editorialGuidelines)
+      if (result.adsensePolicyNotes) setAdsensePolicyNotes(result.adsensePolicyNotes)
+      if (result.prohibitedTopics) setProhibitedTopics(result.prohibitedTopics)
+      if (result.requiredSections) setRequiredSections(result.requiredSections)
+      if (result.reviewChecklist) setReviewChecklist(result.reviewChecklist)
+    })
+  }
+
   return (
     <Card>
       <CardHeader className="space-y-4">
@@ -143,7 +268,7 @@ export function SiteForm({
           <div className="form-grid">
             <div className="field">
               <Label htmlFor="name">{tr ? 'Site adı' : 'Site name'}</Label>
-              <Input id="name" name="name" type="text" defaultValue={initialValues.name} />
+              <Input ref={nameRef} id="name" name="name" type="text" defaultValue={initialValues.name} />
             </div>
             <div className="field">
               <Label htmlFor="slug">Slug</Label>
@@ -171,8 +296,35 @@ export function SiteForm({
 
           <div className="field">
             <Label htmlFor="niche">{tr ? 'Niş alan' : 'Niche'}</Label>
-            <Input id="niche" name="niche" type="text" defaultValue={initialValues.niche} />
+            <Input ref={nicheRef} id="niche" name="niche" type="text" defaultValue={initialValues.niche} />
           </div>
+
+          <div className="flex items-center justify-between gap-3 rounded-2xl border border-sky-100 bg-sky-50/60 px-4 py-3">
+            <div>
+              <p className="text-sm font-medium text-slate-800">
+                {tr ? 'Editoryal kurallar' : 'Editorial rules'}
+              </p>
+              <p className="text-xs text-slate-500">
+                {tr
+                  ? 'Niş alana göre ton kılavuzu, editoryal kurallar ve kontrol listesi otomatik oluşturulur.'
+                  : 'Tone guide, editorial rules, and checklists auto-generated from the niche.'}
+              </p>
+            </div>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="shrink-0 rounded-xl border-sky-200 bg-white hover:border-sky-300"
+              disabled={generating}
+              onClick={handleGenerate}
+            >
+              <Sparkles className="size-4" />
+              {generating
+                ? tr ? 'Oluşturuluyor...' : 'Generating...'
+                : tr ? 'AI ile oluştur' : 'Generate with AI'}
+            </Button>
+          </div>
+          {generateError ? <p className="form-error">{generateError}</p> : null}
 
           <div className="form-grid">
             <div className="field">
@@ -199,7 +351,7 @@ export function SiteForm({
 
           <div className="field">
             <Label htmlFor="toneGuide">{tr ? 'Ton kılavuzu' : 'Tone guide'}</Label>
-            <Textarea id="toneGuide" name="toneGuide" rows={4} defaultValue={initialValues.toneGuide} />
+            <Textarea id="toneGuide" name="toneGuide" rows={4} value={toneGuide} onChange={(e) => setToneGuide(e.target.value)} />
           </div>
 
           <div className="field">
@@ -208,7 +360,8 @@ export function SiteForm({
               id="editorialGuidelines"
               name="editorialGuidelines"
               rows={5}
-              defaultValue={initialValues.editorialGuidelines}
+              value={editorialGuidelines}
+              onChange={(e) => setEditorialGuidelines(e.target.value)}
               placeholder={
                 tr
                   ? 'Kaynak kullanımı, atıf kuralları, izin verilen iddia seviyesi ve yayın dilini belirtin.'
@@ -223,7 +376,8 @@ export function SiteForm({
               id="adsensePolicyNotes"
               name="adsensePolicyNotes"
               rows={5}
-              defaultValue={initialValues.adsensePolicyNotes}
+              value={adsensePolicyNotes}
+              onChange={(e) => setAdsensePolicyNotes(e.target.value)}
               placeholder={
                 tr
                   ? 'Reklam yoğunluğu, yanıltıcı tıklamadan kaçınma, hassas konu yönetimi ve sayfa kalite kurallarını tanımlayın.'
@@ -235,47 +389,32 @@ export function SiteForm({
           <div className="form-grid">
             <div className="field">
               <Label htmlFor="prohibitedTopics">{tr ? 'Yasaklı konular' : 'Prohibited topics'}</Label>
-              <Textarea
-                id="prohibitedTopics"
-                name="prohibitedTopics"
-                rows={4}
-                defaultValue={initialValues.prohibitedTopics}
-                placeholder={
-                  tr
-                    ? 'Virgülle ayırın: kumar, silahlar, tıbbi iddialar'
-                    : 'Comma-separated: gambling, weapons, medical claims'
-                }
+              <CheckableTagList
+                items={prohibitedTopics}
+                onChange={setProhibitedTopics}
+                placeholder={tr ? 'Konu ekle...' : 'Add topic...'}
               />
+              <input type="hidden" name="prohibitedTopics" value={prohibitedTopics.join(', ')} />
             </div>
             <div className="field">
               <Label htmlFor="requiredSections">{tr ? 'Zorunlu bölümler' : 'Required sections'}</Label>
-              <Textarea
-                id="requiredSections"
-                name="requiredSections"
-                rows={4}
-                defaultValue={initialValues.requiredSections}
-                placeholder={
-                  tr
-                    ? 'Virgülle ayırın: Özet, Bağlam, Dikkat edilmesi gerekenler'
-                    : 'Comma-separated: Summary, Context, What to watch'
-                }
+              <CheckableTagList
+                items={requiredSections}
+                onChange={setRequiredSections}
+                placeholder={tr ? 'Bölüm ekle...' : 'Add section...'}
               />
+              <input type="hidden" name="requiredSections" value={requiredSections.join(', ')} />
             </div>
           </div>
 
           <div className="field">
             <Label htmlFor="reviewChecklist">{tr ? 'İnceleme kontrol listesi' : 'Review checklist'}</Label>
-            <Textarea
-              id="reviewChecklist"
-              name="reviewChecklist"
-              rows={4}
-              defaultValue={initialValues.reviewChecklist}
-              placeholder={
-                tr
-                  ? 'Virgülle ayırın: kaynak atfını doğrula, kopya paragraf olmadığını kontrol et, başlık doğruluğunu onayla'
-                  : 'Comma-separated: verify source attribution, confirm no copied paragraphs, confirm headline accuracy'
-              }
+            <CheckableTagList
+              items={reviewChecklist}
+              onChange={setReviewChecklist}
+              placeholder={tr ? 'Kontrol maddesi ekle...' : 'Add checklist item...'}
             />
+            <input type="hidden" name="reviewChecklist" value={reviewChecklist.join(', ')} />
           </div>
 
           <div className="field">
@@ -499,7 +638,7 @@ export function SiteForm({
             </div>
 
             <div className="field">
-              <Label htmlFor="themePreset">{tr ? 'Tema preset’i' : 'Theme preset'}</Label>
+              <Label htmlFor="themePreset">{tr ? 'Tema preset\'i' : 'Theme preset'}</Label>
               <select
                 id="themePreset"
                 name="themePreset"
