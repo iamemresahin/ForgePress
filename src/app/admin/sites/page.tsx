@@ -40,10 +40,10 @@ export default async function AdminSitesPage() {
   return (
     <section className="space-y-6">
       <Card>
-        <CardHeader className="space-y-5">
+        <CardHeader className="space-y-2">
           <div className="space-y-2">
             <span className="eyebrow">{tr ? 'Siteler' : 'Sites'}</span>
-            <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+            <CardTitle className="text-2xl font-bold">
               {tr
                 ? 'Tüm yayın yüzeylerini tek yönetim panelinden yönetin.'
                 : 'Manage every publication from one admin plane.'}
@@ -87,7 +87,7 @@ export default async function AdminSitesPage() {
         <Card>
           <CardHeader className="space-y-2">
             <span className="eyebrow">{tr ? 'Site listesi' : 'Site listing'}</span>
-            <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+            <CardTitle className="text-lg">
               {tr ? 'Tanımlı yayın yüzeyleri' : 'Configured publication surfaces'}
             </CardTitle>
             <CardDescription className="text-sm leading-6">

@@ -51,7 +51,7 @@ export default async function EditSitePage({
         <CardHeader className="space-y-4">
           <div className="space-y-2">
             <span className="eyebrow">{tr ? 'Site kurallarını düzenle' : 'Edit site rules'}</span>
-            <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">{site.name}</CardTitle>
+            <CardTitle className="text-2xl font-bold">{site.name}</CardTitle>
             <CardDescription className="max-w-3xl text-sm leading-6">
               {tr
                 ? 'Her site için editoryal davranışı, yasaklı konuları, zorunlu yapıyı ve AdSense güvenliğini sıkılaştırın.'
@@ -65,7 +65,7 @@ export default async function EditSitePage({
       </Card>
 
       <Card>
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-2">
           <div className="flex flex-wrap items-center gap-3">
             <span className="eyebrow">{tr ? 'Okuyucu girişi hazırlığı' : 'Reader auth readiness'}</span>
             <Badge variant={authReady ? 'success' : 'outline'} className="rounded-full px-3 py-1">

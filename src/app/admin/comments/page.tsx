@@ -56,33 +56,33 @@ export default async function AdminCommentsPage() {
     <section className="space-y-6">
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
-          <CardHeader className="space-y-3">
+          <CardHeader className="space-y-2">
             <Badge className="w-fit rounded-full bg-primary/12 px-3 py-1 text-primary shadow-none">
               {tr ? 'Toplam yorum' : 'Total comments'}
             </Badge>
-            <CardTitle className="text-4xl">{uniqueRows.length}</CardTitle>
+            <CardTitle className="text-2xl">{uniqueRows.length}</CardTitle>
             <CardDescription>
               {tr ? 'Yayın yüzeylerinde oluşan tüm okuyucu yorumları.' : 'All reader comments arriving across publication surfaces.'}
             </CardDescription>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="space-y-3">
+          <CardHeader className="space-y-2">
             <Badge variant="outline" className="w-fit rounded-full px-3 py-1">
               {tr ? 'Yayında' : 'Visible'}
             </Badge>
-            <CardTitle className="text-4xl">{approvedCount}</CardTitle>
+            <CardTitle className="text-2xl">{approvedCount}</CardTitle>
             <CardDescription>
               {tr ? 'Şu anda public tarafta görünen yorumlar.' : 'Comments currently visible on public article pages.'}
             </CardDescription>
           </CardHeader>
         </Card>
         <Card>
-          <CardHeader className="space-y-3">
+          <CardHeader className="space-y-2">
             <Badge variant="outline" className="w-fit rounded-full px-3 py-1">
               {tr ? 'Gizlenen' : 'Hidden'}
             </Badge>
-            <CardTitle className="text-4xl">{hiddenCount}</CardTitle>
+            <CardTitle className="text-2xl">{hiddenCount}</CardTitle>
             <CardDescription>
               {tr ? 'Moderasyon nedeniyle public akıştan kaldırılan yorumlar.' : 'Comments removed from the public discussion by moderation.'}
             </CardDescription>
@@ -93,7 +93,7 @@ export default async function AdminCommentsPage() {
       <Card>
         <CardHeader className="space-y-2">
           <span className="eyebrow">{tr ? 'Moderasyon kuyruğu' : 'Moderation queue'}</span>
-          <CardTitle className="text-[clamp(1.8rem,3vw,2.4rem)]">
+          <CardTitle className="text-lg">
             {tr ? 'Okuyucu yorumlarını yönetin' : 'Manage reader comments'}
           </CardTitle>
           <CardDescription>

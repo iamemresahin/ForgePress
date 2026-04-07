@@ -80,9 +80,9 @@ export default async function AdminLayout({
           }
           className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(14,165,233,0.08),transparent_22%),radial-gradient(circle_at_top_right,rgba(59,130,246,0.08),transparent_24%),linear-gradient(180deg,#ffffff_0%,#f4faff_100%)] text-foreground"
         >
-          <div className="mx-auto flex min-h-screen w-full max-w-[1440px] flex-col gap-4 px-4 py-4 lg:gap-6 lg:px-6 lg:py-6">
-            <Card className="rounded-[28px] border-sky-100/80 bg-white/95 shadow-[0_28px_80px_-42px_rgba(2,132,199,0.24)] backdrop-blur">
-              <div className="flex flex-col gap-4 px-5 py-5 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+          <div className="mx-auto flex min-h-screen w-full max-w-[1440px] flex-col gap-4 px-4 py-4 lg:gap-5 lg:px-6 lg:py-5">
+            <Card className="rounded-2xl border-sky-100/80 bg-white/95 shadow-sm backdrop-blur">
+              <div className="flex flex-col gap-3 px-4 py-3 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
                 <div className="flex min-w-0 flex-1 items-start gap-3">
                   <SidebarTrigger className="-ml-1 mt-0.5 shrink-0 text-primary hover:bg-sky-50 hover:text-primary" />
                   <div className="min-w-0 flex-1">

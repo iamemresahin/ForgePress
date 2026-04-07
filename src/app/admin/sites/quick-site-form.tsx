@@ -50,7 +50,7 @@ export function QuickSiteForm({ locale }: { locale: InterfaceLocale }) {
           <Sparkles className="size-5 text-primary" />
           <span className="eyebrow">{tr ? 'Hızlı site kurulumu' : 'Quick site setup'}</span>
         </div>
-        <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+        <CardTitle className="text-lg">
           {tr ? 'Sitenin içeriğini anlatın, gerisini AI ayarlasın' : 'Describe your site, AI configures the rest'}
         </CardTitle>
         <CardDescription className="text-sm leading-6">

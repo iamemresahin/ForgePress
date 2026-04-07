@@ -17,7 +17,7 @@ export default async function AdminOpsPage() {
         <CardHeader className="space-y-4">
           <div className="space-y-2">
             <span className="eyebrow">{tr ? 'Operasyonlar' : 'Operations'}</span>
-            <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+            <CardTitle className="text-2xl font-bold">
               {tr ? 'Coolify ve çalışma hazırlık kontrolleri.' : 'Coolify and runtime readiness checks.'}
             </CardTitle>
             <CardDescription className="max-w-3xl text-sm leading-6">
@@ -56,7 +56,7 @@ export default async function AdminOpsPage() {
         <Card>
           <CardHeader className="space-y-2">
             <span className="eyebrow">{tr ? 'Kontroller' : 'Checks'}</span>
-            <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+            <CardTitle className="text-lg">
               {tr ? 'Yapılandırma durumu' : 'Configuration status'}
             </CardTitle>
           </CardHeader>
@@ -103,7 +103,7 @@ export default async function AdminOpsPage() {
         <Card>
           <CardHeader className="space-y-2">
             <span className="eyebrow">{tr ? 'Bağlantı' : 'Connectivity'}</span>
-            <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+            <CardTitle className="text-lg">
               {tr ? 'Çalışma erişilebilirliği' : 'Runtime reachability'}
             </CardTitle>
           </CardHeader>

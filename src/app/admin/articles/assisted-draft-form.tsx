@@ -31,7 +31,7 @@ export function AssistedDraftForm({
       <CardHeader className="space-y-4">
         <div className="space-y-2">
           <span className="eyebrow">{tr ? 'OpenAI destekli taslak' : 'OpenAI-assisted draft'}</span>
-          <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+          <CardTitle className="text-lg">
             {tr ? 'İnceleme öncelikli bir makale taslağı üretin.' : 'Generate a review-first article draft.'}
           </CardTitle>
           <CardDescription className="text-sm leading-6">

@@ -29,7 +29,7 @@ export function JobTriggerForm({
       <CardHeader className="space-y-4">
         <div className="space-y-2">
           <span className="eyebrow">{tr ? 'Kuyruk kontrolü' : 'Queue control'}</span>
-          <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+          <CardTitle className="text-lg">
             {tr ? 'Manuel görev tetikle.' : 'Trigger a manual job.'}
           </CardTitle>
           <CardDescription className="text-sm leading-6">

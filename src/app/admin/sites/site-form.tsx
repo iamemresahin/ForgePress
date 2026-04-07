@@ -134,7 +134,7 @@ export function SiteForm({
       <CardHeader className="space-y-4">
         <div className="space-y-2">
           <span className="eyebrow">{tr ? 'Site kuralları' : 'Site rules'}</span>
-          <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">{submitLabel}</CardTitle>
+          <CardTitle className="text-lg">{submitLabel}</CardTitle>
           <CardDescription className="text-sm leading-6">{description}</CardDescription>
         </div>
       </CardHeader>
@@ -635,7 +635,7 @@ export function SiteForm({
 
                   <div className={homepageLayout === 'digest' ? 'grid gap-4 lg:grid-cols-[0.95fr_1.05fr]' : 'grid gap-4 lg:grid-cols-[1.1fr_0.9fr]'}>
                     <div className="space-y-3">
-                      <h3 className="text-3xl font-semibold leading-tight">{initialValues.name || (tr ? 'Site adı' : 'Site name')}</h3>
+                      <h3 className="text-xl font-semibold leading-tight">{initialValues.name || (tr ? 'Site adı' : 'Site name')}</h3>
                       <p className="text-sm leading-6" style={{ color: themePreview.tokens.muted }}>
                         {initialValues.niche || (tr ? 'Tema, tipografi ve kart ritmi önizlemesi burada görünür.' : 'Theme, typography, and card rhythm preview appears here.')}
                       </p>

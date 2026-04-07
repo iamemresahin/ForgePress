@@ -53,7 +53,7 @@ export default async function AdminSourcesPage({
       <Card>
         <CardHeader className="space-y-2">
           <span className="eyebrow">{tr ? 'Kaynaklar' : 'Sources'}</span>
-          <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+          <CardTitle className="text-2xl font-bold">
             {tr ? 'Kaynak feedleri eklemeden önce bir site oluşturun.' : 'Create a site before adding source feeds.'}
           </CardTitle>
           <CardDescription className="text-sm leading-6">
@@ -76,10 +76,10 @@ export default async function AdminSourcesPage({
   return (
     <section className="space-y-6">
       <Card>
-        <CardHeader className="space-y-5">
+        <CardHeader className="space-y-2">
           <div className="space-y-2">
             <span className="eyebrow">{tr ? 'Kaynaklar' : 'Sources'}</span>
-            <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+            <CardTitle className="text-2xl font-bold">
               {tr ? 'İçe aktarma kaynakları artık admin panelinden düzenlenebilir.' : 'Ingestion sources are now editable from the admin plane.'}
             </CardTitle>
             <CardDescription className="max-w-3xl text-sm leading-6">
@@ -138,7 +138,7 @@ export default async function AdminSourcesPage({
         <Card>
           <CardHeader className="space-y-2">
             <span className="eyebrow">{tr ? 'Tanımlı kaynaklar' : 'Configured sources'}</span>
-            <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+            <CardTitle className="text-lg">
               {tr ? 'İçe aktarılmayı bekleyen sinyaller' : 'Signals waiting to be ingested'}
             </CardTitle>
             <CardDescription className="text-sm leading-6">

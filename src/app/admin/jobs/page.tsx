@@ -46,7 +46,7 @@ export default async function AdminJobsPage() {
       <Card>
         <CardHeader className="space-y-2">
           <span className="eyebrow">{tr ? 'Görevler' : 'Jobs'}</span>
-          <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+          <CardTitle className="text-2xl font-bold">
             {tr ? 'Görevleri kuyruğa almadan önce bir site oluşturun.' : 'Create a site before queueing jobs.'}
           </CardTitle>
           <CardDescription className="text-sm leading-6">
@@ -67,10 +67,10 @@ export default async function AdminJobsPage() {
   return (
     <section className="space-y-6">
       <Card>
-        <CardHeader className="space-y-5">
+        <CardHeader className="space-y-2">
           <div className="space-y-2">
             <span className="eyebrow">{tr ? 'Görevler' : 'Jobs'}</span>
-            <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+            <CardTitle className="text-2xl font-bold">
               {tr ? 'Kuyruk tabanlı operasyonlar artık admin tetikleme yüzeyine sahip.' : 'Queue-backed operations now have an admin trigger surface.'}
             </CardTitle>
             <CardDescription className="max-w-3xl text-sm leading-6">
@@ -110,7 +110,7 @@ export default async function AdminJobsPage() {
         <Card>
           <CardHeader className="space-y-2">
             <span className="eyebrow">{tr ? 'Son çalışmalar' : 'Recent runs'}</span>
-            <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+            <CardTitle className="text-lg">
               {tr ? 'Operasyon izi' : 'Operational trace'}
             </CardTitle>
             <CardDescription className="text-sm leading-6">

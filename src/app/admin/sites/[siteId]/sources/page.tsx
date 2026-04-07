@@ -41,9 +41,9 @@ export default async function SiteSourcesPage({
   return (
     <section className="space-y-6">
       <Card>
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-2">
           <span className="eyebrow">{site.name}</span>
-          <CardTitle className="text-[clamp(2rem,4vw,3rem)] leading-[0.96]">
+          <CardTitle className="text-xl font-semibold">
             {tr ? 'Kaynaklar' : 'Sources'}
           </CardTitle>
           <CardDescription className="text-sm leading-6">

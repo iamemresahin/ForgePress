@@ -49,7 +49,7 @@ export default async function AdminArticlesPage() {
       <Card>
         <CardHeader className="space-y-2">
           <span className="eyebrow">{tr ? 'Makaleler' : 'Articles'}</span>
-          <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+          <CardTitle className="text-2xl font-bold">
             {tr ? 'Makale taslağı oluşturmadan önce bir site oluşturun.' : 'Create a site before drafting articles.'}
           </CardTitle>
           <CardDescription className="text-sm leading-6">
@@ -72,10 +72,10 @@ export default async function AdminArticlesPage() {
   return (
     <section className="space-y-6">
       <Card>
-        <CardHeader className="space-y-5">
+        <CardHeader className="space-y-2">
           <div className="space-y-2">
             <span className="eyebrow">{tr ? 'Makaleler' : 'Articles'}</span>
-            <CardTitle className="text-[clamp(2.4rem,4vw,3.8rem)] leading-[0.96]">
+            <CardTitle className="text-2xl font-bold">
               {tr ? 'Manuel taslak artık kontrol panelinin bir parçası.' : 'Manual drafting is now part of the control plane.'}
             </CardTitle>
             <CardDescription className="max-w-3xl text-sm leading-6">
@@ -141,7 +141,7 @@ export default async function AdminArticlesPage() {
           <Card>
             <CardHeader className="space-y-2">
               <span className="eyebrow">{tr ? 'Son taslaklar' : 'Recent drafts'}</span>
-              <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">
+              <CardTitle className="text-lg">
                 {tr ? 'Editoryal kuyruk burada baslar' : 'Editorial queue starts here'}
               </CardTitle>
               <CardDescription className="text-sm leading-6">

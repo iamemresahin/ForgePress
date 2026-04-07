@@ -47,7 +47,7 @@ export function SourceForm({
       <CardHeader className="space-y-4">
         <div className="space-y-2">
           <span className="eyebrow">{tr ? 'Kaynak yönetimi' : 'Source management'}</span>
-          <CardTitle className="text-[clamp(1.8rem,3vw,2.6rem)]">{submitLabel}</CardTitle>
+          <CardTitle className="text-lg">{submitLabel}</CardTitle>
           <CardDescription className="text-sm leading-6">{description}</CardDescription>
         </div>
       </CardHeader>

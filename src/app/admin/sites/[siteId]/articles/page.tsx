@@ -41,11 +41,11 @@ export default async function SiteArticlesPage({
   return (
     <section className="space-y-6">
       <Card>
-        <CardHeader className="space-y-3">
+        <CardHeader className="space-y-2">
           <div className="flex flex-wrap items-center gap-3">
             <span className="eyebrow">{site.name}</span>
           </div>
-          <CardTitle className="text-[clamp(2rem,4vw,3rem)] leading-[0.96]">
+          <CardTitle className="text-xl font-semibold">
             {tr ? 'Makaleler' : 'Articles'}
           </CardTitle>
           <CardDescription className="text-sm leading-6">
