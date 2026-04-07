@@ -24,6 +24,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/scripts/start-with-migrate.mjs ./scripts/start-with-migrate.mjs
+COPY --from=builder /app/scripts/seed.mjs ./scripts/seed.mjs
 
 EXPOSE 3000
 

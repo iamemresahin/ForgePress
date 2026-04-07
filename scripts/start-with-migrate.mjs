@@ -77,8 +77,24 @@ async function runMigrations() {
   }
 }
 
+async function runSeed() {
+  try {
+    const seedPath = join(process.cwd(), 'scripts', 'seed.mjs')
+    const { seed } = await import(seedPath).catch(() => ({ seed: null }))
+    if (typeof seed === 'function') {
+      await seed()
+    } else {
+      // seed.mjs uses top-level await, just import it
+      await import(seedPath).catch((e) => console.warn('[startup] Seed skipped:', e.message))
+    }
+  } catch (e) {
+    console.warn('[startup] Seed error (non-fatal):', e.message)
+  }
+}
+
 async function main() {
   await runMigrations()
+  await runSeed()
 
   const child = spawn('node', ['server.js'], {
     stdio: 'inherit',
