@@ -85,33 +85,21 @@ export function PublicSiteHeader({
 
   return (
     <header className={headerClassName}>
+      {/* ── Top bar ── */}
       <div className="mx-auto flex w-full max-w-[1480px] items-center justify-between gap-6 px-4 py-4 md:px-6">
         <Link href={homeHref} className={`flex items-center gap-3 text-[1.75rem] font-semibold tracking-tight ${mode === 'light' ? 'text-slate-950' : 'text-white'}`}>
           <span className={brandBarClassName} />
           <span>{siteName}</span>
         </Link>
 
+        {/* Mobile: only dark mode toggle */}
         <div className="flex items-center gap-2 lg:hidden">
-          <PublicReaderAuthDialog
-            siteId={siteId}
-            siteName={siteName}
-            redirectPath={redirectPath}
-            locale={locale}
-            currentReader={currentReader}
-            authBrandName={authBrandName}
-            googleClientId={googleClientId}
-            triggerLabel={signInLabel}
-            triggerClassName={
-              mode === 'light'
-                ? 'inline-flex items-center rounded-full bg-slate-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-slate-800'
-                : 'inline-flex items-center rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-black transition hover:bg-white/92'
-            }
-          />
           <button type="button" onClick={toggleMode} className={ghostButtonClassName}>
             {mode === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
           </button>
         </div>
 
+        {/* Desktop: nav items */}
         <div className="hidden items-center gap-2 lg:flex">
           {navItems.map((item, index) => {
             const Icon = item.icon ? iconMap[item.icon] : null
@@ -138,6 +126,7 @@ export function PublicSiteHeader({
           })}
         </div>
 
+        {/* Desktop: utility buttons */}
         <div className="hidden items-center gap-3 lg:flex">
           {supportedLocales && supportedLocales.length > 1 && (
             <DropdownMenu>
@@ -255,6 +244,63 @@ export function PublicSiteHeader({
             }
           />
         </div>
+      </div>
+
+      {/* ── Mobile: horizontal category scroll ── */}
+      <div className="lg:hidden">
+        <div className="scrollbar-hide flex gap-2 overflow-x-auto px-4 pb-3 pt-0.5">
+          {navItems.map((item, index) => {
+            const Icon = item.icon ? iconMap[item.icon] : null
+            const isActive = item.active ?? index === 1
+
+            return (
+              <Link
+                key={item.label}
+                href={item.href}
+                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition ${
+                  isActive
+                    ? mode === 'light'
+                      ? 'border-slate-950 bg-slate-950 text-white'
+                      : 'border-white/0 bg-white text-black'
+                    : mode === 'light'
+                      ? 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-950'
+                      : 'border-white/12 text-white/68 hover:border-white/30 hover:text-white'
+                }`}
+              >
+                {item.accentDot ? <span className="size-1.5 rounded-full bg-[#ff5a4f]" /> : null}
+                {Icon ? <Icon className="size-3.5" /> : null}
+                {item.label}
+              </Link>
+            )
+          })}
+        </div>
+
+        {/* Mobile: extra topics as hamburger cards */}
+        {extraItems.length > 0 && (
+          <div className="scrollbar-hide flex gap-2.5 overflow-x-auto px-4 pb-3">
+            <span className={`shrink-0 self-center text-[0.72rem] font-semibold uppercase tracking-[0.2em] ${mode === 'light' ? 'text-slate-400' : 'text-white/38'}`}>
+              {otherCategoriesLabel}
+            </span>
+            {extraItems.map((item) => {
+              const Icon = item.icon ? iconMap[item.icon] : null
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2.5 text-[0.82rem] font-medium transition ${
+                    mode === 'light'
+                      ? 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
+                      : 'border-white/10 bg-white/[0.05] text-white/80 hover:border-white/20 hover:bg-white/[0.09]'
+                  }`}
+                >
+                  {Icon ? <Icon className={`size-3.5 ${mode === 'light' ? 'text-slate-400' : 'text-white/45'}`} /> : null}
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        )}
       </div>
     </header>
   )

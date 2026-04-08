@@ -132,7 +132,7 @@ export async function generateArticleDraft(
             {
               type: 'input_text',
               text:
-                'You write high-quality editorial drafts for a multi-site publishing platform. Output only JSON matching the provided schema. Keep claims cautious, useful, and review-friendly. Write in the requested locale. Body must be markdown with clear section headings.',
+                `You write high-quality editorial drafts for a multi-site publishing platform. Output only JSON matching the provided schema. Keep claims cautious, useful, and review-friendly. CRITICAL: You MUST write ALL text (title, slug, excerpt, body, seoTitle, seoDescription) exclusively in the locale specified in the request. Never mix languages. Never use any other language even for headings or labels. Body must be markdown with clear English-style section headings appropriate for the target locale.`,
             },
           ],
         },

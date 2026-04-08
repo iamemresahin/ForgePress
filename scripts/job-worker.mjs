@@ -469,7 +469,9 @@ async function runRewrite(client, queueJob) {
         'You are an expert editorial rewriter for a multi-site publishing platform. ' +
         'Given a rough draft article and site editorial context, produce a polished, ' +
         'publication-ready version. Output only JSON matching the provided schema. ' +
-        'Keep claims cautious and well-sourced. Write in the requested locale. ' +
+        'Keep claims cautious and well-sourced. ' +
+        'CRITICAL: Write ALL output text exclusively in the locale specified in the request. ' +
+        'Never mix languages. Never use another language even for headings or labels. ' +
         'Body must be markdown with clear section headings. Target 700-1100 words.',
         {
           siteName: site.name,
