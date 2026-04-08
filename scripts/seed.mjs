@@ -28,21 +28,11 @@ async function seed() {
     const adminPassword = process.env.FORGEPRESS_ADMIN_PASSWORD
 
     if (adminEmail && adminPassword) {
-      // Use bcrypt via node crypto to hash — fallback to plain marker if unavailable
-      let passwordHash
-      try {
-        const bcrypt = await import('bcryptjs').catch(() => null)
-        if (bcrypt) {
-          passwordHash = await bcrypt.hash(adminPassword, 12)
-        } else {
-          // bcryptjs not available — store as SHA placeholder (not secure, just to unblock)
-          const { createHash } = await import('node:crypto')
-          passwordHash = '$2b$12$' + createHash('sha256').update(adminPassword).digest('hex').slice(0, 53)
-        }
-      } catch {
-        const { createHash } = await import('node:crypto')
-        passwordHash = '$2b$12$' + createHash('sha256').update(adminPassword).digest('hex').slice(0, 53)
-      }
+      // Same hashing as src/lib/auth.ts: scrypt with random salt
+      const { randomBytes, scryptSync } = await import('node:crypto')
+      const salt = randomBytes(16).toString('hex')
+      const derivedKey = scryptSync(adminPassword, salt, 64).toString('hex')
+      const passwordHash = `${salt}:${derivedKey}`
 
       await client.query(
         `INSERT INTO admin_users (email, password_hash, display_name, role)
@@ -62,26 +52,40 @@ async function seed() {
     console.log('[seed] Autopilot enabled.')
 
     // ── 3. NoCode Builds site ──────────────────────────────────────────────────
-    const siteResult = await client.query(
-      `INSERT INTO sites (slug, name, default_locale, supported_locales, niche, tone_guide, status, theme_preset, homepage_layout, article_layout)
-       VALUES (
-         'nocodebuilds',
-         'NoCode Builds',
-         'tr',
-         '["tr","en"]'::jsonb,
-         'AI araçları, no-code platformlar ve yapay zeka haberleri',
-         'Bilgilendirici, anlaşılır, teknik olmayan okuyuculara uygun. Türk okuyucu kitlesine hitap eden samimi bir dil.',
-         'active',
-         'forge_blue',
-         'spotlight',
-         'editorial'
-       )
-       ON CONFLICT (slug) DO UPDATE SET status = 'active'
-       RETURNING id`,
+    // Look up the site by domain first to avoid creating a duplicate when the
+    // site already exists under a different slug (e.g. 'nocode-builds').
+    let siteId
+    const domainCheck = await client.query(
+      `SELECT site_id FROM site_domains WHERE hostname IN ('nocodebuilds.com', 'www.nocodebuilds.com') LIMIT 1`,
     )
-
-    const siteId = siteResult.rows[0].id
-    console.log('[seed] NoCode Builds site ready, id:', siteId)
+    if (domainCheck.rowCount > 0) {
+      siteId = domainCheck.rows[0].site_id
+      await client.query(
+        `UPDATE sites SET gtag_id = 'G-7F9Z7V00FY', status = 'active' WHERE id = $1`,
+        [siteId],
+      )
+      console.log('[seed] nocodebuilds.com site already exists, id:', siteId)
+    } else {
+      const siteResult = await client.query(
+        `INSERT INTO sites (slug, name, default_locale, supported_locales, niche, tone_guide, status, theme_preset, homepage_layout, article_layout)
+         VALUES (
+           'nocodebuilds',
+           'NoCode Builds',
+           'tr',
+           '["tr","en"]'::jsonb,
+           'AI araçları, no-code platformlar ve yapay zeka haberleri',
+           'Bilgilendirici, anlaşılır, teknik olmayan okuyuculara uygun. Türk okuyucu kitlesine hitap eden samimi bir dil.',
+           'active',
+           'forge_blue',
+           'spotlight',
+           'editorial'
+         )
+         ON CONFLICT (slug) DO UPDATE SET status = 'active', gtag_id = 'G-7F9Z7V00FY'
+         RETURNING id`,
+      )
+      siteId = siteResult.rows[0].id
+      console.log('[seed] NoCode Builds site created, id:', siteId)
+    }
 
     // ── 4. Sources ─────────────────────────────────────────────────────────────
     const sources = [
