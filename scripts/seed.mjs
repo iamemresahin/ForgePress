@@ -132,7 +132,7 @@ async function seed() {
       const res = await client.query(
         `INSERT INTO sources (site_id, label, type, url, locale, poll_minutes, is_active)
          VALUES ($1, $2, $3, $4, $5, $6, true)
-         ON CONFLICT DO NOTHING`,
+         ON CONFLICT (site_id, url) DO NOTHING`,
         [siteId, label, type, url, locale, pollMinutes],
       )
       inserted += res.rowCount ?? 0

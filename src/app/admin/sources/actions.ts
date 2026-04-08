@@ -93,6 +93,7 @@ export async function deleteSourceByIdAction(formData: FormData) {
 
   await db.delete(sources).where(eq(sources.id, sourceId))
   revalidatePath('/admin/sources')
+  redirect('/admin/sources')
 }
 
 export async function deleteSourceAction(sourceId: string) {
