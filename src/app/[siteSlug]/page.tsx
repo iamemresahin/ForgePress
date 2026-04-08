@@ -99,7 +99,7 @@ export default async function PublicSitePage({
     }
 
     const nextArticle = await getNextPublishedArticleForSite(site.id, article.id)
-    const publishedArticles = await getPublishedArticlesForSite(site.id)
+    const publishedArticles = await getPublishedArticlesForSite(site.id, 12)
     const currentReader = await getPublicReaderSession(site.id)
     const comments = await getCommentsForArticle(article.id, article.locale)
     const relatedArticles = getRelatedArticles(
@@ -130,7 +130,7 @@ export default async function PublicSitePage({
   }
 
   const theme = resolveSiteTheme(site)
-  const articles = await getPublishedArticlesForSite(site.id)
+  const articles = await getPublishedArticlesForSite(site.id, 12)
   const currentReader = await getPublicReaderSession(site.id)
 
   return <PublicSiteHome site={site} theme={theme} articles={articles} currentReader={currentReader} activeLocale={lang ?? null} />

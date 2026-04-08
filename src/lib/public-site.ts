@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, isNotNull } from 'drizzle-orm'
+import { and, asc, desc, eq, ilike, isNotNull, lt, or } from 'drizzle-orm'
 
 import { db } from '@/lib/db'
 import { articleComments, articleLocalizations, articles, siteDomains, siteMembers, sites } from '@/lib/db/schema'
@@ -76,7 +76,7 @@ export async function findSiteByHostname(hostname: string) {
   return null
 }
 
-export async function getPublishedArticlesForSite(siteId: string) {
+export async function getPublishedArticlesForSite(siteId: string, limit = 9999) {
   const publishedArticles = await db
     .select({
       id: articles.id,
@@ -92,8 +92,71 @@ export async function getPublishedArticlesForSite(siteId: string) {
     .innerJoin(articleLocalizations, eq(articleLocalizations.articleId, articles.id))
     .where(eq(articles.siteId, siteId))
     .orderBy(desc(articles.publishedAt), asc(articleLocalizations.locale))
+    .limit(limit)
 
   return publishedArticles.filter((article) => article.publishedAt)
+}
+
+export async function getMorePublishedArticles(
+  siteId: string,
+  cursor: string, // ISO date string — publishedAt of last loaded article
+  limit = 12,
+) {
+  const rows = await db
+    .select({
+      id: articles.id,
+      title: articleLocalizations.title,
+      slug: articleLocalizations.slug,
+      excerpt: articleLocalizations.excerpt,
+      imageUrl: articleLocalizations.imageUrl,
+      locale: articleLocalizations.locale,
+      publishedAt: articles.publishedAt,
+      updatedAt: articles.updatedAt,
+    })
+    .from(articles)
+    .innerJoin(articleLocalizations, eq(articleLocalizations.articleId, articles.id))
+    .where(
+      and(
+        eq(articles.siteId, siteId),
+        isNotNull(articles.publishedAt),
+        lt(articles.publishedAt, new Date(cursor)),
+      ),
+    )
+    .orderBy(desc(articles.publishedAt), asc(articleLocalizations.locale))
+    .limit(limit)
+
+  return rows.filter((r) => r.publishedAt)
+}
+
+export async function searchPublishedArticles(siteId: string, query: string, limit = 24) {
+  const q = `%${query.trim()}%`
+  const rows = await db
+    .select({
+      id: articles.id,
+      title: articleLocalizations.title,
+      slug: articleLocalizations.slug,
+      excerpt: articleLocalizations.excerpt,
+      imageUrl: articleLocalizations.imageUrl,
+      locale: articleLocalizations.locale,
+      publishedAt: articles.publishedAt,
+      updatedAt: articles.updatedAt,
+    })
+    .from(articles)
+    .innerJoin(articleLocalizations, eq(articleLocalizations.articleId, articles.id))
+    .where(
+      and(
+        eq(articles.siteId, siteId),
+        isNotNull(articles.publishedAt),
+        or(
+          ilike(articleLocalizations.title, q),
+          ilike(articleLocalizations.excerpt, q),
+        ),
+      ),
+    )
+    .orderBy(desc(articles.publishedAt))
+    .limit(limit)
+
+  return rows.filter((r) => r.publishedAt)
 }
 
 export function estimateReadTimeMinutes(text: string) {

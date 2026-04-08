@@ -1,5 +1,8 @@
+'use client'
+
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
-import { ArrowRight, ChevronRight } from 'lucide-react'
+import { ArrowRight, ChevronRight, Search, X } from 'lucide-react'
 
 import {
   buildEditorialImageDataUri,
@@ -10,30 +13,34 @@ import {
   getPublicCopy,
   type PublicArticleSummary,
 } from '@/lib/public-site'
+import { loadMoreArticlesAction, searchArticlesAction } from '@/app/actions/public-articles'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 import { PublicThemeShell } from '@/components/public/public-color-mode'
 import { PublicNewsAlert } from '@/components/public/public-news-alert'
 import { PublicSiteHeader } from '@/components/public/public-site-header'
 import { GoogleAnalytics } from '@/components/public/google-analytics'
+import { usePublicColorMode } from '@/components/public/public-color-mode'
+
+type SiteProps = {
+  id: string
+  name: string
+  slug: string
+  defaultLocale: string
+  supportedLocales: string[]
+  niche: string | null
+  toneGuide: string | null
+  topicLabelOverrides?: Record<string, string>
+  featuredNavLabel?: string | null
+  allNavLabel?: string | null
+  navTopicSlugs?: string[]
+  authBrandName?: string | null
+  googleClientId?: string | null
+  gtagId?: string | null
+  homepageLayout: 'spotlight' | 'digest'
+}
 
 type PublicSiteHomeProps = {
-  site: {
-    id: string
-    name: string
-    slug: string
-    defaultLocale: string
-    supportedLocales: string[]
-    niche: string | null
-    toneGuide: string | null
-    topicLabelOverrides?: Record<string, string>
-    featuredNavLabel?: string | null
-    allNavLabel?: string | null
-    navTopicSlugs?: string[]
-    authBrandName?: string | null
-    googleClientId?: string | null
-    gtagId?: string | null
-    homepageLayout: 'spotlight' | 'digest'
-  }
+  site: SiteProps
   theme: ResolvedSiteTheme
   articles: PublicArticleSummary[]
   useHostRouting?: boolean
@@ -351,6 +358,206 @@ function EditorialGridBlock({
   )
 }
 
+function SearchOverlay({
+  site,
+  useHostRouting,
+}: {
+  site: SiteProps
+  useHostRouting: boolean
+}) {
+  const { mode } = usePublicColorMode()
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<PublicArticleSummary[] | null>(null)
+  const [loading, setLoading] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (open) inputRef.current?.focus()
+    else { setQuery(''); setResults(null) }
+  }, [open])
+
+  useEffect(() => {
+    if (!query.trim()) { setResults(null); return }
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = setTimeout(async () => {
+      setLoading(true)
+      try {
+        const data = await searchArticlesAction(site.id, query)
+        setResults(data)
+      } finally {
+        setLoading(false)
+      }
+    }, 320)
+    return () => { if (timerRef.current) clearTimeout(timerRef.current) }
+  }, [query, site.id])
+
+  const light = mode === 'light'
+  const btnCls = light
+    ? 'inline-flex size-9 items-center justify-center rounded-full border border-slate-200 text-slate-500 hover:border-slate-400 hover:text-slate-950 transition'
+    : 'inline-flex size-9 items-center justify-center rounded-full border border-white/12 text-white/60 hover:border-white/30 hover:text-white transition'
+
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className={btnCls} aria-label="Search">
+        <Search className="size-4" />
+      </button>
+
+      {open && (
+        <div className="fixed inset-0 z-[60] flex flex-col" onClick={(e) => { if (e.target === e.currentTarget) setOpen(false) }}>
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setOpen(false)} />
+          <div
+            className={`relative mx-auto mt-[10vh] w-full max-w-2xl rounded-[28px] shadow-2xl ${
+              light ? 'border border-slate-200 bg-white' : 'border border-white/10 bg-[#111112]'
+            }`}
+          >
+            {/* Input row */}
+            <div className={`flex items-center gap-3 px-5 py-4 ${light ? 'border-b border-slate-100' : 'border-b border-white/8'}`}>
+              <Search className={`size-5 shrink-0 ${light ? 'text-slate-400' : 'text-white/38'}`} />
+              <input
+                ref={inputRef}
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={site.defaultLocale.startsWith('tr') ? 'Haber ara...' : 'Search articles...'}
+                className={`flex-1 bg-transparent text-[1rem] outline-none placeholder:opacity-50 ${light ? 'text-slate-950' : 'text-white'}`}
+              />
+              <button type="button" onClick={() => setOpen(false)} className={`inline-flex size-8 items-center justify-center rounded-full transition ${light ? 'text-slate-400 hover:bg-slate-100' : 'text-white/40 hover:bg-white/8'}`}>
+                <X className="size-4" />
+              </button>
+            </div>
+
+            {/* Results */}
+            <div className="max-h-[60vh] overflow-y-auto p-3">
+              {loading && (
+                <p className={`px-3 py-4 text-sm ${light ? 'text-slate-400' : 'text-white/40'}`}>
+                  {site.defaultLocale.startsWith('tr') ? 'Aranıyor...' : 'Searching...'}
+                </p>
+              )}
+              {!loading && results && results.length === 0 && (
+                <p className={`px-3 py-4 text-sm ${light ? 'text-slate-400' : 'text-white/40'}`}>
+                  {site.defaultLocale.startsWith('tr') ? 'Sonuç bulunamadı.' : 'No results found.'}
+                </p>
+              )}
+              {!loading && results && results.map((article) => (
+                <Link
+                  key={article.id}
+                  href={useHostRouting ? `/${article.slug}` : `/${site.slug}/${article.slug}`}
+                  onClick={() => setOpen(false)}
+                  className={`flex items-start gap-4 rounded-2xl p-3 transition ${light ? 'hover:bg-slate-50' : 'hover:bg-white/5'}`}
+                >
+                  {article.imageUrl && (
+                    <img src={article.imageUrl} alt={article.title} className="size-14 shrink-0 rounded-xl object-cover" />
+                  )}
+                  <div className="min-w-0">
+                    <p className={`line-clamp-2 font-medium leading-snug ${light ? 'text-slate-950' : 'text-white'}`}>{article.title}</p>
+                    {article.excerpt && (
+                      <p className={`mt-1 line-clamp-1 text-sm ${light ? 'text-slate-500' : 'text-white/50'}`}>{article.excerpt}</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+              {!loading && !results && query.length === 0 && (
+                <p className={`px-3 py-4 text-sm ${light ? 'text-slate-400' : 'text-white/38'}`}>
+                  {site.defaultLocale.startsWith('tr') ? 'Aramak için yazmaya başlayın.' : 'Start typing to search.'}
+                </p>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  )
+}
+
+function InfiniteArticleGrid({
+  site,
+  theme,
+  initialArticles,
+  useHostRouting,
+  label,
+  countLabel,
+}: {
+  site: SiteProps
+  theme: ResolvedSiteTheme
+  initialArticles: PublicArticleSummary[]
+  useHostRouting: boolean
+  label: string
+  countLabel: string
+}) {
+  const [articles, setArticles] = useState(initialArticles)
+  const [loading, setLoading] = useState(false)
+  const [hasMore, setHasMore] = useState(initialArticles.length >= 6)
+  const sentinelRef = useRef<HTMLDivElement>(null)
+
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore) return
+    const last = articles[articles.length - 1]
+    if (!last?.publishedAt) return
+    setLoading(true)
+    try {
+      const more = await loadMoreArticlesAction(site.id, last.publishedAt.toISOString())
+      if (more.length === 0) {
+        setHasMore(false)
+      } else {
+        setArticles((prev) => {
+          const ids = new Set(prev.map((a) => a.id))
+          return [...prev, ...more.filter((a) => !ids.has(a.id))]
+        })
+        if (more.length < 12) setHasMore(false)
+      }
+    } finally {
+      setLoading(false)
+    }
+  }, [articles, hasMore, loading, site.id])
+
+  useEffect(() => {
+    const el = sentinelRef.current
+    if (!el) return
+    const obs = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) loadMore() }, { rootMargin: '300px' })
+    obs.observe(el)
+    return () => obs.disconnect()
+  }, [loadMore])
+
+  if (articles.length === 0) return null
+
+  return (
+    <section id="latest" className="space-y-5">
+      <div className="public-border flex items-center justify-between gap-4 border-b pb-4">
+        <h2 className="public-text text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold">{label}</h2>
+        <span className="public-text-dim hidden text-sm md:inline-flex">{countLabel}</span>
+      </div>
+
+      <div className="grid auto-rows-fr gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {articles.map((article) => (
+          <EditorialStoryCard
+            key={article.id}
+            article={article}
+            site={site}
+            theme={theme}
+            useHostRouting={useHostRouting}
+          />
+        ))}
+      </div>
+
+      {/* Sentinel for IntersectionObserver */}
+      <div ref={sentinelRef} className="h-1" />
+
+      {loading && (
+        <div className="flex justify-center py-6">
+          <div className="public-text-faint flex items-center gap-2 text-sm">
+            <svg className="size-4 animate-spin" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeDasharray="31.4" strokeDashoffset="10" />
+            </svg>
+            {site.defaultLocale.startsWith('tr') ? 'Yükleniyor...' : 'Loading more...'}
+          </div>
+        </div>
+      )}
+    </section>
+  )
+}
+
 function KantanLikeHome({
   site,
   theme,
@@ -369,9 +576,8 @@ function KantanLikeHome({
     : localeFiltered
   const heroArticle = filteredArticles[0]
   const heroRailArticles = filteredArticles.slice(1, 3)
-  const firstGridArticles = filteredArticles.slice(3, 9)
-  const spotlightArticles = filteredArticles.slice(9, 12)
-  const recurringChunks = chunkArticles(filteredArticles.slice(12), 6)
+  const spotlightArticles = filteredArticles.slice(3, 6)
+  const gridArticles = filteredArticles.slice(6)
   const { primaryItems: navItems, extraItems } = buildEditorialNavItems(site, topics, useHostRouting ?? false)
   const homeHref = useHostRouting ? '/' : `/${site.slug}`
   const resolvedNavItems = navItems.map((item) => ({
@@ -400,6 +606,7 @@ function KantanLikeHome({
         authBrandName={site.authBrandName}
         googleClientId={site.googleClientId}
         supportedLocales={site.supportedLocales}
+        searchSlot={<SearchOverlay site={site} useHostRouting={useHostRouting ?? false} />}
       />
 
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-10 px-4 py-6 md:px-6 md:py-8">
@@ -451,23 +658,6 @@ function KantanLikeHome({
               </section>
             ) : null}
 
-            <section id="latest" className="space-y-5">
-              <div className="public-border flex items-center justify-between gap-4 border-b pb-4">
-                <div>
-                  <p className="public-text-faint text-xs font-medium uppercase tracking-[0.28em]">{copy.latestStories}</p>
-                  <h2 className="public-text mt-2 text-[clamp(1.7rem,2.2vw,2.4rem)] font-semibold">{copy.latestStories}</h2>
-                </div>
-                <span className="public-text-dim hidden text-sm md:inline-flex">{filteredArticles.length} {copy.publishedStories}</span>
-              </div>
-
-              <EditorialGridBlock
-                articles={firstGridArticles}
-                site={site}
-                theme={theme}
-                useHostRouting={useHostRouting ?? false}
-              />
-            </section>
-
             {spotlightArticles[0] ? (
               <section className="grid gap-5 xl:grid-cols-[minmax(0,1.72fr)_0.92fr]">
                 <EditorialFeatureCard
@@ -479,7 +669,6 @@ function KantanLikeHome({
                   accent={theme.tokens.heroGlow}
                   size="large"
                 />
-
                 <div className="grid gap-5">
                   {spotlightArticles.slice(1, 3).map((article) => (
                     <EditorialFeatureCard
@@ -496,15 +685,14 @@ function KantanLikeHome({
               </section>
             ) : null}
 
-            {recurringChunks.map((chunk, index) => (
-              <EditorialGridBlock
-                key={`grid-block-${index}`}
-                articles={chunk}
-                site={site}
-                theme={theme}
-                useHostRouting={useHostRouting ?? false}
-              />
-            ))}
+            <InfiniteArticleGrid
+              site={site}
+              theme={theme}
+              initialArticles={gridArticles}
+              useHostRouting={useHostRouting ?? false}
+              label={copy.latestStories}
+              countLabel={`${filteredArticles.length} ${copy.publishedStories}`}
+            />
           </>
         )}
       </div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { CarFront, ChevronDown, FlaskConical, Gamepad2, Globe, Monitor, Moon, Plus, Sun, X } from 'lucide-react'
@@ -161,6 +161,7 @@ export function PublicSiteHeader({
   authBrandName,
   googleClientId,
   supportedLocales,
+  searchSlot,
 }: {
   homeHref: string
   siteId: string
@@ -175,6 +176,7 @@ export function PublicSiteHeader({
   authBrandName?: string | null
   googleClientId?: string | null
   supportedLocales?: string[]
+  searchSlot?: React.ReactNode
 }) {
   const tr = locale.toLowerCase().startsWith('tr')
   const searchParams = useSearchParams()
@@ -203,8 +205,9 @@ export function PublicSiteHeader({
           <span>{siteName}</span>
         </Link>
 
-        {/* Mobile: only dark mode toggle */}
+        {/* Mobile: search + dark mode toggle */}
         <div className="flex items-center gap-2 lg:hidden">
+          {searchSlot}
           <button type="button" onClick={toggleMode} className={ghostButtonClassName}>
             {mode === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
           </button>
@@ -335,6 +338,7 @@ export function PublicSiteHeader({
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {searchSlot}
           <button type="button" onClick={toggleMode} className={utilityButtonClassName}>
             {mode === 'light' ? <Moon className="size-4" /> : <Sun className="size-4" />}
             {mode === 'light' ? (tr ? 'Karanlık' : 'Dark') : tr ? 'Aydınlık' : 'Light'}
