@@ -1,8 +1,9 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
-import { CarFront, FlaskConical, Gamepad2, Globe, Monitor, Moon, Plus, Sun } from 'lucide-react'
+import { CarFront, ChevronDown, FlaskConical, Gamepad2, Globe, Monitor, Moon, Plus, Sun, X } from 'lucide-react'
 
 import { usePublicColorMode } from '@/components/public/public-color-mode'
 import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-dialog'
@@ -34,6 +35,116 @@ const LOCALE_LABELS: Record<string, string> = {
   en: 'English', tr: 'Türkçe', de: 'Deutsch', fr: 'Français',
   es: 'Español', it: 'Italiano', pt: 'Português', ar: 'العربية',
   ja: '日本語', zh: '中文',
+}
+
+function MobileCategoryBar({
+  navItems,
+  extraItems,
+  otherCategoriesLabel,
+  mode,
+}: {
+  navItems: NavItem[]
+  extraItems: NavItem[]
+  otherCategoriesLabel: string
+  mode: 'light' | 'dark'
+}) {
+  const [open, setOpen] = useState(false)
+
+  return (
+    <div className="relative lg:hidden">
+      <div className="scrollbar-hide flex gap-2 overflow-x-auto px-4 pb-3 pt-0.5">
+        {navItems.map((item, index) => {
+          const Icon = item.icon ? iconMap[item.icon] : null
+          const isActive = item.active ?? index === 1
+
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition ${
+                isActive
+                  ? mode === 'light'
+                    ? 'border-slate-950 bg-slate-950 text-white'
+                    : 'border-white/0 bg-white text-black'
+                  : mode === 'light'
+                    ? 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-950'
+                    : 'border-white/12 text-white/68 hover:border-white/30 hover:text-white'
+              }`}
+            >
+              {item.accentDot ? <span className="size-1.5 rounded-full bg-[#ff5a4f]" /> : null}
+              {Icon ? <Icon className="size-3.5" /> : null}
+              {item.label}
+            </Link>
+          )
+        })}
+
+        {extraItems.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            className={`inline-flex shrink-0 items-center gap-1 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition ${
+              open
+                ? mode === 'light'
+                  ? 'border-slate-950 bg-slate-950 text-white'
+                  : 'border-white/0 bg-white text-black'
+                : mode === 'light'
+                  ? 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-950'
+                  : 'border-white/12 text-white/68 hover:border-white/30 hover:text-white'
+            }`}
+          >
+            <Plus className="size-3" />
+            {otherCategoriesLabel}
+            <ChevronDown className={`size-3 transition-transform ${open ? 'rotate-180' : ''}`} />
+          </button>
+        )}
+      </div>
+
+      {/* Extra topics dropdown panel */}
+      {open && extraItems.length > 0 && (
+        <div
+          className={`absolute left-0 right-0 z-50 mx-4 mb-2 rounded-[20px] border p-3 shadow-xl ${
+            mode === 'light'
+              ? 'border-slate-200 bg-white'
+              : 'border-white/10 bg-[#111112]'
+          }`}
+        >
+          <div className="mb-2 flex items-center justify-between px-1">
+            <span className={`text-[0.72rem] font-semibold uppercase tracking-[0.2em] ${mode === 'light' ? 'text-slate-400' : 'text-white/38'}`}>
+              {otherCategoriesLabel}
+            </span>
+            <button
+              type="button"
+              onClick={() => setOpen(false)}
+              className={`inline-flex size-6 items-center justify-center rounded-full ${mode === 'light' ? 'text-slate-400 hover:text-slate-700' : 'text-white/40 hover:text-white/80'}`}
+            >
+              <X className="size-3.5" />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {extraItems.map((item) => {
+              const Icon = item.icon ? iconMap[item.icon] : null
+
+              return (
+                <Link
+                  key={item.label}
+                  href={item.href}
+                  onClick={() => setOpen(false)}
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition ${
+                    mode === 'light'
+                      ? 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-950'
+                      : 'border-white/12 text-white/68 hover:border-white/30 hover:text-white'
+                  }`}
+                >
+                  {Icon ? <Icon className="size-3.5" /> : null}
+                  {item.label}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
 }
 
 export function PublicSiteHeader({
@@ -246,62 +357,13 @@ export function PublicSiteHeader({
         </div>
       </div>
 
-      {/* ── Mobile: horizontal category scroll ── */}
-      <div className="lg:hidden">
-        <div className="scrollbar-hide flex gap-2 overflow-x-auto px-4 pb-3 pt-0.5">
-          {navItems.map((item, index) => {
-            const Icon = item.icon ? iconMap[item.icon] : null
-            const isActive = item.active ?? index === 1
-
-            return (
-              <Link
-                key={item.label}
-                href={item.href}
-                className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[0.8rem] font-medium transition ${
-                  isActive
-                    ? mode === 'light'
-                      ? 'border-slate-950 bg-slate-950 text-white'
-                      : 'border-white/0 bg-white text-black'
-                    : mode === 'light'
-                      ? 'border-slate-200 text-slate-600 hover:border-slate-400 hover:text-slate-950'
-                      : 'border-white/12 text-white/68 hover:border-white/30 hover:text-white'
-                }`}
-              >
-                {item.accentDot ? <span className="size-1.5 rounded-full bg-[#ff5a4f]" /> : null}
-                {Icon ? <Icon className="size-3.5" /> : null}
-                {item.label}
-              </Link>
-            )
-          })}
-        </div>
-
-        {/* Mobile: extra topics as hamburger cards */}
-        {extraItems.length > 0 && (
-          <div className="scrollbar-hide flex gap-2.5 overflow-x-auto px-4 pb-3">
-            <span className={`shrink-0 self-center text-[0.72rem] font-semibold uppercase tracking-[0.2em] ${mode === 'light' ? 'text-slate-400' : 'text-white/38'}`}>
-              {otherCategoriesLabel}
-            </span>
-            {extraItems.map((item) => {
-              const Icon = item.icon ? iconMap[item.icon] : null
-
-              return (
-                <Link
-                  key={item.label}
-                  href={item.href}
-                  className={`inline-flex shrink-0 items-center gap-2 rounded-2xl border px-4 py-2.5 text-[0.82rem] font-medium transition ${
-                    mode === 'light'
-                      ? 'border-slate-200 bg-slate-50 text-slate-700 hover:border-slate-300 hover:bg-slate-100'
-                      : 'border-white/10 bg-white/[0.05] text-white/80 hover:border-white/20 hover:bg-white/[0.09]'
-                  }`}
-                >
-                  {Icon ? <Icon className={`size-3.5 ${mode === 'light' ? 'text-slate-400' : 'text-white/45'}`} /> : null}
-                  {item.label}
-                </Link>
-              )
-            })}
-          </div>
-        )}
-      </div>
+      {/* ── Mobile: horizontal category scroll with +More dropdown ── */}
+      <MobileCategoryBar
+        navItems={navItems}
+        extraItems={extraItems}
+        otherCategoriesLabel={otherCategoriesLabel}
+        mode={mode}
+      />
     </header>
   )
 }

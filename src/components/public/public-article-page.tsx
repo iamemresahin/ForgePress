@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { ArrowLeft, ArrowRight, ArrowUpRight, CalendarClock } from 'lucide-react'
 
 import {
+  buildDerivedTopics,
   buildEditorialImageDataUri,
   estimateReadTimeMinutes,
   formatFreshnessLabel,
@@ -16,6 +17,7 @@ import { PublicReaderAuthDialog } from '@/components/public/public-reader-auth-d
 import { AdUnit } from '@/components/public/ad-unit'
 import { PublicArticleActions, YouTubeEmbed } from '@/components/public/public-article-actions'
 import { GoogleAnalytics } from '@/components/public/google-analytics'
+import { PublicSiteHeader } from '@/components/public/public-site-header'
 
 type PublicArticlePageProps = {
   article: PublicArticleDetail
@@ -157,31 +159,40 @@ function KantanLikeArticle({
       : `/${article.siteSlug}/${nextArticle.slug}`
     : null
 
+  // Build nav items from related articles topics
+  const topics = buildDerivedTopics(relatedArticles, null, article.topicLabelOverrides ?? undefined, article.locale)
+  const preferredOrder = article.navTopicSlugs && article.navTopicSlugs.length > 0
+    ? article.navTopicSlugs
+    : ['ai', 'tools', 'startups', 'development', 'design', 'technology']
+  const topicMap = new Map(topics.map((t) => [t.slug, t]))
+  const orderedTopics = preferredOrder.map((s) => topicMap.get(s)).filter(Boolean) as typeof topics
+  for (const t of topics) {
+    if (!orderedTopics.find((o) => o.slug === t.slug)) orderedTopics.push(t)
+  }
+  const getTopicHref = (slug: string) => useHostRouting ? `/topics/${slug}` : `/${article.siteSlug}/topics/${slug}`
+  const navItems = [
+    { href: homeHref, label: article.featuredNavLabel?.trim() || copy.featured, accentDot: true },
+    { href: homeHref, label: article.allNavLabel?.trim() || copy.all },
+    ...orderedTopics.slice(0, 4).map((t) => ({ href: getTopicHref(t.slug), label: t.label })),
+  ]
+  const extraItems = orderedTopics.slice(4).map((t) => ({ href: getTopicHref(t.slug), label: t.label }))
+
   return (
     <PublicThemeShell className="min-h-screen" style={theme.style}>
-      <header className="public-border border-b backdrop-blur-xl" style={{ background: 'color-mix(in srgb, var(--site-background-current) 92%, transparent)' }}>
-        <div className="mx-auto flex w-full max-w-[1120px] items-center justify-between gap-4 px-4 py-4 md:px-6">
-          <div className="flex items-center gap-3">
-            <Link href={homeHref} className="public-text text-[1.4rem] font-semibold tracking-tight">
-              {article.siteName}
-            </Link>
-            <Link href={homeHref} className="public-border public-text-dim hidden rounded-full border px-4 py-2 text-sm md:inline-flex">
-              {copy.backHome}
-            </Link>
-          </div>
-          <PublicReaderAuthDialog
-            siteId={article.siteId}
-            siteName={article.siteName}
-            redirectPath={redirectPath}
-            locale={article.locale}
-            currentReader={currentReader}
-            authBrandName={article.authBrandName}
-            googleClientId={article.googleClientId}
-            triggerLabel={copy.signIn}
-            triggerClassName="public-border public-text-dim rounded-full border px-4 py-2 text-sm transition"
-          />
-        </div>
-      </header>
+      <PublicSiteHeader
+        homeHref={homeHref}
+        siteId={article.siteId}
+        siteName={article.siteName}
+        locale={article.locale}
+        redirectPath={redirectPath}
+        navItems={navItems}
+        extraItems={extraItems}
+        signInLabel={copy.signIn}
+        otherCategoriesLabel={copy.otherCategories}
+        currentReader={currentReader}
+        authBrandName={article.authBrandName}
+        googleClientId={article.googleClientId}
+      />
 
       <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-8 px-4 py-8 md:px-6 md:py-10">
         {/* Hero metadata + title */}
