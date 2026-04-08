@@ -1,6 +1,7 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
 import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 
@@ -80,8 +81,18 @@ export async function updateSourceAction(
     .where(eq(sources.id, sourceId))
 
   revalidatePath('/admin/sources')
-  revalidatePath(`/admin/sources/${sourceId}`)
-  return { error: undefined }
+  redirect('/admin/sources')
+}
+
+export async function deleteSourceByIdAction(formData: FormData) {
+  const session = await requireAdminSession()
+  requireEditorOrAbove(session)
+
+  const sourceId = formData.get('sourceId') as string
+  if (!sourceId) return
+
+  await db.delete(sources).where(eq(sources.id, sourceId))
+  revalidatePath('/admin/sources')
 }
 
 export async function deleteSourceAction(sourceId: string) {

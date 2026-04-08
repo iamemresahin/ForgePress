@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { desc, eq } from 'drizzle-orm'
+import { Trash2 } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,7 +12,7 @@ import { translateSourceType } from '@/lib/interface-locale'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 import { getActiveSiteId } from '@/lib/active-site.server'
 
-import { createSourceAction } from './actions'
+import { createSourceAction, deleteSourceByIdAction } from './actions'
 import { SourceForm } from './source-form'
 import { SourceImportPanel } from './source-import'
 
@@ -124,32 +125,45 @@ export default async function AdminSourcesPage({
                 <p className="muted">{tr ? 'İçe aktarma katmanını hazırlamak için ilk kaynağı oluşturun.' : 'Create the first source to prepare the ingestion layer.'}</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {sourceRows.map((source) => (
-                  <Link
-                    className="list-card block space-y-3 transition hover:border-primary/40 hover:bg-accent/30"
-                    href={`/admin/sources/${source.id}`}
-                    key={source.id}
-                  >
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="rounded-full px-3 py-1">
-                        {source.siteName}
-                      </Badge>
-                      <Badge variant="secondary" className="rounded-full px-3 py-1">
-                        {source.locale}
-                      </Badge>
-                      <Badge variant="outline" className="rounded-full px-3 py-1 capitalize">
+                  <div key={source.id} className="list-card flex items-start gap-3">
+                    <Link
+                      className="min-w-0 flex-1 space-y-3"
+                      href={`/admin/sources/${source.id}`}
+                    >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Badge variant="outline" className="rounded-full px-3 py-1">
+                          {source.siteName}
+                        </Badge>
+                        <Badge variant="secondary" className="rounded-full px-3 py-1">
+                          {source.locale}
+                        </Badge>
+                        <Badge variant="outline" className="rounded-full px-3 py-1 capitalize">
                           {source.isActive ? (tr ? 'aktif' : 'active') : tr ? 'duraklatıldı' : 'paused'}
-                      </Badge>
-                    </div>
-                    <div className="space-y-1">
-                      <strong className="mt-0 text-xl">{source.label}</strong>
-                      <p className="muted">
-                        {translateSourceType(locale, source.type)} · {tr ? `her ${source.pollMinutes} dk` : `every ${source.pollMinutes} min`}
-                      </p>
-                    </div>
-                    <p className="text-sm leading-6 text-foreground/80">{source.url}</p>
-                  </Link>
+                        </Badge>
+                      </div>
+                      <div className="space-y-1">
+                        <strong className="mt-0 text-xl">{source.label}</strong>
+                        <p className="muted">
+                          {translateSourceType(locale, source.type)} · {tr ? `her ${source.pollMinutes} dk` : `every ${source.pollMinutes} min`}
+                        </p>
+                      </div>
+                      <p className="text-sm leading-6 text-foreground/80">{source.url}</p>
+                    </Link>
+                    <form action={deleteSourceByIdAction} className="shrink-0">
+                      <input type="hidden" name="sourceId" value={source.id} />
+                      <Button
+                        type="submit"
+                        variant="ghost"
+                        size="icon"
+                        className="size-9 rounded-xl text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                        title={tr ? 'Kaynağı sil' : 'Delete source'}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </form>
+                  </div>
                 ))}
               </div>
             )}
