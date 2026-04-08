@@ -12,7 +12,7 @@ import {
   formatFreshnessLabel,
   getPublicCopy,
   type PublicArticleSummary,
-} from '@/lib/public-site'
+} from '@/lib/public-site-utils'
 import { loadMoreArticlesAction, searchArticlesAction } from '@/app/actions/public-articles'
 import { type ResolvedSiteTheme } from '@/lib/site-theme'
 import { PublicThemeShell } from '@/components/public/public-color-mode'
