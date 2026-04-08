@@ -1,5 +1,6 @@
 import Link from 'next/link'
-import { LogOut, Plus } from 'lucide-react'
+import { eq } from 'drizzle-orm'
+import { Bot, LogOut, Plus } from 'lucide-react'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import { AdminRouteHeader } from '@/components/admin/admin-route-header'
@@ -7,9 +8,11 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { requireAdminSession } from '@/lib/auth'
+import { db } from '@/lib/db'
+import { platformSettings } from '@/lib/db/schema'
 import { getInterfaceLocale } from '@/lib/interface-locale.server'
 
-import { logoutAction, setAdminLocaleAction } from './actions'
+import { logoutAction, setAdminLocaleAction, toggleAutopilotAction } from './actions'
 
 export default async function AdminLayout({
   children,
@@ -18,6 +21,13 @@ export default async function AdminLayout({
 }>) {
   const session = await requireAdminSession()
   const locale = await getInterfaceLocale()
+
+  const autopilotRow = await db
+    .select({ value: platformSettings.value })
+    .from(platformSettings)
+    .where(eq(platformSettings.key, 'autopilot'))
+    .then((rows) => rows[0])
+  const autopilotOn = autopilotRow?.value === true
 
   return (
     <SidebarProvider
@@ -98,6 +108,24 @@ export default async function AdminLayout({
                     >
                       EN
                     </button>
+                  </form>
+                  <form action={toggleAutopilotAction}>
+                    <Button
+                      type="submit"
+                      variant={autopilotOn ? 'default' : 'outline'}
+                      className={`rounded-2xl gap-2 ${autopilotOn ? 'border-emerald-400/40 bg-emerald-500 hover:bg-emerald-600' : ''}`}
+                    >
+                      <span className="relative flex size-2 shrink-0">
+                        {autopilotOn && (
+                          <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-200 opacity-75" />
+                        )}
+                        <span className={`relative inline-flex size-2 rounded-full ${autopilotOn ? 'bg-white' : 'bg-slate-300'}`} />
+                      </span>
+                      <Bot className="size-4" />
+                      {autopilotOn
+                        ? locale === 'tr' ? 'Autopilot açık' : 'Autopilot on'
+                        : locale === 'tr' ? 'Autopilot kapalı' : 'Autopilot off'}
+                    </Button>
                   </form>
                   <Button asChild variant="outline" className="rounded-2xl lg:hidden">
                     <Link href="/admin/sites">{locale === 'tr' ? 'Siteler' : 'Sites'}</Link>

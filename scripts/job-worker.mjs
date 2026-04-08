@@ -1,4 +1,4 @@
-import { Worker } from 'bullmq'
+import { Queue, Worker } from 'bullmq'
 import IORedis from 'ioredis'
 import pg from 'pg'
 
@@ -21,6 +21,16 @@ const queueUrl = requireEnv('QUEUE_URL')
 const redis = new IORedis(queueUrl, {
   maxRetriesPerRequest: null,
   enableReadyCheck: false,
+})
+
+const queue = new Queue(QUEUE_NAME, {
+  connection: redis,
+  defaultJobOptions: {
+    removeOnComplete: 100,
+    removeOnFail: 200,
+    attempts: 3,
+    backoff: { type: 'exponential', delay: 5_000 },
+  },
 })
 
 function createClient() {
@@ -413,9 +423,108 @@ worker.on('failed', (job, error) => {
   console.error(`[worker] failed ${job?.name ?? 'unknown'} (${job?.data?.id ?? 'unknown'})`, error)
 })
 
+const INGESTION_INTERVAL_MS = 60_000
+const PIPELINE_INTERVAL_MS = 5 * 60_000
+
+async function isAutopilotEnabled(client) {
+  const result = await client.query(
+    `select value from platform_settings where key = 'autopilot' limit 1`,
+  )
+  return result.rows[0]?.value === true
+}
+
+async function ingestionTick() {
+  try {
+    await withClient(async (client) => {
+      const sitesResult = await client.query(
+        `select id from sites where status = 'active' order by created_at`,
+      )
+
+      for (const site of sitesResult.rows) {
+        const sourcesResult = await client.query(
+          `
+            select id from sources
+            where site_id = $1
+              and is_active = true
+              and (last_fetched_at is null or last_fetched_at < now() - (poll_minutes * interval '1 minute'))
+            limit 10
+          `,
+          [site.id],
+        )
+
+        if (sourcesResult.rowCount === 0) continue
+
+        const jobInsert = await client.query(
+          `
+            insert into jobs (site_id, kind, status, payload)
+            values ($1, 'ingestion', 'queued', $2::jsonb)
+            returning id
+          `,
+          [site.id, JSON.stringify({ siteId: site.id })],
+        )
+
+        const jobId = jobInsert.rows[0].id
+
+        await queue.add('ingestion', { id: jobId, siteId: site.id })
+
+        await client.query(
+          `update sources set last_fetched_at = now() where site_id = $1 and is_active = true`,
+          [site.id],
+        )
+
+        console.log(`[scheduler] queued ingestion for site ${site.id}`)
+      }
+    })
+  } catch (error) {
+    console.error('[scheduler] ingestionTick error', error)
+  }
+}
+
+async function pipelineTick() {
+  try {
+    await withClient(async (client) => {
+      if (!(await isAutopilotEnabled(client))) {
+        console.log('[scheduler] autopilot off — skipping pipeline tick')
+        return
+      }
+
+      const pendingResult = await client.query(
+        `
+          select id, site_id, kind from jobs
+          where status = 'queued'
+            and kind in ('rewrite', 'localization', 'image', 'publish')
+          order by created_at
+          limit 20
+        `,
+      )
+
+      if (pendingResult.rowCount === 0) {
+        console.log('[scheduler] no pending pipeline jobs')
+        return
+      }
+
+      for (const job of pendingResult.rows) {
+        await queue.add(job.kind, { id: job.id, siteId: job.site_id })
+        console.log(`[scheduler] re-queued ${job.kind} job ${job.id}`)
+      }
+    })
+  } catch (error) {
+    console.error('[scheduler] pipelineTick error', error)
+  }
+}
+
+const ingestionInterval = setInterval(ingestionTick, INGESTION_INTERVAL_MS)
+const pipelineInterval = setInterval(pipelineTick, PIPELINE_INTERVAL_MS)
+
+setTimeout(ingestionTick, 10_000)
+setTimeout(pipelineTick, 15_000)
+
 async function shutdown(signal) {
   console.log(`[worker] shutting down on ${signal}`)
+  clearInterval(ingestionInterval)
+  clearInterval(pipelineInterval)
   await worker.close()
+  await queue.close()
   await redis.quit()
   process.exit(0)
 }

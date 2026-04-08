@@ -4,6 +4,8 @@ import { spawn } from 'node:child_process'
 
 import pg from 'pg'
 
+import { runSeed } from './seed.mjs'
+
 const { Client } = pg
 
 const MIGRATIONS_DIR = join(process.cwd(), 'drizzle')
@@ -79,6 +81,9 @@ async function runMigrations() {
 
 async function main() {
   await runMigrations()
+
+  // Seed is best-effort — never block or crash startup
+  runSeed().catch((e) => console.warn('[startup] Seed failed (non-fatal):', e.message))
 
   const child = spawn('node', ['server.js'], {
     stdio: 'inherit',

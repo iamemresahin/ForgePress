@@ -79,6 +79,7 @@ export const sites = pgTable(
     createdByAdminId: uuid('created_by_admin_id').references(() => adminUsers.id, {
       onDelete: 'set null',
     }),
+    gtagId: varchar('gtag_id', { length: 32 }),
     status: siteStatusEnum('status').notNull().default('draft'),
     createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -133,23 +134,29 @@ export const articles = pgTable('articles', {
   publishedAt: timestamp('published_at', { withTimezone: true }),
 })
 
-export const articleLocalizations = pgTable('article_localizations', {
-  id: uuid('id').defaultRandom().primaryKey(),
-  articleId: uuid('article_id')
-    .references(() => articles.id, { onDelete: 'cascade' })
-    .notNull(),
-  locale: varchar('locale', { length: 16 }).notNull(),
-  title: varchar('title', { length: 255 }).notNull(),
-  slug: varchar('slug', { length: 255 }).notNull(),
-  excerpt: text('excerpt'),
-  body: text('body').notNull(),
-  seoTitle: varchar('seo_title', { length: 255 }),
-  seoDescription: text('seo_description'),
-  imageUrl: text('image_url'),
-  schemaJson: jsonb('schema_json').$type<Record<string, unknown> | null>().default(null),
-  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-})
+export const articleLocalizations = pgTable(
+  'article_localizations',
+  {
+    id: uuid('id').defaultRandom().primaryKey(),
+    articleId: uuid('article_id')
+      .references(() => articles.id, { onDelete: 'cascade' })
+      .notNull(),
+    locale: varchar('locale', { length: 16 }).notNull(),
+    title: varchar('title', { length: 255 }).notNull(),
+    slug: varchar('slug', { length: 255 }).notNull(),
+    excerpt: text('excerpt'),
+    body: text('body').notNull(),
+    seoTitle: varchar('seo_title', { length: 255 }),
+    seoDescription: text('seo_description'),
+    imageUrl: text('image_url'),
+    schemaJson: jsonb('schema_json').$type<Record<string, unknown> | null>().default(null),
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => ({
+    articleLocaleIdx: uniqueIndex('article_localizations_article_locale_idx').on(table.articleId, table.locale),
+  }),
+)
 
 export const jobs = pgTable('jobs', {
   id: uuid('id').defaultRandom().primaryKey(),
@@ -160,6 +167,7 @@ export const jobs = pgTable('jobs', {
   errorMessage: text('error_message'),
   attempts: integer('attempts').notNull().default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   startedAt: timestamp('started_at', { withTimezone: true }),
   finishedAt: timestamp('finished_at', { withTimezone: true }),
 })
@@ -181,6 +189,12 @@ export const siteMembers = pgTable(
     siteMemberUniqueEmailIdx: uniqueIndex('site_members_site_email_idx').on(table.siteId, table.email),
   }),
 )
+
+export const platformSettings = pgTable('platform_settings', {
+  key: varchar('key', { length: 80 }).primaryKey(),
+  value: jsonb('value').notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+})
 
 export const articleComments = pgTable('article_comments', {
   id: uuid('id').defaultRandom().primaryKey(),
