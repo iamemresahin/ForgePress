@@ -125,9 +125,6 @@ export async function generateArticleDraft(
     headers: getHeaders(),
     body: JSON.stringify({
       model: env.OPENAI_TEXT_MODEL,
-      reasoning: {
-        effort: 'medium',
-      },
       input: [
         {
           role: 'developer',
